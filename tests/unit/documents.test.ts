@@ -96,6 +96,16 @@ vi.mock('../../server/db.js', () => ({
     investigationItem: {
       createMany: vi.fn().mockResolvedValue({ count: 0 }),
     },
+    educationProfile: {
+      findUnique: vi.fn().mockResolvedValue(null),
+      upsert: vi.fn().mockResolvedValue({ id: 'ep-1', userId: 'user-1', dismissedTerms: [], trainingModulesCompleted: null, isTrainingComplete: true, learningModeExpiry: null }),
+      update: vi.fn().mockResolvedValue({}),
+    },
+    workflowProgress: {
+      create: vi.fn().mockResolvedValue({}),
+      findUnique: vi.fn().mockResolvedValue(null),
+      update: vi.fn().mockResolvedValue({}),
+    },
   },
 }));
 

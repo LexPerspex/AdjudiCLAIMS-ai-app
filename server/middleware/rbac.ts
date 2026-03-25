@@ -18,6 +18,7 @@ export interface SessionUser {
   email: string;
   role: UserRole;
   organizationId: string;
+  isTrainingComplete?: boolean;  // Set during login from EducationProfile
 }
 
 // Extend Fastify session type so `request.session.user` is recognized.

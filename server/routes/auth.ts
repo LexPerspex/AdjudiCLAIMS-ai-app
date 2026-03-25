@@ -62,12 +62,19 @@ export async function authRoutes(server: FastifyInstance): Promise<void> {
       return reply.code(401).send({ error: 'Invalid credentials' });
     }
 
-    // Set session
+    // Fetch education profile to set training gate flag
+    const educationProfile = await prisma.educationProfile.findUnique({
+      where: { userId: user.id },
+      select: { isTrainingComplete: true },
+    });
+
+    // Set session — includes training completion status for gate middleware
     request.session.user = {
       id: user.id,
       email: user.email,
       role: user.role as UserRole,
       organizationId: user.organizationId,
+      isTrainingComplete: educationProfile?.isTrainingComplete ?? false,
     };
 
     // Audit log — never log email content, only user ID

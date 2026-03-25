@@ -1,0 +1,792 @@
+/**
+ * Tier 2 — Always-present regulatory education entries.
+ *
+ * These are NEVER hidden — they form the Glass Box foundation. Every decision
+ * point shows the relevant regulatory authority, what it means in practice,
+ * what happens if violated, and how the product helps the examiner comply.
+ *
+ * 57 entries across 7 regulatory sections:
+ *   Part 1: Insurance Code §790.03(h) — 16 entries
+ *   Part 2: DOI Regulations 10 CCR 2695 — 11 entries
+ *   Part 3: DWC Claims Administration CCR Title 8 — 9 entries
+ *   Part 4: Labor Code Benefits Payment — 10 entries
+ *   Part 5: Labor Code Medical-Legal Evaluation — 3 entries
+ *   Part 6: Labor Code Notice and Disclosure — 3 entries
+ *   Part 7: Utilization Review Regulations CCR Title 8 — 5 entries
+ */
+
+import type { FeatureContext } from './tier1-terms.js';
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+export interface Tier2EducationEntry {
+  id: string;
+  title: string;
+  authority: string;
+  standard: string;
+  consequence: string;
+  commonMistake: string;
+  productHelps: string;
+  youMust: string;
+  escalationTrigger: string;
+  featureContexts: FeatureContext[];
+}
+
+// ---------------------------------------------------------------------------
+// Part 1: Insurance Code §790.03(h) — Unfair Claims Settlement Practices
+// ---------------------------------------------------------------------------
+
+const PART1_INSURANCE_CODE: Tier2EducationEntry[] = [
+  {
+    id: 'ins_790_03_h_1',
+    title: 'Misrepresentation of Facts or Policy Provisions',
+    authority: 'Cal. Ins. Code § 790.03(h)(1)',
+    standard: 'Every communication about policy coverage or claim facts must be accurate. You cannot downplay severity, omit favorable evidence, or overstate unfavorable evidence. Accuracy is a statutory duty, not just good practice.',
+    consequence: 'DOI market conduct findings, administrative penalties per CCR 10108, potential company-level Cease and Desist under § 790.035, and bad faith civil liability with compensatory and punitive damages.',
+    commonMistake: 'Characterizing a 12% WPI rating as "minimal impairment" in a letter, or telling a claimant that treatment is not covered when the policy is actually silent and MTUS/ACOEM guidelines support it.',
+    productHelps: 'Document Classification identifies medical reports automatically. Medical Record Summary extracts WPI ratings, diagnoses, and restrictions verbatim from source documents. Claims Chat quotes source text rather than paraphrasing.',
+    youMust: 'Read actual medical reports and policy provisions before making any written or verbal representation. Use document language, not your own characterization. Represent unfavorable findings accurately.',
+    escalationTrigger: 'Conflicting medical reports creating ambiguity about claim facts, or uncertainty whether a treatment/benefit is covered under the policy.',
+    featureContexts: ['DOCUMENT_REVIEW', 'CHAT', 'COVERAGE_DETERMINATION'],
+  },
+  {
+    id: 'ins_790_03_h_2',
+    title: 'Failure to Acknowledge and Act Promptly on Communications',
+    authority: 'Cal. Ins. Code § 790.03(h)(2)',
+    standard: 'You must acknowledge receipt of any claim communication within 15 calendar days per 10 CCR 2695.5(b) and begin acting on its substance. Acknowledgment alone is not enough — you must also respond substantively.',
+    consequence: '15-day deadline is one of the most commonly audited compliance points. Each missed deadline is a separate audit finding with administrative penalties under CCR 10108. Unanswered communications are often the first step toward bad faith exposure.',
+    commonMistake: 'Reading a letter, planning to respond after finishing a more urgent task, then forgetting. Three weeks later the 15-day window has passed with no acknowledgment in the file.',
+    productHelps: 'Regulatory Deadline Dashboard tracks the 15-day acknowledgment window for every incoming communication with color-coded urgency warnings.',
+    youMust: 'Check your communications dashboard daily. Log every communication immediately. Send acknowledgment within 15 calendar days even if the substantive response takes longer.',
+    escalationTrigger: 'Communication past the 15-day window, or a demand for benefits with a pending deadline compounded by the delayed response.',
+    featureContexts: ['DEADLINE_TRACKING', 'CLAIM_INTAKE'],
+  },
+  {
+    id: 'ins_790_03_h_3',
+    title: 'Failure to Adopt Reasonable Investigation Standards',
+    authority: 'Cal. Ins. Code § 790.03(h)(3)',
+    standard: 'Your employer must have written investigation procedures and you must follow them on every claim. Investigation begins immediately upon receipt, includes three-point contact, and must be fully documented in the file.',
+    consequence: 'DWC audit findings under CCR 10109 for investigation inadequacy, administrative penalties per CCR 10108, and foundation for bad faith claims — an inadequate investigation compounds to (h)(4) violations.',
+    commonMistake: 'Focusing on compensability based on the DWC-1 form alone without completing three-point contact, gathering medical records, or documenting investigative steps in the file.',
+    productHelps: 'Investigation Checklist auto-populates required steps for each new claim and tracks status. Claim Chronology generates a timeline of all investigative activity showing gaps.',
+    youMust: 'Follow the investigation checklist for every new claim. Contact injured worker, employer, and treating physician within required timeframes. Document every contact attempt with date, time, method, and outcome.',
+    escalationTrigger: 'Unable to complete investigation within timeframes due to unresponsive parties, or investigation reveals fraud, subrogation potential, or legal coverage questions.',
+    featureContexts: ['INVESTIGATION', 'CLAIM_INTAKE'],
+  },
+  {
+    id: 'ins_790_03_h_4',
+    title: 'Refusing to Pay Without Reasonable Investigation',
+    authority: 'Cal. Ins. Code § 790.03(h)(4)',
+    standard: 'Before denying any claim or component, you must have a documented investigation that considered all evidence — favorable and unfavorable. You cannot cherry-pick evidence supporting denial while ignoring evidence supporting the claim.',
+    consequence: 'DWC audit findings, DOI market conduct findings, WCAB penalties under LC 5814 (up to 25% increase on unreasonably denied benefits), and bad faith civil liability. This is one of the most aggressively audited subdivisions.',
+    commonMistake: 'Denying a claim based on a prior knee surgery without obtaining current medical records showing whether the physician found a new injury, aggravation, or causation opinion.',
+    productHelps: 'Investigation Checklist enforces completeness before denial. Document Classification surfaces all medical reports so you cannot miss contradicting evidence. Claims Chat queries all documents at once.',
+    youMust: 'Never deny without a completed, documented investigation. Ask: "Would a WCJ or DOI auditor find this investigation supports this denial?" If uncertain, investigate further. Cite specific medical reports in denial reasoning.',
+    escalationTrigger: 'Conflicting evidence on compensability requiring QME/AME evaluation, or pressure to deny claims without completing investigation.',
+    featureContexts: ['INVESTIGATION', 'COVERAGE_DETERMINATION'],
+  },
+  {
+    id: 'ins_790_03_h_5',
+    title: 'Failure to Affirm or Deny Coverage Timely',
+    authority: 'Cal. Ins. Code § 790.03(h)(5)',
+    standard: 'After receiving proof of claim, you have 40 calendar days under 10 CCR 2695.7(b) to accept or deny. Under LC 5402(b), failure to deny within 90 days creates a presumption of compensability. Both deadlines operate independently.',
+    consequence: 'Missing 40-day DOI deadline is a per-file audit violation. Missing 90-day LC 5402(b) deadline shifts burden of proof to carrier — claim becomes presumptively compensable. WCAB may impose LC 5814 penalties for delay.',
+    commonMistake: 'Waiting for medical records without sending 30-day delay letters per 10 CCR 2695.7(c), then the 90-day presumption window passes while investigation is still pending.',
+    productHelps: 'Regulatory Deadline Dashboard tracks both 40-day DOI and 90-day LC 5402(b) deadlines as separate countdown timers with escalating warnings. Also tracks 30-day delay notification requirement.',
+    youMust: 'Track both 40-day and 90-day deadlines. Make determinations as soon as investigation supports one. Send written delay letters every 30 days per 10 CCR 2695.7(c) documenting what information is still needed.',
+    escalationTrigger: 'Approaching 90-day window with incomplete investigation — decision must be made before presumption attaches. Also approaching 40-day DOI deadline without determination.',
+    featureContexts: ['DEADLINE_TRACKING', 'COVERAGE_DETERMINATION'],
+  },
+  {
+    id: 'ins_790_03_h_6',
+    title: 'Failure to Settle Promptly When Liability Is Clear',
+    authority: 'Cal. Ins. Code § 790.03(h)(6)',
+    standard: 'Once investigation establishes compensability and benefits are owed, you must pay benefits or negotiate settlement without delay. This is an affirmative duty — you must actively pursue resolution, not wait for demands.',
+    consequence: 'LC 5814 penalties (up to 25% increase on delayed benefits), DOI market conduct findings, and bad faith civil liability with potential compensatory and punitive damages that often dwarf the original settlement cost.',
+    commonMistake: 'Delaying PD advances after MMI and QME rating because you are "waiting for the applicant attorney to make a demand first." Months pass with no documented reason for delay.',
+    productHelps: 'Benefit Calculator computes correct TD/PD/statutory amounts. Deadline Dashboard tracks 14-day TD and 30-day payment deadlines. Claim Chronology shows when liability became reasonably established.',
+    youMust: 'Monitor medical evidence in accepted claims. When evidence establishes disability, act — advance benefits, initiate settlement discussions. Document settlement efforts, offers, and responses in the file.',
+    escalationTrigger: 'Settlement authority exceeds your level, or negotiations stalled due to legal issues (apportionment disputes, lien resolution) requiring defense counsel.',
+    featureContexts: ['BENEFIT_CALCULATION', 'SETTLEMENT'],
+  },
+  {
+    id: 'ins_790_03_h_7',
+    title: 'Compelling Litigation Through Lowball Offers',
+    authority: 'Cal. Ins. Code § 790.03(h)(7)',
+    standard: 'Settlement offers must be reasonable based on medical evidence and the applicable rating formula. The test is retrospective: if WCAB awards significantly more than your offer, the gap is evidence of unreasonable conduct.',
+    consequence: 'Pattern of low offers triggers DOI company-level enforcement. WCAB may impose LC 5814 penalties. Bad faith litigation exposure with potential punitive damages. Litigation costs typically exceed the original settlement savings.',
+    commonMistake: 'Offering 20% PD on a claim where the QME rates 45% PD because "they will negotiate up." The gap between offer and award is evidence of bad faith, not strategy.',
+    productHelps: 'Benefit Calculator computes PD values using current PDRS, WPI rating, occupation, and age. Medical Record Summary extracts ratings and apportionment opinions for evidence-based offers.',
+    youMust: 'Base every settlement offer on medical evidence and applicable rating formula. Know the calculated PD value before making an offer. Document legitimate reasons for any deviation from calculated value.',
+    escalationTrigger: 'Directed to make an offer you believe is substantially below evidence-based value without legitimate basis. Document and escalate to compliance department.',
+    featureContexts: ['BENEFIT_CALCULATION', 'SETTLEMENT'],
+  },
+  {
+    id: 'ins_790_03_h_8',
+    title: 'Settling for Less Than Written Representations',
+    authority: 'Cal. Ins. Code § 790.03(h)(8)',
+    standard: 'Your written communications set expectations. Settlement offers must be consistent with benefit amounts, rates, and coverage descriptions you have communicated in writing to the claimant.',
+    consequence: 'DOI can cite inconsistency between written communications and settlement practices. Written communications become Exhibit A in bad faith litigation showing what insurer knew was owed versus what was offered.',
+    commonMistake: 'Sending a benefit letter showing TD rate of $800/week, then offering a settlement that implicitly reduces that rate using retroactively recalculated AWE.',
+    productHelps: 'Benefit Calculator produces consistent calculations logged with inputs and outputs. Payment Templates generate letters mathematically consistent with calculated rates.',
+    youMust: 'Verify benefit amounts and rates are accurate and consistent with prior communications before sending. When revising a calculation, send clear written explanation of the change.',
+    escalationTrigger: 'Discovery that a prior written communication contained an error (incorrect rate, wrong deadline, inaccurate coverage description). Correction must be communicated in writing immediately.',
+    featureContexts: ['BENEFIT_CALCULATION', 'SETTLEMENT'],
+  },
+  {
+    id: 'ins_790_03_h_9',
+    title: 'Settling Based on Altered Application Without Consent',
+    authority: 'Cal. Ins. Code § 790.03(h)(9)',
+    standard: 'Never alter a claim document or base decisions on altered documents without the knowledge and consent of the submitter. Original documents must be preserved — corrections are filed alongside originals, never replacing them.',
+    consequence: 'DOI enforcement plus potential criminal exposure under Ins. Code § 1871.4 for fraud. Document alteration compromises entire file integrity and is catastrophic in bad faith litigation defense.',
+    commonMistake: 'Crossing out a date on the DWC-1 form and writing the corrected date based on an employer phone call, instead of keeping the original and documenting the discrepancy separately.',
+    productHelps: 'Document Ingestion creates immutable records at upload. OCR extraction never modifies source documents. Audit Trail logs all versions with timestamps. System never allows overwriting previously uploaded documents.',
+    youMust: 'Never alter a claim document. Note discrepancies in file notes and investigate. File corrections alongside originals. Flag documents that appear altered by others.',
+    escalationTrigger: 'Document appears altered (white-out, different handwriting, metadata discrepancies) — escalate to SIU. Prior handler altered a document — escalate to supervisor and compliance.',
+    featureContexts: ['DOCUMENT_REVIEW', 'CLAIM_INTAKE'],
+  },
+  {
+    id: 'ins_790_03_h_10',
+    title: 'Payments Without Coverage Explanation',
+    authority: 'Cal. Ins. Code § 790.03(h)(10)',
+    standard: 'Every benefit payment must include a clear explanation of the coverage basis, amount calculation, and period covered. The claimant must understand what they are being paid and why.',
+    consequence: 'DOI audit findings for insufficient payment documentation. Claimant confusion leads to disputes, attorney involvement, and potential bad faith claims when payments appear arbitrary or unexplained.',
+    commonMistake: 'Issuing a TD payment without an accompanying explanation showing the AWE, TD rate, period covered, and statutory basis for the calculation.',
+    productHelps: 'Benefit Calculator generates payment breakdowns with full statutory citations. Payment notices include calculation inputs, applicable rates, and coverage period.',
+    youMust: 'Include a clear explanation with every benefit payment showing the calculation basis, rate, period, and applicable statute. Ensure the claimant understands what they are receiving.',
+    escalationTrigger: 'Claimant or attorney disputes payment amount or basis, or you discover prior payments were issued without adequate explanation.',
+    featureContexts: ['BENEFIT_CALCULATION'],
+  },
+  {
+    id: 'ins_790_03_h_11',
+    title: 'Threatening Appeals to Compel Lesser Settlements',
+    authority: 'Cal. Ins. Code § 790.03(h)(11)',
+    standard: 'You may not threaten to appeal a WCAB decision or finding to pressure the claimant into accepting a lower settlement. Appeal rights exist for legitimate legal disputes, not as leverage.',
+    consequence: 'DOI enforcement action, WCAB sanctions, and strong bad faith evidence in civil litigation. Courts view appeal threats as coercion of injured workers.',
+    commonMistake: 'Telling an unrepresented injured worker "If you don\'t accept this offer, we will appeal and you could end up with nothing" to pressure acceptance of a below-value settlement.',
+    productHelps: 'Benefit Calculator provides objective, evidence-based settlement values so offers are defensible on their merits without coercive tactics.',
+    youMust: 'Base settlement discussions on the merits of the claim. Never use appeal threats as negotiation leverage. Exercise appeal rights only when there is a legitimate legal basis.',
+    escalationTrigger: 'Directed to use appeal threats as settlement strategy, or claimant alleges coercion during settlement discussions.',
+    featureContexts: ['SETTLEMENT'],
+  },
+  {
+    id: 'ins_790_03_h_12',
+    title: 'Requiring Duplicative Documentation to Delay Claims',
+    authority: 'Cal. Ins. Code § 790.03(h)(12)',
+    standard: 'Do not require the claimant to submit documentation that you already have or that is not reasonably necessary for processing the claim. Requesting duplicative or unnecessary documents to delay processing is prohibited.',
+    consequence: 'DOI audit findings for unreasonable documentation demands. Pattern of requiring duplicative documents supports a "general business practice" finding under § 790.03, escalating to company-level enforcement.',
+    commonMistake: 'Asking the injured worker to resubmit a DWC-1 form that is already in the file because the examiner cannot locate it, or requesting medical records directly from the claimant when they are available from the treating physician.',
+    productHelps: 'Document Classification system indexes and surfaces all documents already in the claim file, making it easy to verify what you already have before requesting additional documentation.',
+    youMust: 'Check the claim file before requesting any document. Only request documentation that is necessary and not already in your possession. Never use document requests as a delay tactic.',
+    escalationTrigger: 'You identify a pattern of repeated document requests on the same claim without clear justification, or claimant/attorney alleges delay through unnecessary requests.',
+    featureContexts: ['DOCUMENT_REVIEW', 'INVESTIGATION'],
+  },
+  {
+    id: 'ins_790_03_h_13',
+    title: 'Cross-Leveraging Coverage Portions in Settlement',
+    authority: 'Cal. Ins. Code § 790.03(h)(13)',
+    standard: 'Do not condition settlement of one benefit on the claimant giving up rights to another. Each benefit component (TD, PD, medical, vocational) must be evaluated and settled on its own merits.',
+    consequence: 'DOI enforcement for unfair settlement practices. WCAB may reject settlements that improperly bundle benefits to reduce the overall value. Bad faith exposure for leveraging one benefit against another.',
+    commonMistake: 'Telling a claimant "We will approve your surgery if you agree to settle the PD component now" — conditioning medical treatment on PD settlement is prohibited cross-leveraging.',
+    productHelps: 'Benefit Calculator separately computes each benefit component, making it clear that each has independent value and statutory basis.',
+    youMust: 'Evaluate each benefit component independently. Never condition one benefit on settlement of another. Process benefit entitlements regardless of settlement status on other components.',
+    escalationTrigger: 'Directed to condition benefits on settlement of other claim components, or claimant/attorney alleges cross-leveraging.',
+    featureContexts: ['BENEFIT_CALCULATION', 'SETTLEMENT'],
+  },
+  {
+    id: 'ins_790_03_h_14',
+    title: 'Failure to Explain Denial or Compromise Offer',
+    authority: 'Cal. Ins. Code § 790.03(h)(14)',
+    standard: 'Every denial must include the specific factual and legal reasons. Every compromise offer must explain the basis for the amount. The claimant must understand why their claim was denied or why a specific amount was offered.',
+    consequence: 'DOI audit finding for vague or boilerplate denials. WCAB may set aside denials that lack specificity. Bad faith exposure when denial reasons are conclusory rather than specific.',
+    commonMistake: 'Issuing a denial letter that says "Claim denied — not compensable" without citing the specific evidence or investigation findings that support the denial.',
+    productHelps: 'Investigation Checklist ensures all required investigative steps are documented before denial. Benefit Calculator provides specific calculations supporting compromise offers.',
+    youMust: 'Include specific factual and legal reasons in every denial. Cite the evidence you relied on. For compromise offers, explain the calculation basis. Never use boilerplate denial language.',
+    escalationTrigger: 'You are unsure of the specific basis for a denial, or the evidence is ambiguous and you cannot articulate clear denial reasons.',
+    featureContexts: ['COVERAGE_DETERMINATION'],
+  },
+  {
+    id: 'ins_790_03_h_15',
+    title: 'Advising Claimants Not to Obtain an Attorney',
+    authority: 'Cal. Ins. Code § 790.03(h)(15)',
+    standard: 'Never discourage an injured worker from obtaining legal representation. The claimant has an absolute right to an attorney. You may not suggest that hiring an attorney will delay their claim or reduce their benefits.',
+    consequence: 'DOI enforcement for interfering with claimant rights. WCAB sanctions. Strong bad faith evidence — courts view attorney deterrence as one of the most serious unfair practices.',
+    commonMistake: 'Telling an unrepresented injured worker "You don\'t need a lawyer — it will just slow things down and they\'ll take a percentage of your benefits."',
+    productHelps: 'Claims Chat is designed to provide factual information without crossing into legal advice, reducing the temptation to informally advise claimants on legal matters.',
+    youMust: 'Never comment on whether a claimant should or should not hire an attorney. If asked, state neutrally that they have the right to representation. Refer legal questions to defense counsel.',
+    escalationTrigger: 'Claimant alleges they were discouraged from hiring an attorney, or you witness a colleague making such statements.',
+    featureContexts: ['CLAIM_INTAKE', 'CHAT'],
+  },
+  {
+    id: 'ins_790_03_h_16',
+    title: 'Misleading Claimants About Statute of Limitations',
+    authority: 'Cal. Ins. Code § 790.03(h)(16)',
+    standard: 'Never provide inaccurate information about filing deadlines or statutes of limitation. The claimant has specific time limits (LC 5405: 1 year from injury; LC 5410: 5 years to reopen) and you must not mislead them about these rights.',
+    consequence: 'DOI enforcement for misleading claimants about their legal rights. If a claimant misses a filing deadline based on your misinformation, the insurer faces severe bad faith exposure.',
+    commonMistake: 'Telling an injured worker "You can always file later" without specifying the statutory deadlines, or implying that the claim is time-barred when it is not.',
+    productHelps: 'Deadline Dashboard tracks all statutory deadlines with accurate citations. Claims Chat provides factual deadline information based on statutory authority.',
+    youMust: 'Never provide information about filing deadlines unless you are certain it is accurate. When in doubt, refer the claimant to the DWC Information and Assistance office or suggest they consult an attorney.',
+    escalationTrigger: 'Claimant asks about statute of limitations or filing deadlines — provide factual statutory citations only. If the question involves legal interpretation, refer to defense counsel.',
+    featureContexts: ['DEADLINE_TRACKING', 'CLAIM_INTAKE'],
+  },
+];
+
+// ---------------------------------------------------------------------------
+// Part 2: DOI Regulations — Fair Claims Settlement Practices (10 CCR 2695)
+// ---------------------------------------------------------------------------
+
+const PART2_DOI_REGULATIONS: Tier2EducationEntry[] = [
+  {
+    id: 'ccr10_2695_2d',
+    title: 'Definition of Good Faith',
+    authority: '10 CCR § 2695.2(d)',
+    standard: 'Claims must be handled fairly, honestly, and completely. Good faith is measured by actions, not intentions — repeated delays, missing documentation, or unexplained denials demonstrate absence of good faith regardless of intent.',
+    consequence: 'Bad faith pattern triggers DOI enforcement under § 790.03. Administrative penalties, corrective action plans, and potential license revocation. Civil bad faith liability with compensatory and punitive damages.',
+    commonMistake: 'Exploiting ambiguous medical evidence to deny a claim instead of investigating further. Denying based on a "possible pre-existing condition" note without obtaining additional records or requesting QME evaluation.',
+    productHelps: 'Investigation Checklist tracks whether all standard investigation steps are complete before determination. Audit Trail logs every action creating documented evidence of good faith handling.',
+    youMust: 'Investigate every claim thoroughly before deciding. Look for the truth, not reasons to deny. Document reasoning so a reviewer can follow your thought process and confirm fair handling.',
+    escalationTrigger: 'Evidence is ambiguous and could support either acceptance or denial. Legal ambiguity (e.g., whether injury arose out of employment) requires defense counsel.',
+    featureContexts: ['INVESTIGATION', 'COVERAGE_DETERMINATION'],
+  },
+  {
+    id: 'ccr10_2695_3',
+    title: 'File and Record Documentation',
+    authority: '10 CCR § 2695.3',
+    standard: 'Maintain accessible, legible, retrievable claim data for every claim. Every phone call, letter, decision, and payment must be documented. The claim file must be organized for unfamiliar reviewers (auditors) to understand the claim history.',
+    consequence: 'Incomplete documentation is the single most common DOI/DWC audit finding. If you cannot produce documentation for a decision, auditors treat it as if the action never occurred. Penalties per violation per file under CCR 10108.',
+    commonMistake: 'Speaking with a treating physician by phone about work restrictions, adjusting TD payments, but never documenting the call. Three months later the adjustment appears unsupported.',
+    productHelps: 'Audit Trail automatically logs every action within AdjudiCLAIMS. Claim Chronology auto-generates time-ordered records. Document Classification ensures every file is categorized and retrievable.',
+    youMust: 'Document your reasoning, observations, and decisions. Add diary entries for activity outside the system (phone calls, in-person conversations). Standard: if it is not in the file, it did not happen.',
+    escalationTrigger: 'Claim file has significant documentation gaps — missing correspondence, undocumented decisions, timeline gaps. Notify supervisor for remediation.',
+    featureContexts: ['DOCUMENT_REVIEW', 'INVESTIGATION'],
+  },
+  {
+    id: 'ccr10_2695_4',
+    title: 'Representation of Policy Provisions',
+    authority: '10 CCR § 2695.4',
+    standard: 'You cannot misrepresent policy coverage and must affirmatively disclose all benefits and provisions that may apply. If a benefit applies, you must tell the claimant — you cannot sit on information hoping they will not ask.',
+    consequence: 'DOI audit findings for failure to disclose applicable benefits. Bad faith liability for concealing benefit entitlements. Pattern of non-disclosure escalates to company-level enforcement.',
+    commonMistake: 'Not informing an unrepresented injured worker about SJDB voucher eligibility because the examiner was focused only on TD and PD benefits.',
+    productHelps: 'Benefit Calculator identifies all applicable benefits based on claim data. Education content explains each benefit type so examiners understand the full range of entitlements.',
+    youMust: 'Disclose all benefits that may apply to the claim. Do not wait for the claimant to ask. Review the full statutory benefit framework for each claim.',
+    escalationTrigger: 'Unsure whether a specific benefit applies to a claim, or claimant/attorney alleges failure to disclose benefits.',
+    featureContexts: ['BENEFIT_CALCULATION', 'COVERAGE_DETERMINATION'],
+  },
+  {
+    id: 'ccr10_2695_5b',
+    title: 'Acknowledge Receipt Within 15 Calendar Days',
+    authority: '10 CCR § 2695.5(b)',
+    standard: 'Acknowledge receipt of every claim communication within 15 calendar days. This is the implementing regulation for Insurance Code § 790.03(h)(2) — the 15-day window is a hard regulatory deadline.',
+    consequence: 'Each missed 15-day deadline is a separate audit finding with penalties under CCR 10108. Multiple violations trigger corrective action plans and increased audit frequency.',
+    commonMistake: 'Receiving a letter from an applicant attorney, reading it, and planning to respond "after this week" — then the 15-day window passes without acknowledgment.',
+    productHelps: 'Deadline Dashboard starts the 15-day clock automatically when communications are logged and displays countdown timers with color-coded urgency.',
+    youMust: 'Acknowledge every communication within 15 calendar days. Even if a substantive response takes longer, send a brief acknowledgment confirming receipt.',
+    escalationTrigger: 'Communication past 15-day window — notify supervisor immediately and document the late acknowledgment with corrective action.',
+    featureContexts: ['DEADLINE_TRACKING', 'CLAIM_INTAKE'],
+  },
+  {
+    id: 'ccr10_2695_5e',
+    title: 'Begin Investigation Immediately Upon Receipt',
+    authority: '10 CCR § 2695.5(e)',
+    standard: 'Investigation must begin immediately upon receipt of proof of claim. You cannot wait for additional information before starting. The three-point contact and document gathering must begin on day one.',
+    consequence: 'Delayed investigation start is an audit finding. It also compresses the timeline for meeting the 40-day determination deadline, increasing the risk of missing that deadline as well.',
+    commonMistake: 'Waiting for the DWC-1 form before beginning investigation when the employer has already reported the injury. The proof of claim triggers the duty, not a specific form.',
+    productHelps: 'Investigation Checklist activates immediately when a new claim is created, showing all required first steps and their deadlines.',
+    youMust: 'Begin investigation the day you receive proof of a claim. Initiate three-point contact, request medical records, and document all steps. Do not wait for "complete" information before starting.',
+    escalationTrigger: 'Unable to begin investigation due to missing claim information or unresponsive parties — escalate to supervisor for resource allocation.',
+    featureContexts: ['INVESTIGATION', 'CLAIM_INTAKE'],
+  },
+  {
+    id: 'ccr10_2695_6',
+    title: 'Training and Certification of Claims Personnel',
+    authority: '10 CCR § 2695.6',
+    standard: 'Every person who handles claims must be properly trained and must understand the regulatory framework governing their work. The insurer is responsible for ensuring training adequacy.',
+    consequence: 'Untrained examiners produce non-compliant files. DOI audits may cite systemic training failures when a pattern of similar violations appears across multiple examiners in the same operation.',
+    commonMistake: 'Assigning a new examiner a full caseload without completing mandatory training, resulting in consistent regulatory violations during their first months.',
+    productHelps: 'The Training Module system gates product access until mandatory training is complete. Contextual education appears at every decision point, reinforcing regulatory knowledge in real time.',
+    youMust: 'Complete all required training before handling claims independently. Continue learning the regulatory framework through on-the-job education. Ask questions when uncertain.',
+    escalationTrigger: 'You encounter a claim situation your training did not cover, or you are assigned responsibilities beyond your current training level.',
+    featureContexts: ['CLAIM_INTAKE'],
+  },
+  {
+    id: 'ccr10_2695_7a',
+    title: 'Minimum Standards for Claims Investigation',
+    authority: '10 CCR § 2695.7(a)',
+    standard: 'The investigation must include all reasonably available information. You must look at all evidence — favorable and unfavorable to the carrier. A determination based on incomplete or one-sided evidence is a violation.',
+    consequence: 'Investigation that ignores available evidence is a per-file violation. If the missing evidence would have supported the claim, the violation is compounded by the improper determination that followed.',
+    commonMistake: 'Reviewing only the employer statement and ignoring the claimant statement and medical records when making a compensability determination.',
+    productHelps: 'Document Classification surfaces all documents by type. Investigation Checklist ensures all evidence sources are checked. Claims Chat can query across all documents simultaneously.',
+    youMust: 'Review all available evidence before making any determination. If evidence is missing, request it. Consider favorable and unfavorable evidence equally. Document what you reviewed.',
+    escalationTrigger: 'Evidence is conflicting or ambiguous, making it unclear whether investigation is complete enough to support a determination.',
+    featureContexts: ['INVESTIGATION', 'COVERAGE_DETERMINATION'],
+  },
+  {
+    id: 'ccr10_2695_7b',
+    title: 'Accept or Deny Claim Within 40 Calendar Days',
+    authority: '10 CCR § 2695.7(b)',
+    standard: 'Accept or deny the claim within 40 calendar days after receiving proof of claim. This is the DOI regulatory deadline — it runs alongside but independently of the 90-day LC 5402(b) presumption deadline.',
+    consequence: 'Each missed 40-day deadline is a per-file audit violation with administrative penalties. Unlike the 90-day deadline, missing 40 days does not create a presumption — but it is a regulatory violation that compounds with other findings.',
+    commonMistake: 'Conflating the 40-day DOI deadline with the 90-day presumption deadline and only tracking one. They are independent deadlines with different consequences.',
+    productHelps: 'Deadline Dashboard separately tracks both the 40-day and 90-day deadlines with independent countdown timers and escalating warnings.',
+    youMust: 'Track both deadlines independently. Make determination as quickly as investigation supports — 40 days is a maximum, not a target. If unable to decide in 40 days, send delay letter per 10 CCR 2695.7(c).',
+    escalationTrigger: 'Approaching 40-day deadline with incomplete investigation. Supervisor may need to authorize additional resources or make an elevated determination.',
+    featureContexts: ['DEADLINE_TRACKING', 'COVERAGE_DETERMINATION'],
+  },
+  {
+    id: 'ccr10_2695_7c',
+    title: 'Notify Claimant Every 30 Days If Delay Needed',
+    authority: '10 CCR § 2695.7(c)',
+    standard: 'If you cannot make a coverage determination within 40 days, you must send a written delay letter to the claimant every 30 days explaining why and what information is still needed.',
+    consequence: 'Missing 30-day delay notifications is an additional audit violation on top of the delayed determination. Pattern of missing delay letters compounds DOI findings and increases penalty exposure.',
+    commonMistake: 'Sending the first delay letter but forgetting to send subsequent 30-day updates as the investigation continues. Each missed update is a separate violation.',
+    productHelps: 'Deadline Dashboard tracks the 30-day delay notification cycle and reminds you when each subsequent letter is due.',
+    youMust: 'Send delay letters every 30 days until determination is made. Each letter must explain the reason for delay and what information is needed. Document each letter in the file.',
+    escalationTrigger: 'Investigation is stalled beyond 60 days with no clear path to determination. Escalate to supervisor for intervention.',
+    featureContexts: ['DEADLINE_TRACKING', 'COVERAGE_DETERMINATION'],
+  },
+  {
+    id: 'ccr10_2695_7h',
+    title: 'Written Denial Must Include Specific Reasons',
+    authority: '10 CCR § 2695.7(h)',
+    standard: 'Every written denial must include the specific factual and legal reasons for the denial. Boilerplate or conclusory denial language does not satisfy this regulation.',
+    consequence: 'Vague denials are audit findings and may be overturned by WCAB. A denial that says "not compensable" without specifics provides no basis for the carrier to defend its position.',
+    commonMistake: 'Using template denial letters with generic language like "Based on our investigation, the claim is denied" without citing specific evidence, medical findings, or regulatory basis.',
+    productHelps: 'Investigation Checklist documents all evidence reviewed. Denial workflows ensure required elements are addressed before the letter is generated.',
+    youMust: 'Include specific factual basis and legal authority in every denial. Cite the evidence reviewed, the findings relied upon, and the regulatory basis for the denial.',
+    escalationTrigger: 'Unsure of the specific legal or factual basis for a denial — consult supervisor or defense counsel before issuing.',
+    featureContexts: ['COVERAGE_DETERMINATION'],
+  },
+  {
+    id: 'ccr10_2695_9',
+    title: 'Additional Workers Compensation Claims Handling Standards',
+    authority: '10 CCR § 2695.9',
+    standard: 'Workers compensation claims are subject to additional handling standards beyond the general insurance regulations. These include specific WC benefit payment timelines, medical treatment authorization requirements, and DWC reporting obligations.',
+    consequence: 'Non-compliance with WC-specific standards is audited by both the DOI and DWC, creating dual enforcement exposure. Penalties may be assessed by both agencies for the same conduct.',
+    commonMistake: 'Applying general insurance claims handling practices without accounting for WC-specific requirements such as the 14-day TD payment deadline or the medical treatment authorization process.',
+    productHelps: 'All deadline tracking, benefit calculations, and compliance features are built specifically for California Workers Compensation regulatory requirements.',
+    youMust: 'Understand that WC claims have requirements above and beyond general insurance claims handling. Apply WC-specific regulations in addition to the general fair claims settlement practices.',
+    escalationTrigger: 'Encounter a WC-specific requirement you are unfamiliar with. Training and education resources are available, but escalate to supervisor for immediate guidance.',
+    featureContexts: ['CLAIM_INTAKE', 'BENEFIT_CALCULATION', 'DEADLINE_TRACKING'],
+  },
+];
+
+// ---------------------------------------------------------------------------
+// Part 3: DWC Claims Administration Regulations (CCR Title 8, 10100-10109)
+// ---------------------------------------------------------------------------
+
+const PART3_DWC_ADMIN: Tier2EducationEntry[] = [
+  {
+    id: 'ccr8_10101',
+    title: 'Claim File Contents',
+    authority: 'Cal. Code Regs., tit. 8, § 10101',
+    standard: 'Claim file must contain at minimum: DWC-1 and FROI, all medical records, all correspondence, investigation documentation, diary notes, determination rationale, benefit notices, payment history, and reserve history.',
+    consequence: 'Missing items are cited as violations in DWC audits. Penalties under CCR 10108 per violation. Pattern of incomplete files triggers systemic deficiency finding with corrective action and up to $100,000 per audit under LC 129.5.',
+    commonMistake: 'Maintaining a thorough paper file but not transferring items to the electronic claims system. The electronic system is the system of record — a paper folder in your desk does not satisfy CCR 10101.',
+    productHelps: 'Every uploaded document is automatically classified, indexed, and stored. Audit Trail logs all actions. Claim Chronology provides time-ordered view of all file contents meeting or exceeding CCR 10101 minimums.',
+    youMust: 'Ensure activity outside AdjudiCLAIMS is also documented — phone conversations, paper documents, decisions. The system builds file structure; you must ensure completeness.',
+    escalationTrigger: 'Inherited file from another examiner is significantly incomplete — missing investigation documentation, no determination rationale, gaps in payment history.',
+    featureContexts: ['DOCUMENT_REVIEW', 'INVESTIGATION'],
+  },
+  {
+    id: 'ccr8_10102',
+    title: 'Retention of Claim Files',
+    authority: 'Cal. Code Regs., tit. 8, § 10102',
+    standard: 'Retain claim files and claim logs for a minimum of five years after final disposition. The full file must be maintained — you cannot selectively destroy parts while retaining others.',
+    consequence: 'Premature destruction is a serious violation. DWC cannot verify compliance without the file, so assumption shifts against the administrator. May constitute spoliation of evidence if claim is later reopened under LC 5410.',
+    commonMistake: 'A TPA loses a client and disposes of files after three years, assuming the new TPA will maintain them. The retention obligation belongs to the administrator who handled the claim.',
+    productHelps: 'Electronic document storage with retention tracking ensures files are maintained for the required period. System prevents deletion of files within the retention window.',
+    youMust: 'Understand that claim files must be retained for at least five years after final disposition. Never destroy or authorize destruction of files within the retention period.',
+    escalationTrigger: 'File destruction is being considered or has occurred within the retention period. Immediate supervisor and compliance notification required.',
+    featureContexts: ['DOCUMENT_REVIEW'],
+  },
+  {
+    id: 'ccr8_10103',
+    title: 'Claim Log Contents and Maintenance',
+    authority: 'Cal. Code Regs., tit. 8, § 10103',
+    standard: 'Maintain a claim log (register) that records every claim received, including claimant name, date received, claim number, status, and current assignment. The log must be current and auditable.',
+    consequence: 'Incomplete or inaccurate claim logs are audit findings. The log is the DWC\'s first tool for selecting claims to audit — if the log is deficient, the auditor may expand the audit scope.',
+    commonMistake: 'Not updating claim status in the claims management system promptly, resulting in a claim log that shows "open" claims that were actually closed months ago.',
+    productHelps: 'Claims management tracks all claims with automatic status updates and assignment tracking, generating a compliant claim log in real time.',
+    youMust: 'Keep claim records current. Update status promptly when claims change state. Ensure your caseload list accurately reflects the current status of every assigned claim.',
+    escalationTrigger: 'Claim log discrepancies discovered during internal review or audit preparation.',
+    featureContexts: ['CLAIM_INTAKE'],
+  },
+  {
+    id: 'ccr8_10104',
+    title: 'Annual Report of Inventory',
+    authority: 'Cal. Code Regs., tit. 8, § 10104',
+    standard: 'Claims administrators must submit an Annual Report of Inventory to the DWC showing the total number of claims, status breakdown, and other required metrics.',
+    consequence: 'Failure to submit or submitting inaccurate reports is a regulatory violation that can trigger increased audit scrutiny and administrative penalties.',
+    commonMistake: 'Relying on outdated claims system data for the annual report without verifying that claim statuses are current and accurate.',
+    productHelps: 'Portfolio analytics track claim inventory by status in real time, supporting accurate annual reporting.',
+    youMust: 'Ensure your assigned claims have accurate, current statuses so that organizational inventory reports reflect reality.',
+    escalationTrigger: 'Inventory data appears inaccurate or reporting deadline is approaching with known data quality issues.',
+    featureContexts: ['CLAIM_INTAKE'],
+  },
+  {
+    id: 'ccr8_10105',
+    title: 'DWC Auditing Authority',
+    authority: 'Cal. Code Regs., tit. 8, § 10105',
+    standard: 'The DWC Administrative Director has authority to audit any claims administrator at any time. Audits can be random or triggered by complaints, and the administrator must cooperate fully.',
+    consequence: 'Failure to cooperate with an audit is itself a violation. Obstruction or delay in producing files can result in adverse findings and increased penalties.',
+    commonMistake: 'Not being "audit-ready" at all times — scrambling to organize files when an audit notice arrives instead of maintaining compliant files continuously.',
+    productHelps: 'All claim activity is logged and organized in real time, maintaining audit-ready documentation at all times.',
+    youMust: 'Handle every claim as if it will be audited. Maintain complete, organized files at all times. Cooperate fully with any audit request.',
+    escalationTrigger: 'Receipt of audit notice from DWC. Immediately notify supervisor and compliance department.',
+    featureContexts: ['DOCUMENT_REVIEW', 'INVESTIGATION'],
+  },
+  {
+    id: 'ccr8_10106',
+    title: 'Random and Non-Random Audit Selection',
+    authority: 'Cal. Code Regs., tit. 8, § 10106',
+    standard: 'The DWC selects claims for audit through random sampling and targeted selection based on complaints, prior findings, or specific concerns. Both methods are authorized and may occur simultaneously.',
+    consequence: 'Targeted audits following complaints or prior findings receive heightened scrutiny. A poor prior audit increases the likelihood and severity of subsequent audits.',
+    commonMistake: 'Assuming audits are rare and unlikely for your specific book of business. Any claims administrator can be audited at any time through random selection.',
+    productHelps: 'Compliance metrics track regulatory adherence across your caseload, helping identify and correct issues before they become audit findings.',
+    youMust: 'Maintain compliance on every claim, not just "important" ones. Random audits mean any file can be selected. Prior audit findings increase future scrutiny.',
+    escalationTrigger: 'Prior audit identified findings on your claims — work with supervisor to implement corrective actions before the next audit cycle.',
+    featureContexts: ['INVESTIGATION', 'DOCUMENT_REVIEW'],
+  },
+  {
+    id: 'ccr8_10107',
+    title: 'Notice of Audit and File Production',
+    authority: 'Cal. Code Regs., tit. 8, § 10107',
+    standard: 'Upon receiving audit notice, produce all requested claim files within the specified timeframe. Files must be complete and organized. You may not withhold files or selectively produce documentation.',
+    consequence: 'Failure to produce files within the required timeframe is a violation that can result in penalties and adverse audit assumptions. Incomplete production may be treated as non-compliance.',
+    commonMistake: 'Producing claim files but omitting unfavorable documents (like a missed deadline or a complaint letter) in hopes the auditor will not notice.',
+    productHelps: 'Complete digital claim files can be exported on demand, ensuring timely and complete production for audit requests.',
+    youMust: 'Produce all requested files completely and promptly upon audit notice. Never withhold or selectively produce documentation. The file is what it is — submit it complete.',
+    escalationTrigger: 'Audit notice received — immediately notify supervisor and compliance. If files have known deficiencies, disclose them proactively.',
+    featureContexts: ['DOCUMENT_REVIEW'],
+  },
+  {
+    id: 'ccr8_10108',
+    title: 'Audit Violation Rules and Penalties',
+    authority: 'Cal. Code Regs., tit. 8, § 10108',
+    standard: 'The DWC Administrative Director assesses penalties per violation per file. Penalties are cumulative — each deficient file is separately counted. Severity scales with the nature of the violation and pattern across files.',
+    consequence: 'Civil penalties up to $100,000 per audit under LC 129.5 for patterns of violations. Individual file penalties under CCR 10108 accumulate across the audit sample. Corrective action plans may be required.',
+    commonMistake: 'Viewing a single late payment or missed deadline as trivial. In audit context, each instance is a separately assessed penalty that compounds across the caseload.',
+    productHelps: 'Deadline tracking and compliance monitoring identify violations in real time, allowing correction before they accumulate into audit findings.',
+    youMust: 'Treat every regulatory deadline and documentation requirement as a firm obligation. Small violations compound — a 5% non-compliance rate across 200 files is 10 penalty events.',
+    escalationTrigger: 'Compliance metrics show a pattern of similar violations across multiple claims. Systemic issues require management intervention.',
+    featureContexts: ['DEADLINE_TRACKING', 'INVESTIGATION'],
+  },
+  {
+    id: 'ccr8_10109',
+    title: 'Duty to Investigate; Duty of Good Faith',
+    authority: 'Cal. Code Regs., tit. 8, § 10109',
+    standard: 'The DWC regulation establishing the duty to conduct a thorough investigation and handle claims in good faith. Investigation must include all reasonably available information and must be documented in the claim file.',
+    consequence: 'DWC-specific enforcement for investigation failures, separate from DOI enforcement under 10 CCR 2695. Penalties under CCR 10108 apply. Inadequate investigation is the foundation of most bad faith findings.',
+    commonMistake: 'Conducting an investigation "in your head" without documenting steps in the file. In audit, an undocumented investigation is the same as no investigation.',
+    productHelps: 'Investigation Checklist provides structured tracking of every required step. Claim Chronology generates documented evidence of investigative activity.',
+    youMust: 'Follow your company\'s investigation procedures on every claim. Document every step. Complete the investigation before making a determination. An undocumented investigation did not happen.',
+    escalationTrigger: 'Investigation reveals fraud indicators, subrogation potential, or legal coverage questions requiring SIU or defense counsel involvement.',
+    featureContexts: ['INVESTIGATION', 'COVERAGE_DETERMINATION'],
+  },
+];
+
+// ---------------------------------------------------------------------------
+// Part 4: Labor Code — Benefits Payment Obligations
+// ---------------------------------------------------------------------------
+
+const PART4_LABOR_CODE_BENEFITS: Tier2EducationEntry[] = [
+  {
+    id: 'lc_4600',
+    title: 'Employer Obligation to Provide Medical Treatment',
+    authority: 'Cal. Lab. Code § 4600',
+    standard: 'The employer must provide all reasonably required medical treatment to cure or relieve the effects of the injury — including surgery, therapy, medications, equipment, and more. Treatment obligation continues for the life of the claim.',
+    consequence: 'LC 5814 penalties (up to 25% increase), WCAB sanctions, potential bad faith claims. Delayed treatment may worsen the condition, increasing total claim costs and disability.',
+    commonMistake: 'Refusing to authorize treatment because liability has not been formally accepted. You must authorize up to $10,000 in treatment during investigation per LC 4600(c), regardless of compensability determination.',
+    productHelps: 'Tracks treatment authorization requests against statutory deadlines. Flags requests approaching response windows. Maintains running total against the $10,000 presumptive cap during investigation.',
+    youMust: 'Evaluate whether treatment is reasonably required to cure or relieve the industrial injury. Do not delay treatment pending compensability determination. Ensure treatment is directed through appropriate MPN channels.',
+    escalationTrigger: 'Treatment request exceeds $10,000 during investigation without compensability determination. Attorney demands treatment outside MPN. Treatment significantly outside MTUS guidelines.',
+    featureContexts: ['MEDICAL_REVIEW', 'UTILIZATION_REVIEW'],
+  },
+  {
+    id: 'lc_4600_3',
+    title: 'Medical Provider Network Requirements',
+    authority: 'Cal. Lab. Code § 4600.3',
+    standard: 'Employers/insurers may establish an MPN for treating injured workers. The MPN must be DWC-approved, provide adequate specialists and geographic access, and allow employees to choose and switch providers within the network.',
+    consequence: 'Invalid MPN or improper MPN notice gives the employee broader rights to choose their own physician. Non-compliant MPN can be challenged, exposing the insurer to uncontrolled medical treatment costs.',
+    commonMistake: 'Directing treatment through an MPN without verifying it is validly filed with DWC, or failing to provide proper written MPN notification to the injured worker.',
+    productHelps: 'MPN compliance tracking verifies active MPN status and ensures proper notification is documented in the claim file.',
+    youMust: 'Verify your MPN is valid and approved before directing treatment. Provide written MPN notification to the injured worker. Allow the employee to choose and switch providers within the MPN.',
+    escalationTrigger: 'Employee alleges MPN does not have required specialty provider. Attorney challenges MPN validity or notification. Employee requests second/third opinion within MPN.',
+    featureContexts: ['MEDICAL_REVIEW'],
+  },
+  {
+    id: 'lc_4610',
+    title: 'Utilization Review Program Requirement',
+    authority: 'Cal. Lab. Code § 4610',
+    standard: 'Every employer must establish a UR program to evaluate medical treatment requests. Every RFA (Request for Authorization) must go through UR. Decisions must be made by licensed physicians using MTUS/ACOEM guidelines.',
+    consequence: 'Failure to maintain compliant UR program means the insurer cannot effectively deny treatment requests. DWC penalties under CCR 9792.12 for UR violations. Late decisions result in treatment being deemed authorized.',
+    commonMistake: 'Having a non-physician make clinical UR determinations. Only licensed physicians can make the medical necessity determination — nurses may perform administrative functions but not clinical decisions.',
+    productHelps: 'UR tracking routes RFAs immediately, monitors decision deadlines (5 business days prospective, 24 hours concurrent, 30 days retrospective), and flags overdue decisions.',
+    youMust: 'Route every RFA to the UR program immediately upon receipt. Do not hold RFAs for your own review before routing. Monitor UR deadlines actively and follow up with reviewers.',
+    escalationTrigger: 'UR deadline about to be missed. Concurrent review requires 24-hour decision and reviewer is unavailable. Pattern of missed UR deadlines suggesting systemic issue.',
+    featureContexts: ['UTILIZATION_REVIEW', 'MEDICAL_REVIEW'],
+  },
+  {
+    id: 'lc_4650',
+    title: 'Timing of First Temporary Disability Payment',
+    authority: 'Cal. Lab. Code § 4650',
+    standard: 'The first TD payment must be made within 14 days after the employer knows of the injury and the employee\'s lost wages. This is a hard deadline — there is no "processing time" exception.',
+    consequence: 'Late TD payment triggers automatic 10% self-imposed penalty under LC 4650(c). The penalty is paid to the injured worker and is not discretionary. WCAB may impose additional LC 5814 penalties for unreasonable delay.',
+    commonMistake: 'Waiting for the treating physician\'s work status report before issuing the first TD payment. The 14-day clock starts when the employer knows of the injury and wage loss, not when medical documentation is complete.',
+    productHelps: 'Deadline Dashboard tracks the 14-day TD payment window for every new injury with wage loss. Benefit Calculator computes the correct TD rate based on AWE.',
+    youMust: 'Issue the first TD payment within 14 days of employer knowledge of injury and wage loss. Calculate the correct rate using verified AWE. Do not delay pending full medical documentation.',
+    escalationTrigger: '14-day deadline approaching without payment issued. AWE cannot be verified in time — pay based on best available information and adjust when verified.',
+    featureContexts: ['BENEFIT_CALCULATION', 'DEADLINE_TRACKING'],
+  },
+  {
+    id: 'lc_4650_b',
+    title: 'Subsequent Temporary Disability Payments',
+    authority: 'Cal. Lab. Code § 4650(b)',
+    standard: 'After the first payment, subsequent TD payments must be made every 14 days. The payment cycle is fixed — you cannot change it to monthly or skip pay periods.',
+    consequence: 'Each late subsequent payment triggers the 10% self-imposed penalty under LC 4650(c). Pattern of late payments increases bad faith exposure and may prompt WCAB sanctions.',
+    commonMistake: 'Missing a biweekly payment cycle because the examiner was waiting for an updated work status report. TD payments continue automatically until TD is properly terminated.',
+    productHelps: 'Payment schedule tracking ensures biweekly TD payments are issued on time. System alerts when a payment cycle is approaching without a scheduled payment.',
+    youMust: 'Maintain the biweekly payment schedule. TD continues until properly terminated under LC 4656. Do not pause payments pending medical updates unless TD has been formally ended.',
+    escalationTrigger: 'Unable to determine whether TD should continue (e.g., conflicting work status reports). Pay pending clarification — it is easier to recover an overpayment than to face late payment penalties.',
+    featureContexts: ['BENEFIT_CALCULATION', 'DEADLINE_TRACKING'],
+  },
+  {
+    id: 'lc_4650_c',
+    title: 'Penalty for Late Payment (Self-Imposed 10% Increase)',
+    authority: 'Cal. Lab. Code § 4650(c)',
+    standard: 'If any TD payment is late, the amount is automatically increased by 10%. This is a self-imposed penalty — you must calculate and pay it yourself without waiting for a WCAB order.',
+    consequence: 'The 10% penalty is mandatory and self-executing. Failure to self-impose the penalty when a payment is late is an additional violation. WCAB may impose further LC 5814 penalties on top of the 10%.',
+    commonMistake: 'Making a late TD payment at the regular rate without adding the 10% penalty. The penalty is automatic — you do not wait for the worker or attorney to demand it.',
+    productHelps: 'Benefit Calculator automatically detects late payments and computes the 10% penalty amount. Payment records flag which payments include penalty amounts.',
+    youMust: 'When a TD payment is late, add the 10% penalty to that payment. Document the late payment and penalty in the file. Do not wait for a demand — the penalty is self-imposed.',
+    escalationTrigger: 'Pattern of late payments on your caseload suggesting a systemic issue (workload, process, or system problem) that needs management intervention.',
+    featureContexts: ['BENEFIT_CALCULATION'],
+  },
+  {
+    id: 'lc_4650_d',
+    title: 'Payment Required During Liability Investigation',
+    authority: 'Cal. Lab. Code § 4650(d)',
+    standard: 'TD payments must continue during the liability investigation period, even when compensability has not been formally determined. You cannot withhold benefits while you investigate.',
+    consequence: 'Withholding TD during investigation violates the statutory payment obligation. LC 5814 penalties apply. The investigation period is not an excuse for nonpayment.',
+    commonMistake: 'Telling an injured worker "We cannot pay benefits until we determine if your claim is covered." TD is payable during investigation — compensability determination affects future benefits, not current payment obligation.',
+    productHelps: 'Benefit Calculator generates payment schedules that account for the investigation period. Deadline Dashboard tracks the investigation timeline alongside payment obligations.',
+    youMust: 'Issue TD payments during investigation when the injured worker has lost wages. If the claim is later denied, you may seek recovery of overpaid benefits, but you must pay during investigation.',
+    escalationTrigger: 'Investigation suggests high likelihood of denial but TD payments are ongoing. Consult supervisor about issuing a timely denial to limit benefit exposure.',
+    featureContexts: ['BENEFIT_CALCULATION', 'COVERAGE_DETERMINATION'],
+  },
+  {
+    id: 'lc_4653',
+    title: 'Temporary Disability Rate Calculation',
+    authority: 'Cal. Lab. Code § 4653',
+    standard: 'The TD rate is two-thirds (2/3) of the injured worker\'s average weekly earnings (AWE), subject to statutory minimum and maximum rates that are updated annually. The calculation must use verified wage information.',
+    consequence: 'Incorrect TD rate calculation results in underpayment (exposing the insurer to penalties and bad faith claims) or overpayment (resulting in credit complications). Rate errors are easily auditable.',
+    commonMistake: 'Using the worker\'s hourly rate times 40 hours as AWE without accounting for overtime, bonuses, concurrent employment, or irregular work schedules that affect the average.',
+    productHelps: 'Benefit Calculator computes TD rate using the statutory 2/3 formula with current min/max rates, accounting for AWE complexities and providing full calculation audit trail.',
+    youMust: 'Calculate AWE accurately using all earnings sources. Apply the 2/3 formula. Verify against current statutory min/max rates. Document the calculation inputs and result.',
+    escalationTrigger: 'AWE calculation is complex (irregular earnings, multiple employers, seasonal work) and you are uncertain of the correct methodology.',
+    featureContexts: ['BENEFIT_CALCULATION'],
+  },
+  {
+    id: 'lc_4654',
+    title: 'Temporary Disability Aggregate Limit',
+    authority: 'Cal. Lab. Code § 4654',
+    standard: 'TD payments are subject to an aggregate limit — generally 104 compensable weeks within five years from the date of injury (with limited exceptions for certain conditions). You must track cumulative TD payments.',
+    consequence: 'Continuing TD beyond the statutory limit results in overpayment that may be difficult to recover. Prematurely terminating TD before the limit violates the worker\'s benefit entitlement.',
+    commonMistake: 'Not tracking cumulative TD weeks and either overpaying beyond 104 weeks or terminating TD based on calendar time rather than compensable weeks.',
+    productHelps: 'Benefit Calculator tracks cumulative TD weeks paid and alerts when approaching the 104-week limit. Accounts for gaps in TD when calculating aggregate weeks.',
+    youMust: 'Track cumulative TD weeks for every claim. Understand the difference between calendar time and compensable weeks. Verify whether any exceptions to the 104-week limit apply.',
+    escalationTrigger: 'Approaching the 104-week limit and the injured worker has not reached MMI. Consult supervisor or defense counsel about next steps.',
+    featureContexts: ['BENEFIT_CALCULATION', 'DEADLINE_TRACKING'],
+  },
+  {
+    id: 'lc_4656',
+    title: 'Temporary Disability Termination Conditions',
+    authority: 'Cal. Lab. Code § 4656',
+    standard: 'TD may only be terminated under specific statutory conditions: return to work, physician release to work, MMI/P&S determination, 104-week aggregate limit, or voluntary termination by the injured worker.',
+    consequence: 'Terminating TD without statutory authority is an improper benefit denial triggering LC 5814 penalties, WCAB sanctions, and bad faith exposure. You must have a documented basis for every TD termination.',
+    commonMistake: 'Terminating TD because "the injured worker should be able to work by now" without a physician\'s work status report or P&S determination supporting the termination.',
+    productHelps: 'TD tracking monitors termination conditions and requires documented basis (physician report, RTW notice, aggregate limit) before allowing TD cessation.',
+    youMust: 'Only terminate TD when you have documented statutory authority. Never terminate based on assumptions about the worker\'s condition. Obtain and file the medical basis for termination.',
+    escalationTrigger: 'Worker\'s physician has not issued a P&S determination and TD is approaching the aggregate limit. Multiple conflicting work status reports.',
+    featureContexts: ['BENEFIT_CALCULATION', 'MEDICAL_REVIEW'],
+  },
+];
+
+// ---------------------------------------------------------------------------
+// Part 5: Labor Code — Medical-Legal Evaluation
+// ---------------------------------------------------------------------------
+
+const PART5_MED_LEGAL: Tier2EducationEntry[] = [
+  {
+    id: 'lc_4060',
+    title: 'QME Evaluation for Unrepresented Employees',
+    authority: 'Cal. Lab. Code § 4060',
+    standard: 'When an unrepresented employee has a disputed medical issue, the QME panel process is the exclusive resolution method. The DWC assigns a three-member panel and the employee selects one evaluator.',
+    consequence: 'Failure to timely request or respond to a QME panel may waive your right to challenge the treating physician\'s opinion. Interfering with the employee\'s panel selection right results in WCAB sanctions.',
+    commonMistake: 'Writing to the treating physician to dispute their opinion instead of using the QME process. For unrepresented employees, the QME panel is the proper mechanism, not correspondence with the treating doctor.',
+    productHelps: 'Identifies when medical disputes trigger the QME process. Generates QME Panel Request Forms. Tracks panel assignment, selection, and evaluation timelines.',
+    youMust: 'Identify disputed medical issues and determine if the employee is represented. If unrepresented, initiate the QME panel process. Compile and send all relevant medical records to the QME.',
+    escalationTrigger: 'Employee obtains an attorney (shift from QME to AME process). Disagreement with QME findings requiring potential challenge. Panel lacks appropriate specialist.',
+    featureContexts: ['MEDICAL_REVIEW'],
+  },
+  {
+    id: 'lc_4061',
+    title: 'QME Panel for Represented Employees (No AME Agreement)',
+    authority: 'Cal. Lab. Code § 4061',
+    standard: 'When a represented employee has a disputed medical issue and parties cannot agree on an AME, either party may request a QME panel. Each side strikes one QME from the three-member panel; the remaining QME evaluates.',
+    consequence: 'Failure to exercise your strike within the allowed timeframe loses the right to strike, giving the applicant attorney effective control over QME selection. Delays extend claim duration and costs.',
+    commonMistake: 'Not exercising the QME strike within the deadline, or requesting a panel in the wrong medical specialty (e.g., orthopedist when the dispute is psychiatric).',
+    productHelps: 'Tracks AME negotiation timelines, QME panel requests, strike deadlines, and evaluation scheduling to prevent missed deadlines.',
+    youMust: 'Attempt AME agreement first (10-day window). If no agreement, request QME panel promptly. Exercise your strike within the deadline. Send complete medical records to the QME.',
+    escalationTrigger: 'AME negotiations stalled. QME report received with unfavorable findings requiring legal analysis. Strike deadline approaching.',
+    featureContexts: ['MEDICAL_REVIEW'],
+  },
+  {
+    id: 'lc_4062',
+    title: 'AME Selection (Mutual Agreement Process)',
+    authority: 'Cal. Lab. Code § 4062',
+    standard: 'For represented employees, the parties should first attempt to agree on an AME. The AME process is preferred because both sides accept the evaluator. If agreement cannot be reached within the specified timeframe, the QME panel fallback under LC 4061 applies.',
+    consequence: 'Failing to engage in good faith AME negotiations may result in WCAB sanctions. Not tracking the AME negotiation timeline may result in waiving the right to participate in the selection.',
+    commonMistake: 'Not responding to the applicant attorney\'s AME proposals within the required timeframe, allowing the attorney to request a QME panel with the argument that the insurer did not negotiate in good faith.',
+    productHelps: 'Tracks AME negotiation communications and deadlines. Maintains a record of proposals and counter-proposals for audit and litigation support.',
+    youMust: 'Engage in AME negotiations in good faith when the applicant attorney proposes candidates. Respond within required timeframes. Document all proposals and responses.',
+    escalationTrigger: 'AME negotiations require legal strategy input from defense counsel. Proposed AME has conflict of interest or qualification concerns.',
+    featureContexts: ['MEDICAL_REVIEW'],
+  },
+];
+
+// ---------------------------------------------------------------------------
+// Part 6: Labor Code — Notice and Disclosure
+// ---------------------------------------------------------------------------
+
+const PART6_NOTICE: Tier2EducationEntry[] = [
+  {
+    id: 'lc_138_4',
+    title: 'DWC EAMS Compliance',
+    authority: 'Cal. Lab. Code § 138.4',
+    standard: 'Claims administrators must comply with the DWC Electronic Adjudication Management System (EAMS) filing requirements. Required documents must be filed electronically through EAMS within specified timeframes.',
+    consequence: 'Failure to comply with EAMS filing requirements is a violation subject to DWC penalties. Late or missing EAMS filings can delay claim proceedings and create audit findings.',
+    commonMistake: 'Filing documents at the WCAB in paper form when EAMS electronic filing is required, or missing the electronic filing deadline while waiting for paper processing.',
+    productHelps: 'Tracks EAMS filing requirements and deadlines for each claim. Generates reminders when filings are due.',
+    youMust: 'Understand which documents require EAMS filing. File required documents electronically within the specified timeframes. Maintain records of all EAMS submissions.',
+    escalationTrigger: 'EAMS filing deadline approaching on a complex matter requiring legal review. System access issues preventing timely filing.',
+    featureContexts: ['DEADLINE_TRACKING', 'DOCUMENT_REVIEW'],
+  },
+  {
+    id: 'lc_3761',
+    title: 'Insurer Notification to Employer of Indemnity Claims',
+    authority: 'Cal. Lab. Code § 3761',
+    standard: 'The insurer must notify the employer of all indemnity claims filed by their employees. The employer has a right to know about claims affecting their policy and experience modification.',
+    consequence: 'Failure to notify the employer violates their rights under the policy and may affect the employer\'s ability to manage their workers compensation program and experience modification factor.',
+    commonMistake: 'Processing indemnity claims without notifying the employer, particularly when the employer has a large deductible or is part of a group self-insurance program.',
+    productHelps: 'Claim intake workflow includes employer notification as a required step for all indemnity claims.',
+    youMust: 'Notify the employer of all indemnity claims per statutory requirements. Document the notification in the claim file.',
+    escalationTrigger: 'Employer disputes the claim or requests additional information about the notification. Large indemnity claim on a sensitive account.',
+    featureContexts: ['CLAIM_INTAKE'],
+  },
+  {
+    id: 'lc_3762',
+    title: 'Discussion of Claim Elements Affecting Premium',
+    authority: 'Cal. Lab. Code § 3762',
+    standard: 'The insurer may discuss with the employer those elements of a claim that affect the employer\'s premium, but may not disclose medical information beyond what is necessary for the employer to understand the claim\'s financial impact.',
+    consequence: 'Improper disclosure of medical information to the employer violates employee medical privacy rights and may result in HIPAA-related penalties and civil liability.',
+    commonMistake: 'Sharing detailed medical reports with the employer when only the financial impact information (reserves, payments, claim status) is appropriate to disclose.',
+    productHelps: 'Data boundary controls restrict what claim information is visible in employer-facing communications and reports, filtering out protected medical details.',
+    youMust: 'Limit employer communications to claim elements that affect premium — reserves, payments, claim status. Do not share detailed medical information. When in doubt, err on the side of less disclosure.',
+    escalationTrigger: 'Employer requests detailed medical information about an employee\'s claim. Defense counsel should advise on permissible disclosures.',
+    featureContexts: ['DOCUMENT_REVIEW', 'CLAIM_INTAKE'],
+  },
+];
+
+// ---------------------------------------------------------------------------
+// Part 7: Utilization Review Regulations (CCR Title 8, 9792)
+// ---------------------------------------------------------------------------
+
+const PART7_UR_REGULATIONS: Tier2EducationEntry[] = [
+  {
+    id: 'ccr8_9792_6',
+    title: 'UR Definitions and General Requirements',
+    authority: 'Cal. Code Regs., tit. 8, § 9792.6',
+    standard: 'UR decisions must be made by licensed physicians for clinical determinations. UR communications must include clinical reasons, criteria used, and the employee\'s right to request IMR. UR programs must have compliant written policies.',
+    consequence: 'UR decisions by non-physicians or without required information are procedurally deficient and may be overturned. Non-compliant UR program may render the insurer unable to deny any treatment request.',
+    commonMistake: 'Having a nurse make the clinical medical necessity determination. Nurses may perform administrative functions but the clinical UR decision must be by a licensed physician.',
+    productHelps: 'UR decision templates include all required elements per CCR 9792.6. System verifies reviewer credentials and flags decisions missing required information before they are sent.',
+    youMust: 'Ensure UR decisions are made by qualified physicians. Verify UR communications include all required elements. Monitor UR vendor compliance.',
+    escalationTrigger: 'Concerns about UR reviewer qualifications. UR decision challenged on procedural grounds. UR vendor not providing compliant decision letters.',
+    featureContexts: ['UTILIZATION_REVIEW'],
+  },
+  {
+    id: 'ccr8_9792_8',
+    title: 'Medically-Based Criteria for UR Decisions',
+    authority: 'Cal. Code Regs., tit. 8, § 9792.8',
+    standard: 'Every UR decision must be based on the MTUS (ACOEM guidelines). If MTUS does not address the treatment, use evidence-based, peer-reviewed medical literature. UR decisions cannot be based on personal opinion or cost.',
+    consequence: 'UR denial without specific MTUS citation is procedurally deficient and unlikely to survive IMR review. DWC penalties of $500-$5,000 per violation under CCR 9792.12.',
+    commonMistake: 'UR reviewer denying treatment with "not medically necessary" without citing the specific MTUS guideline, section, or criteria that the request exceeds.',
+    productHelps: 'Links each treatment request to relevant MTUS guidelines. Flags UR denial letters missing specific citations. Tracks IMR overturn rates indicating UR quality issues.',
+    youMust: 'Ensure UR decisions cite specific MTUS or evidence-based criteria. Review denial letters for completeness before sending. Monitor IMR outcomes to identify quality patterns.',
+    escalationTrigger: 'Pattern of UR denials being overturned on IMR. Treatment not addressed by MTUS requiring alternative evidence-based criteria.',
+    featureContexts: ['UTILIZATION_REVIEW', 'MEDICAL_REVIEW'],
+  },
+  {
+    id: 'ccr8_9792_9',
+    title: 'UR Timeframes',
+    authority: 'Cal. Code Regs., tit. 8, § 9792.9',
+    standard: 'Prospective UR: 5 business days. Concurrent UR: 24 hours. Retrospective UR: 30 days. If deadline is missed, treatment is deemed authorized by operation of law — automatically approved regardless of medical necessity.',
+    consequence: 'Deemed authorizations are one of the costliest UR failures — payment for treatment that may have been properly deniable. DWC penalties under CCR 9792.12 for untimely decisions.',
+    commonMistake: 'Holding an RFA for personal review before routing to UR, consuming days of the 5-business-day window. The clock starts when the claims administrator receives the RFA, not when the examiner reviews it.',
+    productHelps: 'Auto-date-stamps incoming RFAs, calculates applicable deadline, displays countdown timers, escalates alerts at 3 days/1 day/same-day, and flags when decisions are overdue (deemed authorized).',
+    youMust: 'Route every RFA to UR immediately upon receipt — do not hold for your own review. Monitor deadlines actively. Understand the clock rules for additional information requests.',
+    escalationTrigger: 'UR deadline about to be missed. Concurrent review with 24-hour window and reviewer unavailable. Pattern of missed deadlines indicating systemic issue with UR vendor.',
+    featureContexts: ['UTILIZATION_REVIEW', 'DEADLINE_TRACKING'],
+  },
+  {
+    id: 'ccr8_9792_10',
+    title: 'UR Dispute Resolution (IMR Process)',
+    authority: 'Cal. Code Regs., tit. 8, § 9792.10',
+    standard: 'When UR denies, modifies, or delays treatment, the injured worker can request IMR within 30 days. Claims administrator must provide medical records to the IMR organization promptly. IMR determinations are binding.',
+    consequence: 'Failure to include IMR notice in UR letters voids the decision. Failure to provide records may result in default determination authorizing treatment. Failure to comply with IMR authorization triggers LC 5814 penalties.',
+    commonMistake: 'Receiving an IMR determination overturning a UR denial but not authorizing treatment immediately, thinking "we should review this first." IMR determinations are binding — authorize immediately.',
+    productHelps: 'Tracks IMR request deadlines, alerts on IMR requests, generates medical record packages for submission, flags IMR determinations requiring immediate treatment authorization.',
+    youMust: 'Ensure every adverse UR decision includes IMR notification. Respond promptly to IMR requests with complete records. Comply immediately with IMR determinations. Track outcomes.',
+    escalationTrigger: 'IMR overturns UR denial for treatment you believe is inappropriate (very limited challenge options exist). Unable to compile records within IMR deadline. Pattern of IMR overturns.',
+    featureContexts: ['UTILIZATION_REVIEW', 'MEDICAL_REVIEW'],
+  },
+  {
+    id: 'ccr8_9792_12',
+    title: 'UR Penalty Schedule',
+    authority: 'Cal. Code Regs., tit. 8, § 9792.12',
+    standard: 'The DWC Administrative Director may assess administrative penalties for UR violations. Penalties are per-violation: $500-$5,000 for late decisions, missing required elements, failure to use MTUS criteria, or non-compliant UR programs.',
+    consequence: 'Penalties are cumulative across the caseload. A 15% non-compliance rate across 1,000 treatment requests equals 150 violations at $1,000+ each — $150,000+ in potential penalties from a single audit.',
+    commonMistake: 'Viewing UR compliance as "best effort" with 85% timeliness. Regulatory standard is 100% — the remaining 15% are penalty events that compound across the book of business.',
+    productHelps: 'Real-time UR compliance dashboards showing timeliness rates, decision quality, and IMR outcomes. Calculates potential penalty exposure. Generates audit-ready reports.',
+    youMust: 'Monitor UR compliance metrics. Ensure timeliness targets are 100%, not "good enough." Address systemic issues causing delays. Review decision quality. Prepare for DWC audits continuously.',
+    escalationTrigger: 'UR timeliness drops below 95%. DWC audit notice received. Aggregate penalty exposure exceeds organizational threshold. Systemic UR vendor issues.',
+    featureContexts: ['UTILIZATION_REVIEW', 'DEADLINE_TRACKING'],
+  },
+];
+
+// ---------------------------------------------------------------------------
+// Combined export
+// ---------------------------------------------------------------------------
+
+export const TIER2_EDUCATION: Tier2EducationEntry[] = [
+  ...PART1_INSURANCE_CODE,
+  ...PART2_DOI_REGULATIONS,
+  ...PART3_DWC_ADMIN,
+  ...PART4_LABOR_CODE_BENEFITS,
+  ...PART5_MED_LEGAL,
+  ...PART6_NOTICE,
+  ...PART7_UR_REGULATIONS,
+];
+
+// ---------------------------------------------------------------------------
+// Lookup helpers
+// ---------------------------------------------------------------------------
+
+export const TIER2_BY_ID = new Map(TIER2_EDUCATION.map((e) => [e.id, e]));
+
+export function getTier2ForFeature(featureId: FeatureContext): Tier2EducationEntry[] {
+  return TIER2_EDUCATION.filter((e) => e.featureContexts.includes(featureId));
+}

@@ -16,6 +16,9 @@ import { deadlineRoutes } from './routes/deadlines.js';
 import { calculatorRoutes } from './routes/calculator.js';
 import { uplRoutes } from './routes/upl.js';
 import { chatRoutes } from './routes/chat.js';
+import { educationRoutes } from './routes/education.js';
+import { trainingRoutes } from './routes/training.js';
+import { workflowRoutes } from './routes/workflows.js';
 
 export async function buildServer() {
   const env = validateEnv();
@@ -75,6 +78,9 @@ export async function buildServer() {
   await server.register(calculatorRoutes, { prefix: '/api' });
   await server.register(uplRoutes, { prefix: '/api' });
   await server.register(chatRoutes, { prefix: '/api' });
+  await server.register(educationRoutes, { prefix: '/api' });
+  await server.register(trainingRoutes, { prefix: '/api' });
+  await server.register(workflowRoutes, { prefix: '/api' });
 
   // WI-2: Global error handler — registered after all routes
   registerErrorHandler(server);

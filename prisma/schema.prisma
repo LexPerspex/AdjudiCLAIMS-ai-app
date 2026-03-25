@@ -185,6 +185,13 @@ enum AuditEventType {
   @@map("audit_event_type")
 }
 
+enum WorkflowStepStatus {
+  PENDING
+  COMPLETED
+  SKIPPED
+  @@map("workflow_step_status")
+}
+
 // =============================================================================
 // Models
 // =============================================================================
@@ -226,6 +233,8 @@ model User {
 
   // Investigation items completed by this user
   completedInvestigationItems InvestigationItem[] @relation("CompletedBy")
+
+  workflowProgress WorkflowProgress[]
 
   @@index([organizationId], map: "idx_users_organization_id")
   @@index([email], map: "idx_users_email")
@@ -282,6 +291,7 @@ model Claim {
   auditEvents        AuditEvent[]
   benefitPayments    BenefitPayment[]
   timelineEvents     TimelineEvent[]
+  workflowProgress   WorkflowProgress[]
 
   @@index([organizationId], map: "idx_claims_organization_id")
   @@index([assignedExaminerId], map: "idx_claims_assigned_examiner_id")
@@ -541,6 +551,27 @@ model EducationProfile {
   user User @relation(fields: [userId], references: [id])
 
   @@map("education_profiles")
+}
+
+/// Per-claim, per-user workflow progress tracking.
+model WorkflowProgress {
+  id           String    @id @default(cuid()) @map("id")
+  claimId      String    @map("claim_id")
+  userId       String    @map("user_id")
+  workflowId   String    @map("workflow_id")
+  stepStatuses Json      @default("[]") @map("step_statuses")
+  isComplete   Boolean   @default(false) @map("is_complete")
+  startedAt    DateTime  @default(now()) @map("started_at")
+  completedAt  DateTime? @map("completed_at")
+
+  claim Claim @relation(fields: [claimId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+
+  @@unique([claimId, userId, workflowId])
+  @@index([claimId], map: "idx_workflow_progress_claim_id")
+  @@index([userId], map: "idx_workflow_progress_user_id")
+  @@index([claimId, userId], map: "idx_workflow_progress_claim_user")
+  @@map("workflow_progress")
 }
 
 /// Immutable audit trail — every significant system event is recorded here.

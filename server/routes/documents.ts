@@ -15,6 +15,10 @@ import { logAuditEvent } from '../middleware/audit.js';
 import { verifyClaimAccess } from '../middleware/claim-access.js';
 import { storageService } from '../services/storage.service.js';
 import { processDocumentPipeline } from '../services/document-pipeline.service.js';
+import {
+  getDocumentAccessFilter,
+  isDocumentAccessible,
+} from '../services/document-access.service.js';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -172,7 +176,7 @@ export async function documentRoutes(server: FastifyInstance): Promise<void> {
 
       const [documents, total] = await Promise.all([
         prisma.document.findMany({
-          where: { claimId },
+          where: { claimId, ...getDocumentAccessFilter(user.role) },
           select: {
             id: true,
             claimId: true,
@@ -189,7 +193,7 @@ export async function documentRoutes(server: FastifyInstance): Promise<void> {
           take,
           skip,
         }),
-        prisma.document.count({ where: { claimId } }),
+        prisma.document.count({ where: { claimId, ...getDocumentAccessFilter(user.role) } }),
       ]);
 
       return { documents, total, take, skip };
@@ -221,6 +225,9 @@ export async function documentRoutes(server: FastifyInstance): Promise<void> {
           documentSubtype: true,
           classificationConfidence: true,
           accessLevel: true,
+          containsLegalAnalysis: true,
+          containsWorkProduct: true,
+          containsPrivileged: true,
           ocrStatus: true,
           extractedText: true,
           createdAt: true,
@@ -247,6 +254,12 @@ export async function documentRoutes(server: FastifyInstance): Promise<void> {
         user.organizationId,
       );
       if (!authorized) return reply.code(404).send({ error: 'Document not found' });
+
+      // Enforce data boundary — examiner roles may not access attorney-only,
+      // privileged, work product, or legal analysis documents.
+      if (!isDocumentAccessible(document, user.role)) {
+        return reply.code(403).send({ error: 'Access denied — document is restricted to authorized personnel' });
+      }
 
       void logAuditEvent({
         userId: user.id,

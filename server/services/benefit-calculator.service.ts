@@ -17,41 +17,101 @@
 // Types
 // ---------------------------------------------------------------------------
 
+/**
+ * Result of a TD (Temporary Disability) rate calculation.
+ *
+ * The TD rate is derived from the statutory formula: 2/3 of AWE (Average Weekly
+ * Earnings), clamped to DWC-published min/max bounds per LC 4653. The 2/3 fraction
+ * was chosen by the legislature as a balance between wage replacement and return-to-work
+ * incentive -- it provides meaningful income support without fully replacing wages.
+ *
+ * Clamping flags (wasClampedToMin/wasClampedToMax) are exposed so the UI can explain
+ * to the examiner why the calculated rate differs from the raw 2/3 * AWE result.
+ */
 export interface TdRateResult {
+  /** Average Weekly Earnings used as the calculation input. */
   awe: number;
+  /** Final TD weekly rate after statutory min/max clamping per LC 4653. */
   tdRate: number;
+  /** DWC-published minimum weekly TD rate for the injury year. */
   statutoryMin: number;
+  /** DWC-published maximum weekly TD rate for the injury year. */
   statutoryMax: number;
+  /** True if the raw rate (2/3 AWE) fell below the statutory minimum. */
   wasClampedToMin: boolean;
+  /** True if the raw rate (2/3 AWE) exceeded the statutory maximum. */
   wasClampedToMax: boolean;
+  /** The injury year used for rate table lookup (may differ from actual year if fallback was used). */
   injuryYear: number;
+  /** Statutory citation for the formula applied (always 'LC 4653'). */
   statutoryAuthority: string;
 }
 
+/**
+ * A single entry in a TD payment schedule.
+ *
+ * Represents one biweekly payment cycle per LC 4650. Each payment covers a 14-day
+ * period, with the amount equal to 2x the weekly TD rate (biweekly payment).
+ * The final payment may be prorated if the TD period does not end on a cycle boundary.
+ *
+ * Late detection: when actualPaymentDates are provided, each payment is compared
+ * against its due date. Late payments incur a 10% self-imposed penalty per LC 4650(c).
+ */
 export interface PaymentScheduleEntry {
+  /** Sequential payment number (1-indexed). */
   paymentNumber: number;
+  /** Date this payment is due (14 days after period start per LC 4650). */
   dueDate: Date;
+  /** Payment amount in USD (biweekly rate, or prorated for partial final period). */
   amount: number;
+  /** First day of the 14-day period this payment covers. */
   periodStart: Date;
+  /** Last day of the 14-day period this payment covers. */
   periodEnd: Date;
+  /** True if the actual payment date (when provided) exceeded the due date. */
   isLate: boolean;
+  /** 10% self-imposed penalty amount per LC 4650(c) if payment was late; 0 otherwise. */
   penaltyAmount: number;
 }
 
+/**
+ * Complete TD benefit calculation result combining rate, schedule, and totals.
+ *
+ * This is a GREEN zone output — pure arithmetic on statutory formulas with
+ * no legal analysis. The disclaimer must always be included in any UI display.
+ */
 export interface TdCalculationResult {
+  /** The TD rate calculation details. */
   rate: TdRateResult;
+  /** Date the first TD payment is due (startDate + 14 days per LC 4650). */
   firstPaymentDue: Date;
+  /** Ordered array of biweekly payment schedule entries. */
   schedule: PaymentScheduleEntry[];
+  /** Sum of all payment amounts in USD. */
   totalAmount: number;
+  /** Sum of all late payment penalties in USD (per LC 4650(c)). */
   totalPenalty: number;
+  /** Mandatory GREEN zone disclaimer for UI display. */
   disclaimer: string;
 }
 
+/**
+ * Death benefit calculation result per LC 4700-4706.
+ *
+ * Total dependents receive the full statutory amount for the injury year.
+ * Partial dependents receive a proportional share based on degree of dependency.
+ * Weekly payments are made at the statutory max TD rate until the total is exhausted.
+ */
 export interface DeathBenefitResult {
+  /** Total death benefit amount in USD for this dependency type. */
   totalBenefit: number;
+  /** Weekly payment rate (set to the max TD rate for the injury year). */
   weeklyRate: number;
+  /** Estimated number of weeks to exhaust the total benefit at the weekly rate. */
   totalWeeks: number;
+  /** Whether the beneficiary is a total or partial dependent. */
   dependentType: 'TOTAL' | 'PARTIAL';
+  /** Statutory citation (always 'LC 4700-4706'). */
   statutoryAuthority: string;
 }
 

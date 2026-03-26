@@ -25,23 +25,46 @@ export interface DocumentSummary {
   byType: Record<string, number>;
 }
 
+/**
+ * Comprehensive claim file summary for DOI audit purposes.
+ *
+ * Structured per CCR 10101 requirements: a claim file summary must include
+ * all data in the claim file — documents, investigation status, regulatory
+ * deadlines, benefit payment history, and audit trail. This is the primary
+ * report format used during DOI market conduct examinations.
+ *
+ * All data is factual (GREEN zone) — no analysis, conclusions, or recommendations.
+ */
 export interface ClaimFileSummary {
+  /** Unique claim ID. */
   claimId: string;
+  /** Human-readable claim number (e.g., format varies by carrier). */
   claimNumber: string;
+  /** Name of the injured worker. */
   claimantName: string;
+  /** Date the injury occurred. */
   dateOfInjury: Date;
+  /** Current claim status (OPEN, UNDER_INVESTIGATION, DETERMINED, CLOSED, etc.). */
   status: string;
+  /** ID of the examiner assigned to this claim. */
   assignedExaminerId: string;
+  /** Date the claim was received by the insurer (starts all regulatory clocks). */
   dateReceived: Date;
+  /** Date the claim was acknowledged (15-day deadline per 10 CCR 2695.5(b)). */
   dateAcknowledged: Date | null;
+  /** Date the coverage determination was made (40-day deadline per 10 CCR 2695.7(b)). */
   dateDetermined: Date | null;
+  /** Date the claim was closed. */
   dateClosed: Date | null;
+  /** Document inventory with type breakdown. */
   documents: DocumentSummary;
+  /** Investigation checklist completion status. */
   investigationItems: {
     total: number;
     complete: number;
     incomplete: number;
   };
+  /** Regulatory deadline adherence summary. */
   deadlines: {
     total: number;
     met: number;
@@ -49,13 +72,16 @@ export interface ClaimFileSummary {
     pending: number;
     waived: number;
   };
+  /** Benefit payment history with late payment tracking. */
   benefitPayments: {
     total: number;
     totalAmount: number;
     lateCount: number;
     totalPenalties: number;
   };
+  /** Total number of audit events recorded for this claim. */
   auditEventCount: number;
+  /** When this summary was generated. */
   generatedAt: Date;
 }
 
@@ -124,10 +150,27 @@ export interface AuditReadinessCategory {
   details: string;
 }
 
+/**
+ * DOI audit readiness assessment report with composite score.
+ *
+ * Score breakdown (0-100):
+ * - Deadline adherence: 30 points (heaviest weight — most common audit finding)
+ * - Investigation completeness: 25 points (incomplete investigations underpin bad faith)
+ * - Documentation: 20 points (claims must have supporting documents per CCR 10101)
+ * - UPL compliance: 15 points (system compliance with UPL boundaries)
+ * - Lien tracking: 10 points (liens progressed past intake status)
+ *
+ * These weights differ from the compliance-dashboard.service.ts admin report
+ * because this report includes lien tracking as a 5th category.
+ */
 export interface AuditReadinessReport {
+  /** Organization this report covers. */
   orgId: string;
+  /** Composite readiness score (0-100). */
   compositeScore: number; // 0-100
+  /** Per-category score breakdown with details. */
   categories: AuditReadinessCategory[];
+  /** When this report was generated. */
   generatedAt: Date;
 }
 

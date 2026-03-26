@@ -16,11 +16,24 @@
 // Types
 // ---------------------------------------------------------------------------
 
+/**
+ * Result of an OMFS rate lookup for a single CPT code.
+ *
+ * In stub mode, rates come from a built-in table of ~12 common CPT codes.
+ * Unknown CPT codes return omfsRate=null, indicating the rate could not be
+ * determined. The disclaimer is required because fee schedules change annually
+ * and examiners must verify against the current DWC-published edition.
+ */
 export interface OmfsRateLookup {
+  /** The CPT code that was looked up. */
   cptCode: string;
+  /** OMFS allowed rate in USD, or null if the code is not in the rate table. */
   omfsRate: number | null;
+  /** Human-readable description of the CPT code. */
   description: string;
+  /** OMFS fee schedule section (e.g., 'RBRVS' for physician services). */
   feeScheduleSection: string;
+  /** Effective date of the rate (YYYY-MM-DD format). */
   effectiveDate?: string;
 }
 
@@ -33,13 +46,27 @@ export interface BillComparisonLineItem {
   overchargeAmount: number;
 }
 
+/**
+ * Aggregate bill comparison result with per-item and total discrepancy data.
+ *
+ * The disclaimer is mandatory on every display of comparison results because
+ * fee schedule disputes may have legal implications that require defense
+ * counsel involvement (per 8 CCR 9789.10 et seq.).
+ */
 export interface BillComparisonResult {
+  /** Per-item comparison results. */
   lineItems: BillComparisonLineItem[];
+  /** Sum of all billed amounts in USD. */
   totalClaimed: number;
+  /** Sum of all OMFS-allowed amounts in USD (only for known CPT codes). */
   totalOmfsAllowed: number;
+  /** totalClaimed - totalOmfsAllowed in USD. */
   totalDiscrepancy: number;
+  /** Discrepancy as a percentage of totalOmfsAllowed. */
   discrepancyPercent: number;
+  /** Mandatory disclaimer for UI display (references 8 CCR 9789.10). */
   disclaimer: string;
+  /** True if rates come from the built-in stub table (not live KB). */
   isStubData: boolean;
 }
 

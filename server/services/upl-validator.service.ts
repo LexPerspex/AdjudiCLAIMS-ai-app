@@ -22,17 +22,49 @@ import { getLLMAdapter } from '../lib/llm/index.js';
 // Public types
 // ---------------------------------------------------------------------------
 
+/**
+ * A single prohibited language violation found in AI-generated output.
+ *
+ * Each violation corresponds to one of 11 prohibited patterns that detect
+ * language constituting legal advice, legal conclusions, or case evaluation.
+ * All regex-detected violations are CRITICAL severity (must block output).
+ * LLM-detected violations are WARNING severity (advisory, still blocks in
+ * full validation mode).
+ *
+ * The 11 patterns cover: recommendations on claim decisions, direct advice,
+ * strategy language, legal directives, case valuations, case strength
+ * assessments, case law citations, coverage determinations, liability
+ * assessments, outcome predictions, and direct decision directives.
+ */
 export interface Violation {
+  /** Pattern name that triggered this violation (e.g., 'recommendation_action'). */
   pattern: string;
+  /** The actual text that matched the prohibited pattern. */
   matchedText: string;
+  /** Character position in the source text (-1 for LLM-detected violations). */
   position: number;
+  /** CRITICAL = must block output; WARNING = advisory from LLM stage. */
   severity: 'CRITICAL' | 'WARNING';
+  /** Suggested rewrite to make the text compliant. */
   suggestion: string;
 }
 
+/**
+ * Result of UPL output validation.
+ *
+ * PASS means no prohibited patterns were detected and the output is safe
+ * to deliver to the examiner. FAIL means at least one CRITICAL violation
+ * was found and the output must be blocked or rewritten before delivery.
+ *
+ * suggestedRewrites maps each matched text to its suggested compliant
+ * alternative, enabling future auto-rewrite functionality.
+ */
 export interface ValidationResult {
+  /** PASS if no critical violations; FAIL if output must be blocked. */
   result: 'PASS' | 'FAIL';
+  /** All violations found (both CRITICAL and WARNING). */
   violations: Violation[];
+  /** Map of matched text to suggested compliant rewrite (when violations exist). */
   suggestedRewrites?: Map<string, string>;
 }
 

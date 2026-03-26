@@ -22,25 +22,59 @@ import { prisma } from '../db.js';
 // Types
 // ---------------------------------------------------------------------------
 
+/**
+ * Deadline adherence metrics for a user or organization.
+ *
+ * adherenceRate is computed as met / (met + missed), excluding pending and waived
+ * deadlines from the denominator. This ensures that unresolved deadlines do not
+ * artificially inflate or deflate the compliance rate.
+ */
 export interface DeadlineAdherence {
+  /** Number of deadlines met on time. */
   met: number;
+  /** Number of deadlines that were missed (past due without completion). */
   missed: number;
+  /** Number of deadlines still pending (not yet due). */
   pending: number;
+  /** Total deadline count (met + missed + pending + waived). */
   total: number;
+  /** Adherence rate: met / (met + missed). Range 0-1. */
   adherenceRate: number; // 0–1
 }
 
+/**
+ * UPL (Unauthorized Practice of Law) zone distribution summary.
+ *
+ * Tracks how many queries were classified into each zone, plus how many
+ * responses were blocked by the output validator. The blocked count comes
+ * from UPL_OUTPUT_BLOCKED audit events, which may exceed the red count
+ * because output validation can block GREEN/YELLOW responses too.
+ */
 export interface UplSummary {
+  /** Number of queries classified as GREEN (factual, safe). */
   green: number;
+  /** Number of queries classified as YELLOW (borderline, requires disclaimer). */
   yellow: number;
+  /** Number of queries classified as RED (legal advice, blocked). */
   red: number;
+  /** Number of AI outputs blocked by the output validator. */
   blocked: number;
+  /** Total queries classified (green + yellow + red). */
   total: number;
 }
 
+/**
+ * Compliance metrics for a single claims examiner.
+ *
+ * Scoped to the examiner's own assigned claims and chat activity.
+ * Used by the examiner dashboard to show personal compliance posture.
+ */
 export interface ExaminerComplianceMetrics {
+  /** Deadline met/missed/pending breakdown for the examiner's assigned claims. */
   deadlineAdherence: DeadlineAdherence;
+  /** UPL zone distribution for the examiner's chat queries. */
   uplSummary: UplSummary;
+  /** Count of claims in OPEN or UNDER_INVESTIGATION status assigned to this examiner. */
   activeClaimsCount: number;
 }
 
@@ -83,15 +117,38 @@ export interface SupervisorTeamMetrics {
 
 // ---------------------------------------------------------------------------
 
+/**
+ * DOI audit readiness score breakdown by category.
+ *
+ * Weights reflect regulatory importance: deadline adherence is weighted highest (40pts)
+ * because missed deadlines are the most common DOI audit finding. Investigation
+ * completeness (30pts) is next because incomplete investigations underpin bad faith claims.
+ * Documentation (20pts) and UPL compliance (10pts) round out the composite score.
+ *
+ * Total: 40 + 30 + 20 + 10 = 100 points maximum.
+ */
 export interface ComplianceScoreBreakdown {
+  /** Deadline adherence score: adherenceRate * 40. Range 0-40. */
   deadlineScore: number; // 0–40
+  /** Investigation completion score: completionRate * 30. Range 0-30. */
   investigationScore: number; // 0–30
+  /** Documentation score: fraction of claims with >= 1 document * 20. Range 0-20. */
   documentationScore: number; // 0–20
+  /** UPL compliance score: (1 - blockRate) * 10. Range 0-10. */
   uplScore: number; // 0–10
 }
 
+/**
+ * Full admin compliance report extending team metrics with DOI audit readiness.
+ *
+ * The composite score (0-100) indicates organizational readiness for a
+ * California Department of Insurance market conduct examination. Scores below
+ * 70 indicate material compliance gaps that require remediation.
+ */
 export interface AdminComplianceReport extends SupervisorTeamMetrics {
+  /** Composite DOI audit readiness score (0-100). */
   doiAuditReadinessScore: number; // 0–100
+  /** Per-category breakdown of the composite score. */
   complianceScoreBreakdown: ComplianceScoreBreakdown;
 }
 
@@ -108,9 +165,20 @@ export interface BlocksPerPeriod {
   count: number;
 }
 
+/**
+ * UPL monitoring dashboard metrics for an organization.
+ *
+ * adversarialDetectionRate approximates the fraction of RED-zone queries that
+ * also triggered a validation failure, serving as a rough signal for whether
+ * users are attempting to circumvent UPL protections. High rates warrant
+ * policy review and possible additional training.
+ */
 export interface UplMonitoringMetrics {
+  /** Distribution of queries across GREEN/YELLOW/RED zones. */
   zoneDistribution: ZoneDistribution;
+  /** Daily count of blocked outputs over the reporting period. */
   blocksPerPeriod: BlocksPerPeriod[];
+  /** Ratio of validation failures to RED-zone queries (0-1). */
   adversarialDetectionRate: number; // 0–1
 }
 

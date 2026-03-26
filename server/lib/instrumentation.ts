@@ -11,7 +11,24 @@ import * as Sentry from '@sentry/node';
 let _initialized = false;
 
 /**
- * Initialize Sentry. Safe to call multiple times — only initializes once.
+ * Initialize Sentry error tracking and performance monitoring.
+ *
+ * Safe to call multiple times — only initializes once (idempotent).
+ *
+ * Activation rules:
+ * - Only active when SENTRY_DSN environment variable is set.
+ * - In development without a DSN, all Sentry calls are no-ops (zero overhead).
+ * - In production, captures unhandled exceptions, console.error calls, and
+ *   performance traces at 100% sample rate.
+ *
+ * What it captures:
+ * - Unhandled exceptions with full stack traces (attachStacktrace: true)
+ * - Console error output (captureConsoleIntegration)
+ * - Performance traces at 100% sample rate (tracesSampleRate: 1.0)
+ *
+ * What it does NOT capture:
+ * - PHI/PII — never log claim content, only metadata and IDs
+ * - OpenTelemetry spans — skipped to avoid conflicts with other tracing
  */
 export function initSentry(): void {
   if (_initialized) return;

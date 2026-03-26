@@ -37,12 +37,31 @@ export interface MtusGuidelineMatch {
   evidenceLevel?: string;
 }
 
+/**
+ * Result of MTUS guideline matching for a treatment request.
+ *
+ * Stub mode rationale: The Knowledge Base (wc-knowledge-base) is an external
+ * service that is not yet connected. Rather than blocking the MTUS feature
+ * entirely, we provide realistic stub data based on ACOEM guidelines for
+ * common body parts. This allows UI development, integration testing, and
+ * user feedback collection while the KB integration is in progress.
+ *
+ * When isStubData=true, the UI should indicate that results are illustrative.
+ * When the KB is connected, isStubData will be false and results will come
+ * from actual vector similarity search against the MTUS knowledge base.
+ */
 export interface MtusMatchResult {
+  /** Matched MTUS guidelines, ranked by relevance (descending). */
   matches: MtusGuidelineMatch[];
+  /** The original match request (echoed for traceability). */
   query: MtusMatchRequest;
+  /** Mandatory disclaimer about UR physician decision authority. */
   disclaimer: string;
+  /** Always 'mtus' — identifies the KB source type. */
   sourceType: 'mtus';
+  /** Number of guidelines matched. */
   totalMatches: number;
+  /** True if results come from the built-in stub table (not live KB). */
   isStubData: boolean;
 }
 

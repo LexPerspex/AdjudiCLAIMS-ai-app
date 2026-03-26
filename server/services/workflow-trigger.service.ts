@@ -25,11 +25,23 @@ import {
 // Types (duplicated from workflow files — cannot import V8 sandbox modules)
 // ---------------------------------------------------------------------------
 
+/**
+ * Input for the chat response Temporal workflow.
+ *
+ * Types are duplicated here because V8 sandbox workflow modules cannot be
+ * imported from normal Node.js code. The workflow trigger service acts as
+ * the bridge between Fastify route handlers and Temporal workflows.
+ */
 export interface ChatWorkflowInput {
+  /** Claim context for RAG document retrieval. */
   claimId: string;
+  /** Chat session ID for conversation continuity. */
   sessionId: string;
+  /** The examiner's question or message. */
   message: string;
+  /** UPL-compliant system prompt for the LLM. */
   systemPrompt: string;
+  /** Conversation history for context. */
   messages: Array<{
     role: 'system' | 'user' | 'assistant';
     content: string;

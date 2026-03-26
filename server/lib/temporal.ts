@@ -15,7 +15,16 @@ let _connection: Connection | null = null;
 
 /**
  * Get or create the Temporal client singleton.
- * Uses lazy connection — doesn't block server startup.
+ *
+ * Uses Connection.lazy() instead of Connection.connect() so that server startup
+ * is not blocked by Temporal availability. The connection is established on the
+ * first actual RPC call. This is important because the Fastify server should be
+ * able to serve health checks and non-workflow routes even if Temporal is down.
+ *
+ * TLS is enabled automatically when TEMPORAL_API_KEY is set, which indicates
+ * a Temporal Cloud deployment (Cloud requires mTLS or API key authentication).
+ *
+ * @returns The Temporal Client singleton instance.
  */
 export function getTemporalClient(): Client {
   if (_client) return _client;
@@ -44,7 +53,15 @@ export function getTemporalClient(): Client {
  * Start a workflow idempotently.
  *
  * If a workflow with the same ID is already running, swallows the
- * WorkflowExecutionAlreadyStartedError (deduplication).
+ * WorkflowExecutionAlreadyStartedError and returns the existing workflow ID.
+ * This idempotent-start pattern is critical for document pipeline and OMFS
+ * comparison workflows where duplicate triggers (e.g., re-upload, retry)
+ * should not create duplicate processing.
+ *
+ * @param workflowName - The workflow function name registered with the worker.
+ * @param options - Workflow ID, task queue, and arguments.
+ * @returns The workflow ID (new or existing).
+ * @throws Non-duplicate errors from the Temporal server.
  */
 export async function startWorkflow(
   workflowName: string,
@@ -74,6 +91,9 @@ export async function startWorkflow(
 
 /**
  * Get a workflow handle for querying status or waiting for result.
+ *
+ * @param workflowId - The workflow execution ID to get a handle for.
+ * @returns A WorkflowHandle that can be used to query, signal, or await the workflow.
  */
 export function getWorkflowHandle(workflowId: string) {
   const client = getTemporalClient();

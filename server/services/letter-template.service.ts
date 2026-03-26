@@ -20,12 +20,26 @@ import { LETTER_TEMPLATES, type LetterTemplate } from '../data/letter-templates.
 // Types
 // ---------------------------------------------------------------------------
 
+/**
+ * A letter template populated with claim-specific data.
+ *
+ * All {{token}} placeholders have been replaced with actual claim data.
+ * Missing optional fields default to 'N/A' to ensure no raw placeholders
+ * appear in the final output. The populatedData map is retained for
+ * audit trail — it records exactly what values were substituted.
+ */
 export interface PopulatedLetter {
+  /** The template that was used. */
   templateId: string;
+  /** Letter type (matches Prisma LetterType enum). */
   letterType: string;
+  /** Human-readable letter title. */
   title: string;
+  /** Fully populated letter content (Markdown). */
   content: string;
+  /** Map of token names to the values substituted. */
   populatedData: Record<string, string>;
+  /** Statutory authority cited by this letter type. */
   statutoryAuthority: string;
 }
 

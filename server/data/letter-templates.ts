@@ -20,13 +20,32 @@
 // Types
 // ---------------------------------------------------------------------------
 
+/**
+ * A letter template definition.
+ *
+ * Templates use a simple {{token}} replacement engine. Tokens are populated
+ * from claim data (claimNumber, claimantName, dateOfInjury, etc.) and optional
+ * overrides (tdRate, awe, etc.). Missing tokens are replaced with 'N/A' to
+ * ensure no raw placeholders appear in the final output.
+ *
+ * Each template cites its statutory authority and includes a disclaimer noting
+ * the letter is factual content only (not legal advice). This is essential
+ * because some letters are sent directly to claimants.
+ */
 export interface LetterTemplate {
+  /** Unique template identifier (e.g., 'td-benefit-explanation'). */
   id: string;
+  /** Prisma LetterType enum value for database storage. */
   letterType: string; // matches LetterType enum in Prisma schema
+  /** Human-readable template title. */
   title: string;
+  /** Description of what this letter communicates and when to use it. */
   description: string;
+  /** List of claim data fields needed to populate this template. */
   requiredFields: string[]; // What claim data is needed
+  /** Markdown template body with {{token}} placeholders. */
   template: string; // Markdown with {{token}} placeholders
+  /** Statutory citations that authorize this letter type. */
   statutoryAuthority: string;
 }
 

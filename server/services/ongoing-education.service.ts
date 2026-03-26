@@ -30,13 +30,31 @@ import type { AssessmentQuestion } from '../data/training-modules.js';
 // Types
 // ---------------------------------------------------------------------------
 
+/**
+ * Monthly compliance review for an examiner.
+ *
+ * Part of Layer 3 Channel 2: monthly compliance reviews. Surfaces three
+ * categories of compliance concern that require examiner attention:
+ * 1. Missed deadlines this month — regulatory violations requiring remediation
+ * 2. Approaching deadlines (14 days) — proactive workload management
+ * 3. Stale claims (30 days no activity) — may indicate lost files or oversight
+ *
+ * Per 10 CCR 2695.6: ongoing training includes compliance self-assessment.
+ */
 export interface MonthlyReview {
+  /** Month this review covers (e.g., '2026-03'). */
   month: string; // e.g., '2026-03'
+  /** The examiner this review is for. */
   userId: string;
+  /** Organization scope for database queries. */
   organizationId: string;
+  /** Deadlines missed in the current month. */
   missedDeadlines: MissedDeadlineSummary[];
+  /** Pending deadlines due within the next 14 days. */
   approachingDeadlines: ApproachingDeadlineSummary[];
+  /** Open claims with no activity in the last 30 days. */
   claimsWithoutRecentActivity: StaleClaimSummary[];
+  /** ISO timestamp when this review was generated. */
   generatedAt: string;
 }
 

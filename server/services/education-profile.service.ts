@@ -27,14 +27,36 @@ import type { Tier2EducationEntry } from '../data/tier2-education.js';
 // Types
 // ---------------------------------------------------------------------------
 
+/**
+ * Serialized education profile record for API responses.
+ *
+ * Tracks per-user education state: which Tier 1 terms have been dismissed,
+ * which training modules are complete, and whether the user is in new-examiner
+ * learning mode (30-day enhanced education window).
+ *
+ * The two-tier model:
+ * - Tier 1 (dismissable): Basic term definitions that new examiners see by default.
+ *   Once dismissed, a term stays hidden unless re-enabled. This reduces noise for
+ *   experienced examiners while ensuring new examiners learn foundational concepts.
+ * - Tier 2 (always-present): Regulatory education that is NEVER hidden. This is
+ *   the Glass Box foundation — every decision point shows its statutory authority.
+ */
 export interface EducationProfileRecord {
+  /** Unique profile ID. */
   id: string;
+  /** The user this profile belongs to. */
   userId: string;
+  /** Array of Tier 1 term IDs the user has dismissed. */
   dismissedTerms: string[];
+  /** JSON record of completed training modules with scores and timestamps. */
   trainingModulesCompleted: Record<string, unknown> | null;
+  /** True when all 4 mandatory training modules have been passed. */
   isTrainingComplete: boolean;
+  /** Expiry date for new-examiner learning mode (null if not active). */
   learningModeExpiry: Date | null;
+  /** When this profile was created. */
   createdAt: Date;
+  /** Last modification timestamp. */
   updatedAt: Date;
 }
 
@@ -43,6 +65,15 @@ export interface TermWithDismissalState {
   isDismissed: boolean;
 }
 
+/**
+ * Education mode for a user.
+ *
+ * 'NEW' — The user is within the 30-day new-examiner learning window. All Tier 1
+ * terms are shown by default (even if not yet explicitly dismissed). This ensures
+ * new examiners see foundational definitions during their onboarding period.
+ *
+ * 'STANDARD' — Normal operation. Tier 1 terms are only shown if not dismissed.
+ */
 export type EducationMode = 'NEW' | 'STANDARD';
 
 // ---------------------------------------------------------------------------

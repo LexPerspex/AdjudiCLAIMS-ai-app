@@ -16,13 +16,35 @@ import type { AssessmentQuestion } from './training-modules.js';
 // Types
 // ---------------------------------------------------------------------------
 
+/**
+ * A quarterly refresher assessment module.
+ *
+ * Part of the Layer 3 ongoing education system. Examiners complete one refresher
+ * per quarter to maintain proficiency. Questions reuse the AssessmentQuestion
+ * format from the training module system for consistency.
+ *
+ * Refresher content strategy:
+ * - Each quarter focuses on a specific competency area (deadlines, UPL, benefits, etc.)
+ * - 5 questions per refresher keeps the assessment brief (~5 minutes)
+ * - 80% passing score (4/5) balances rigor with accessibility
+ * - Failed refreshers can be retried immediately (no lockout)
+ *
+ * Per 10 CCR 2695.6: insurers must provide ongoing training to claims professionals.
+ */
 export interface QuarterlyRefresher {
+  /** Quarter identifier used as the primary key (e.g., '2026-Q1'). */
   id: string;             // e.g., '2026-Q1'
+  /** Display-friendly quarter string. */
   quarter: string;        // e.g., '2026-Q1'
+  /** Assessment title describing the competency area covered. */
   title: string;
+  /** Description of what this refresher covers and why. */
   description: string;
+  /** Minimum score to pass (0.0 to 1.0). All refreshers use 0.8 (80%). */
   passingScore: number;   // 0.0 to 1.0
+  /** Number of questions in the assessment. */
   totalQuestions: number;
+  /** Assessment questions with correct answers (stripped before client delivery). */
   questions: AssessmentQuestion[];
 }
 

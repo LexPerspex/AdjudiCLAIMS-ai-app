@@ -67,7 +67,17 @@ const EXAMINER_ALLOWED_SOURCES: KbSourceType[] = [
 
 /**
  * Sources blocked for all examiner-side roles.
- * These contain legal research material requiring attorney-level analysis.
+ *
+ * Why these specific sources are blocked:
+ * - pdrs_2005 (Permanent Disability Rating Schedule): PD rating is a legal
+ *   calculation that determines the monetary value of permanent impairment.
+ *   Applying the PDRS to a specific claim's medical findings constitutes
+ *   legal analysis under Cal. Bus. & Prof. Code section 6125. Only attorneys
+ *   and WCAB judges may apply the PDRS to specific claims.
+ * - crpc (California Rules of Professional Conduct): These are attorney
+ *   ethics rules governing attorney conduct. Exposing them to examiners
+ *   serves no claims-handling purpose and could create confusion about
+ *   the examiner's role.
  */
 const EXAMINER_BLOCKED_SOURCES: KbSourceType[] = [
   'pdrs_2005',  // Permanent Disability Rating Schedule — legal calculation requiring attorney
@@ -86,7 +96,14 @@ const EXAMINER_ALLOWED_CONTENT: KbContentType[] = [
 
 /**
  * Content types blocked for examiner-side roles.
- * All constitute legal analysis and are reserved for attorneys.
+ *
+ * Why each content type is blocked:
+ * - legal_principle: Contains legal conclusions derived from case law. Presenting
+ *   these to examiners would effectively provide legal analysis, violating UPL.
+ * - case_summary: Case law research is the exclusive domain of attorneys. Examiners
+ *   have no need for case summaries in their regulatory compliance work.
+ * - irac_brief: Issue/Rule/Analysis/Conclusion format is attorney legal writing.
+ *   The "Analysis" and "Conclusion" sections inherently contain legal reasoning.
  */
 const EXAMINER_BLOCKED_CONTENT: KbContentType[] = [
   'legal_principle',  // Legal conclusions — UPL boundary

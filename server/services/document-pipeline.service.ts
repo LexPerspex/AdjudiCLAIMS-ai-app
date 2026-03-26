@@ -24,16 +24,36 @@ import { generateTimelineEvents } from './timeline.service.js';
 // Types
 // ---------------------------------------------------------------------------
 
+/**
+ * Summary of document processing pipeline execution.
+ *
+ * Each pipeline stage reports success/failure independently. OCR is the
+ * critical gate: if it fails, no subsequent stages can run (no text to
+ * process). All other stages are fault-tolerant — a failure in classification
+ * does not prevent field extraction or embedding, because each stage operates
+ * on the raw extracted text independently. This design maximizes data
+ * extraction even when individual stages encounter errors.
+ */
 export interface PipelineResult {
+  /** The document that was processed. */
   documentId: string;
+  /** Whether OCR text extraction succeeded (gate for all subsequent stages). */
   ocrSuccess: boolean;
+  /** Whether document type classification succeeded. */
   classificationSuccess: boolean;
+  /** Whether structured field extraction succeeded. */
   extractionSuccess: boolean;
+  /** Whether chunking and vector embedding succeeded. */
   embeddingSuccess: boolean;
+  /** Whether timeline event extraction succeeded. */
   timelineSuccess: boolean;
+  /** Number of vector embedding chunks created for RAG retrieval. */
   chunksCreated: number;
+  /** Number of structured fields extracted (dates, names, amounts, etc.). */
   fieldsExtracted: number;
+  /** Number of timeline events created from date references in the text. */
   timelineEventsCreated: number;
+  /** Error messages from any failed stages. */
   errors: string[];
 }
 

@@ -21,10 +21,25 @@ import { prisma } from '../db.js';
 // Public interface
 // ---------------------------------------------------------------------------
 
+/**
+ * A single structured field extracted from document text.
+ *
+ * Fields are extracted via a two-pass approach: (1) regex patterns for dates,
+ * amounts, claim numbers, SSNs, and names, then (2) Claude API for document-type-
+ * specific fields (e.g., diagnoses from medical reports, AWE from wage statements).
+ * When both passes find the same field, the higher-confidence result wins.
+ *
+ * SSN values are always masked (XXX-XX-NNNN) to prevent PII exposure in logs
+ * and API responses.
+ */
 export interface ExtractedField {
+  /** Field type identifier (e.g., 'date', 'dollarAmount', 'claimNumber', 'diagnoses'). */
   fieldName: string;
+  /** Extracted value as a string (SSNs are always masked). */
   fieldValue: string;
+  /** Confidence score (0-1). Regex: fixed per pattern. LLM: model-assessed. */
   confidence: number;
+  /** Source page number within the document (null if unknown). */
   sourcePage: number | null;
 }
 

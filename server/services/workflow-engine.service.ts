@@ -22,10 +22,22 @@ import type { WorkflowDefinition } from '../data/workflow-definitions.js';
 // Types
 // ---------------------------------------------------------------------------
 
+/**
+ * Persisted status of a single workflow step.
+ *
+ * Stored as JSON array in WorkflowProgress.stepStatuses. Each entry tracks
+ * whether the step is pending, completed, or skipped. Skipped steps must
+ * have a reason explaining why (for audit trail). Steps marked as
+ * isSkippable=false in the workflow definition cannot be skipped.
+ */
 interface StepStatusEntry {
+  /** The workflow step ID this status belongs to. */
   stepId: string;
+  /** Current status: PENDING (not started), COMPLETED, or SKIPPED. */
   status: 'PENDING' | 'COMPLETED' | 'SKIPPED';
+  /** ISO timestamp when the step was completed (only for COMPLETED). */
   completedAt?: string;
+  /** Examiner-provided reason for skipping (required for SKIPPED). */
   skipReason?: string;
 }
 

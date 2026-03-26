@@ -17,6 +17,20 @@ interface ErrorResponse {
 
 /**
  * Register the global error handler on a Fastify instance.
+ *
+ * Error classification hierarchy (checked in order):
+ * 1. AppError (custom) — maps directly to HTTP status via error.statusCode
+ * 2. ZodError — schema validation failures → 400 with issue details
+ * 3. Prisma P2002 — unique constraint violation → 409 Conflict
+ * 4. Prisma P2025 — record not found → 404 Not Found
+ * 5. Fastify validation — request schema failures → 400
+ * 6. Unknown/unhandled — reported to Sentry → 500 (message stripped in production)
+ *
+ * Design choice: stack traces are included in development responses for
+ * debugging but stripped in production to avoid leaking implementation details.
+ * All errors are logged server-side regardless of environment.
+ *
+ * @param server - Fastify server instance to attach the error handler to.
  */
 export function registerErrorHandler(server: {
   setErrorHandler: (

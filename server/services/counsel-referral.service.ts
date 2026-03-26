@@ -22,18 +22,44 @@ import { logAuditEvent } from '../middleware/audit.js';
 // Types
 // ---------------------------------------------------------------------------
 
+/**
+ * Input for generating a counsel referral summary.
+ *
+ * Triggered when an examiner encounters a RED zone query and requests a
+ * factual claim summary to send to their assigned defense attorney. The
+ * summary covers 6 sections to give counsel a complete picture without
+ * requiring independent claim file review.
+ */
 export interface CounselReferralRequest {
+  /** The claim ID to generate the referral summary for. */
   claimId: string;
+  /** The requesting examiner's user ID (for audit logging). */
   userId: string;
+  /** Description of the legal issue that triggered the referral. */
   legalIssue: string;
   /** Fastify request for audit logging (IP, user-agent). */
   request: FastifyRequest;
 }
 
+/**
+ * Response from counsel referral summary generation.
+ *
+ * The summary contains 6 required sections (Claim Overview, Medical Evidence,
+ * Benefits Status, Claim Timeline, Legal Issue Identified, Documents Available).
+ * These 6 sections ensure counsel receives a complete factual picture. The count
+ * was chosen to match standard defense counsel intake forms.
+ *
+ * If UPL output validation fails, wasBlocked=true and the summary is replaced
+ * with a generic message directing the examiner to contact counsel directly.
+ */
 export interface CounselReferralResponse {
+  /** The generated summary text (or blocked message if validation failed). */
   summary: string;
+  /** Names of the 6 required sections found in the generated summary. */
   sections: string[];
+  /** UPL output validation result. */
   validation: ValidationResult;
+  /** True if the summary was blocked due to UPL output validation failure. */
   wasBlocked: boolean;
 }
 

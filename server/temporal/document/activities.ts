@@ -23,6 +23,18 @@ import { generateTimelineEvents } from '../../services/timeline.service.js';
 // Activity: OCR
 // ---------------------------------------------------------------------------
 
+/**
+ * Activity: Extract text from a document via Google Document AI (OCR).
+ *
+ * This is the first and most critical pipeline step — all subsequent activities
+ * depend on the extracted text. Non-retryable for missing documents (no point
+ * retrying if the record doesn't exist). Transient errors (network, API) are
+ * allowed to propagate for Temporal's retry policy.
+ *
+ * @param documentId - Prisma Document record ID.
+ * @returns Success indicator; error message on failure.
+ * @throws ApplicationFailure.nonRetryable if the document record is not found.
+ */
 export async function processOcr(
   documentId: string,
 ): Promise<{ success: boolean; error?: string }> {
@@ -43,6 +55,17 @@ export async function processOcr(
 // Activity: Classification
 // ---------------------------------------------------------------------------
 
+/**
+ * Activity: Classify a document by its extracted text using keyword matching.
+ *
+ * Determines the document type (e.g., MEDICAL_REPORT, DWC1_CLAIM_FORM) to
+ * enable downstream features like auto-completion of investigation items and
+ * type-specific field extraction.
+ *
+ * @param documentId - Prisma Document record ID (must have extracted text).
+ * @returns Success indicator with the classified document type.
+ * @throws ApplicationFailure.nonRetryable if the document is not found.
+ */
 export async function classifyDocument(
   documentId: string,
 ): Promise<{ success: boolean; documentType?: string; error?: string }> {
@@ -61,6 +84,16 @@ export async function classifyDocument(
 // Activity: Field Extraction
 // ---------------------------------------------------------------------------
 
+/**
+ * Activity: Extract structured fields (dates, amounts, names) from document text.
+ *
+ * Uses a two-pass approach: regex patterns for common fields, then Claude API
+ * for document-type-specific fields. Results are persisted to extracted_fields table.
+ *
+ * @param documentId - Prisma Document record ID (must have extracted text).
+ * @returns Success indicator with the count of fields extracted.
+ * @throws ApplicationFailure.nonRetryable if the document is not found.
+ */
 export async function extractFields(
   documentId: string,
 ): Promise<{ success: boolean; fieldCount: number; error?: string }> {
@@ -79,6 +112,17 @@ export async function extractFields(
 // Activity: Chunking + Embedding
 // ---------------------------------------------------------------------------
 
+/**
+ * Activity: Split document text into chunks and generate vector embeddings.
+ *
+ * Creates overlapping text chunks for RAG retrieval and generates 768-dimensional
+ * embeddings via Vertex AI. Chunks are stored without embeddings when Vertex AI
+ * is not configured, preserving the pipeline for local development.
+ *
+ * @param documentId - Prisma Document record ID (must have extracted text).
+ * @returns Success indicator with the count of chunks created.
+ * @throws ApplicationFailure.nonRetryable if the document is not found.
+ */
 export async function chunkAndEmbed(
   documentId: string,
 ): Promise<{ success: boolean; chunkCount: number; error?: string }> {
@@ -97,6 +141,16 @@ export async function chunkAndEmbed(
 // Activity: Timeline Generation
 // ---------------------------------------------------------------------------
 
+/**
+ * Activity: Extract date-based timeline events from document text.
+ *
+ * Parses date references and classifies them by surrounding context (injury,
+ * filing, payment, medical evaluation, etc.) to build the claim timeline.
+ *
+ * @param documentId - Prisma Document record ID (must have extracted text).
+ * @returns Success indicator with the count of timeline events created.
+ * @throws ApplicationFailure.nonRetryable if the document is not found.
+ */
 export async function generateTimeline(
   documentId: string,
 ): Promise<{ success: boolean; eventCount: number; error?: string }> {

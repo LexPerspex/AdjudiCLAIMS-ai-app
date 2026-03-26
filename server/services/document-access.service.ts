@@ -21,6 +21,23 @@ import type { UserRole } from '../middleware/rbac.js';
  * Prisma where-clause fragment for document list queries.
  * Applied to `prisma.document.findMany({ where: { ...filter } })`.
  */
+/**
+ * Prisma where-clause fragment for document list queries.
+ *
+ * Applied to `prisma.document.findMany({ where: { ...filter } })`.
+ * Enforces the UPL data boundary by excluding four categories of restricted
+ * documents from all examiner-side queries:
+ *
+ * 1. ATTORNEY_ONLY access level — documents explicitly marked for attorneys
+ * 2. containsLegalAnalysis — documents flagged during classification
+ * 3. containsWorkProduct — attorney work product (privileged)
+ * 4. containsPrivileged — attorney-client privileged communications
+ *
+ * All four must be excluded because Cal. Bus. & Prof. Code section 6125
+ * prohibits non-attorneys from accessing content that constitutes the
+ * practice of law, and exposing such content to examiners via the AI
+ * would create UPL liability.
+ */
 export interface DocumentAccessFilter {
   accessLevel?: { not: 'ATTORNEY_ONLY' };
   containsLegalAnalysis?: boolean;

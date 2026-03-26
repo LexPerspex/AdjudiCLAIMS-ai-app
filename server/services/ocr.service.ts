@@ -52,6 +52,17 @@ function getClient(): DocumentProcessorServiceClient {
 /**
  * Process a document through Google Document AI and persist the extracted text.
  *
+ * Pipeline:
+ * 1. Fetch the Document record for fileUrl and mimeType
+ * 2. Set ocrStatus to PROCESSING (allows UI to show progress)
+ * 3. Download file bytes from GCS (or local filesystem in dev)
+ * 4. Send to Document AI for text extraction
+ * 5. Persist extracted text and set ocrStatus to COMPLETE
+ * 6. On failure: set ocrStatus to FAILED and re-throw
+ *
+ * The Document AI client is lazy-initialized (created once, reused) to avoid
+ * creating a new gRPC connection per document, which would be expensive.
+ *
  * @param documentId - Prisma Document record ID.
  * @returns The extracted text content.
  * @throws If the document record is not found, Document AI is misconfigured,

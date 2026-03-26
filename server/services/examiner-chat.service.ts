@@ -25,11 +25,25 @@ import { logAuditEvent } from '../middleware/audit.js';
 // Types
 // ---------------------------------------------------------------------------
 
+/**
+ * Input for the examiner chat 3-stage UPL pipeline.
+ *
+ * Each message goes through: (1) UPL classification, (2) RAG + LLM generation,
+ * (3) output validation. The three stages exist because no single layer is
+ * sufficient: regex catches known patterns but misses novel phrasing, the LLM
+ * system prompt constrains generation but can be circumvented, and output
+ * validation catches any prohibited language that slips through.
+ */
 export interface ChatRequest {
+  /** The claim context for RAG document retrieval. */
   claimId: string;
+  /** Existing session ID for conversation continuity; omit to start new session. */
   sessionId?: string;
+  /** The examiner's question or message. */
   message: string;
+  /** The authenticated examiner's user ID. */
   userId: string;
+  /** The examiner's organization ID (for audit scoping). */
   orgId: string;
   /** Fastify request for audit logging (IP, user-agent). */
   request: FastifyRequest;
@@ -42,14 +56,31 @@ export interface Citation {
   similarity: number;
 }
 
+/**
+ * Response from the examiner chat pipeline.
+ *
+ * Contains the full audit trail of the 3-stage UPL pipeline: what zone the
+ * query was classified into, what disclaimer was applied, whether the output
+ * passed validation, and whether the response was blocked. This transparency
+ * is part of the Glass Box philosophy — the examiner can see exactly why
+ * the system responded the way it did.
+ */
 export interface ChatResponse {
+  /** Chat session ID (created or existing). */
   sessionId: string;
+  /** ID of the persisted assistant message record. */
   messageId: string;
+  /** The response content (or blocked message if wasBlocked=true). */
   content: string;
+  /** Stage 1 result: UPL zone classification of the query. */
   classification: UplClassification;
+  /** Zone-appropriate disclaimer attached to the response. */
   disclaimer: DisclaimerResult;
+  /** Stage 3 result: output validation for prohibited language. */
   validation: ValidationResult;
+  /** True if the response was blocked at any stage (RED zone or output validation failure). */
   wasBlocked: boolean;
+  /** Document chunks retrieved via RAG for this response. */
   citations: Citation[];
 }
 

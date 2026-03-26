@@ -16,9 +16,20 @@ import { basename, dirname, join } from 'node:path';
 // Interface
 // ---------------------------------------------------------------------------
 
+/**
+ * Storage backend interface for document file operations.
+ *
+ * Two implementations exist to support both production (GCS) and local
+ * development (filesystem). The active backend is selected at module load
+ * time based on the GCS_BUCKET environment variable. This abstraction
+ * allows the document pipeline to work identically in both environments.
+ *
+ * Path format: {orgId}/{claimId}/{docId}/{fileName} — provides natural
+ * tenant isolation in GCS and mirrors the claim hierarchy in the filesystem.
+ */
 export interface StorageService {
   /**
-   * Upload a file and return its URL or local path.
+   * Upload a file and return its URL (gs:// for GCS) or local path.
    */
   upload(
     orgId: string,

@@ -15,12 +15,32 @@
 
 export type ChangeUrgency = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 
+/**
+ * A regulatory change notification entry.
+ *
+ * Part of the Layer 3 ongoing education system. When statutes, regulations,
+ * or fee schedules change, examiners receive these notifications and must
+ * acknowledge them. Unacknowledged changes appear as pending items in the
+ * examiner's education dashboard.
+ *
+ * Urgency levels determine display priority:
+ * - CRITICAL: Immediate compliance impact, requires same-day review
+ * - HIGH: Significant procedural change, review within 1 week
+ * - MEDIUM: Moderate change, review before effective date
+ * - LOW: Informational, no immediate action required
+ */
 export interface RegulatoryChange {
+  /** Unique identifier (e.g., 'rc-2026-001'). */
   id: string;
+  /** Short title including the bill number or rule source. */
   title: string;
+  /** One-paragraph summary of the change and examiner impact. */
   description: string;
+  /** When the change takes effect (ISO date string). */
   effectiveDate: string; // ISO date string
+  /** Statutory sections affected (e.g., ['LC 4650', 'LC 4650.5']). */
   affectedStatutes: string[];
+  /** Urgency level for display prioritization. */
   urgency: ChangeUrgency;
   /** Markdown body with detailed explanation of what changed and examiner impact. */
   details: string;

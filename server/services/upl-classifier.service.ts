@@ -22,10 +22,27 @@ import { getLLMAdapter } from '../lib/llm/index.js';
 // Public types
 // ---------------------------------------------------------------------------
 
+/**
+ * Result of UPL query classification.
+ *
+ * The two-stage pipeline (regex + LLM) exists because:
+ * - Regex first: instant (~0ms), catches known patterns with high precision,
+ *   and avoids LLM cost/latency for obvious cases (~60% of queries).
+ * - LLM second: handles novel phrasing, context-dependent queries, and
+ *   borderline cases that regex cannot reliably classify.
+ *
+ * Conservative default: if uncertain at any stage, classify as RED. A false
+ * positive (blocking a safe query) is far less harmful than a false negative
+ * (allowing legal advice to reach a non-attorney).
+ */
 export interface UplClassification {
+  /** Traffic-light zone: GREEN (safe), YELLOW (borderline), RED (blocked). */
   zone: 'GREEN' | 'YELLOW' | 'RED';
+  /** Human-readable explanation of why this zone was assigned. */
   reason: string;
+  /** Classification confidence (0-1). Regex: 0.85-0.95. LLM: model-reported. */
   confidence: number;
+  /** True if the query matched adversarial jailbreak patterns (role-play, hypothetical framing). */
   isAdversarial: boolean;
 }
 

@@ -37,10 +37,23 @@ export interface InvestigationItemWithDetails {
   description: string;
 }
 
+/**
+ * Progress summary for a claim's investigation checklist.
+ *
+ * Tracks completeness of the mandatory 10-item investigation checklist. The
+ * percentage is used by the compliance dashboard to compute the investigation
+ * component of the DOI audit readiness score. Incomplete investigations are
+ * a primary DOI audit finding under CCR 10109 and a foundation for bad faith
+ * claims under Ins. Code section 790.03(h)(3).
+ */
 export interface InvestigationProgress {
+  /** All investigation items with labels, descriptions, and completion state. */
   items: InvestigationItemWithDetails[];
+  /** Total number of investigation items for this claim. */
   totalItems: number;
+  /** Number of items marked as complete (manually or auto-completed). */
   completedItems: number;
+  /** Completion percentage (0-100), rounded to nearest integer. */
   percentComplete: number;
 }
 

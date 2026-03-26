@@ -28,7 +28,14 @@ const OVERLAP_CHARS = 400;
 /** Vertex AI embedding model identifier. */
 const EMBEDDING_MODEL = 'text-embedding-005';
 
-/** Embedding dimensionality produced by text-embedding-005. */
+/**
+ * Embedding dimensionality produced by text-embedding-005.
+ *
+ * 768 dimensions is the native output size of Google's text-embedding-005 model.
+ * This matches the pgvector column definition: `embedding vector(768)`.
+ * Using the model's native dimensionality avoids the accuracy loss from
+ * truncation while keeping storage and search costs reasonable.
+ */
 const EMBEDDING_DIMENSIONS = 768;
 
 /** Maximum texts per single Vertex AI predict call. */
@@ -41,10 +48,21 @@ const DEFAULT_TOP_K = 5;
 // Types
 // ---------------------------------------------------------------------------
 
+/**
+ * A single result from vector similarity search.
+ *
+ * Similarity is computed as 1 - cosine_distance, where 1.0 indicates
+ * identical vectors and 0.0 indicates orthogonal vectors. Results are
+ * ranked by descending similarity, limited to topK (default 5).
+ */
 export interface SearchResult {
+  /** Unique ID of the document chunk. */
   chunkId: string;
+  /** ID of the parent document this chunk belongs to. */
   documentId: string;
+  /** The text content of the chunk. */
   content: string;
+  /** Cosine similarity score (0-1, higher = more relevant). */
   similarity: number;
 }
 

@@ -28,7 +28,14 @@ import {
 // Types
 // ---------------------------------------------------------------------------
 
-/** A question safe to send to the client — correctOptionId stripped. */
+/**
+ * A training assessment question safe to send to the client.
+ *
+ * The correctOptionId is stripped server-side before any API response to prevent
+ * answer leakage. This is a hard security requirement: if answers are exposed,
+ * the training gate becomes meaningless and examiners could bypass mandatory
+ * training without actually learning the material.
+ */
 export type SafeQuestion = Omit<AssessmentQuestion, 'correctOptionId'>;
 
 /** A training module safe to send to the client — questions have correctOptionId stripped. */
@@ -64,11 +71,27 @@ export interface AssessmentAnswerResult {
   explanation: string;
 }
 
+/**
+ * Result of a training module assessment submission.
+ *
+ * The score is calculated as correctCount / totalQuestions (0-1 range).
+ * Passing thresholds vary by module (80% for modules 1-2, 90% for UPL module 3,
+ * 100% for product usage module 4). The higher bar for the UPL module reflects
+ * its critical compliance importance.
+ *
+ * When passed, results are persisted to EducationProfile. If all 4 modules
+ * are now passed, isTrainingComplete is set to true, unlocking full product access.
+ */
 export interface AssessmentResult {
+  /** Score as a fraction (0-1). */
   score: number;
+  /** Whether the score met the module's passing threshold. */
   passed: boolean;
+  /** Total number of questions in the assessment. */
   totalQuestions: number;
+  /** Number of correctly answered questions. */
   correctCount: number;
+  /** Per-question results with explanations. */
   results: AssessmentAnswerResult[];
 }
 

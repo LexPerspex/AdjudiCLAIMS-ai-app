@@ -41,8 +41,17 @@ export interface CitationResult {
   similarity: number;
 }
 
+/**
+ * A chat message in the LLM conversation format.
+ *
+ * Must be a plain serializable object (no class instances) because Temporal
+ * serializes all activity inputs/outputs across the worker boundary using JSON.
+ * Map, Set, Date, and class instances are not supported.
+ */
 export interface LlmMessage {
+  /** Message role: system (prompt), user (examiner), or assistant (AI). */
   role: 'system' | 'user' | 'assistant';
+  /** Message content text. */
   content: string;
 }
 
@@ -68,11 +77,22 @@ export interface SerializableValidationResult {
   violations: SerializableValidationViolation[];
 }
 
+/**
+ * Serializable result from counsel referral generation.
+ *
+ * The FastifyRequest dependency is removed for Temporal serialization.
+ * Audit logging is handled at the route level instead of within the activity.
+ */
 export interface ReferralResult {
+  /** Generated factual summary (or blocked message). */
   summary: string;
+  /** Names of the 6 required sections found in the summary. */
   sections: string[];
+  /** True if the summary was blocked by UPL output validation. */
   wasBlocked: boolean;
+  /** UPL output validation result. */
   validationResult: 'PASS' | 'FAIL';
+  /** Number of UPL violations detected. */
   violationCount: number;
 }
 

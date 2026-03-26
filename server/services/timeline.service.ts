@@ -17,13 +17,30 @@ import { prisma } from '../db.js';
 // Public interface
 // ---------------------------------------------------------------------------
 
+/**
+ * A single timeline event extracted from document text.
+ *
+ * Events are created by parsing date references from OCR text and classifying
+ * them based on surrounding context keywords. The event extraction approach
+ * is deliberately simple (regex + keyword matching) rather than LLM-based,
+ * because: (1) date formats in WC documents are standardized, (2) context
+ * classification needs only a few categories, and (3) regex runs in ~0ms
+ * vs ~1s for an LLM call per document.
+ */
 export interface TimelineEvent {
+  /** Unique event record ID. */
   id: string;
+  /** The claim this event belongs to. */
   claimId: string;
+  /** The document this event was extracted from (null for manually added events). */
   documentId: string | null;
+  /** The date of the event as parsed from the document text. */
   eventDate: Date;
+  /** Event type classification (e.g., 'DATE_OF_INJURY', 'BENEFIT_PAYMENT'). */
   eventType: string;
+  /** Context text surrounding the date reference (up to 200 chars). */
   description: string;
+  /** Source document file name for attribution. */
   source: string;
 }
 

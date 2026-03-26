@@ -95,6 +95,20 @@ export interface LienExposure {
 // Status transition map
 // ---------------------------------------------------------------------------
 
+/**
+ * Valid lien status transitions.
+ *
+ * The lifecycle follows the typical CA WC lien resolution path:
+ *   RECEIVED → UNDER_REVIEW → OMFS_COMPARED → NEGOTIATING → resolution
+ *
+ * Key design choices:
+ * - WITHDRAWN is reachable from any active state (liens can be withdrawn at any time)
+ * - OMFS_COMPARED cannot go back to UNDER_REVIEW (comparison is irreversible)
+ * - DISPUTED can still resolve to PAID_IN_FULL/PAID_REDUCED (settlement after dispute)
+ * - Terminal states (PAID_IN_FULL, PAID_REDUCED, WITHDRAWN, RESOLVED_BY_ORDER) have no outgoing transitions
+ *
+ * Per LC 4903: lien claimants must follow this procedural path for WCAB resolution.
+ */
 const VALID_STATUS_TRANSITIONS: Record<string, string[]> = {
   RECEIVED: ['UNDER_REVIEW', 'WITHDRAWN'],
   UNDER_REVIEW: ['OMFS_COMPARED', 'WITHDRAWN'],

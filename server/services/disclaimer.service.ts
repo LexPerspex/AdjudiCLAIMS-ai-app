@@ -46,10 +46,25 @@ export type RedTriggerCategory =
   | 'injured_worker_rights'
   | 'general';
 
+/**
+ * Result of disclaimer generation for an AI output.
+ *
+ * Every AI output in the system must pass through getDisclaimer() to receive
+ * appropriate framing. This is a non-negotiable UPL compliance requirement:
+ * - GREEN outputs get a brief factual-summary disclaimer
+ * - YELLOW outputs get a mandatory "consult defense counsel" warning
+ * - RED outputs are blocked entirely and replaced with an attorney referral
+ *
+ * The isBlocked flag and referralMessage are only set for RED zone results.
+ */
 export interface DisclaimerResult {
+  /** The disclaimer text to display with the AI output. */
   disclaimer: string;
+  /** The UPL zone this disclaimer corresponds to. */
   zone: 'GREEN' | 'YELLOW' | 'RED';
+  /** True only for RED zone — the AI output must not be delivered. */
   isBlocked: boolean;
+  /** Attorney referral message (RED zone only, with trigger-specific guidance). */
   referralMessage?: string;
 }
 

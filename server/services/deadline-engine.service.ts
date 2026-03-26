@@ -20,19 +20,46 @@ import { UserRole } from '../middleware/rbac.js';
 // Types
 // ---------------------------------------------------------------------------
 
+/**
+ * Urgency classification for deadline display.
+ *
+ * Thresholds are based on claims management best practices:
+ * - GREEN (<50%): plenty of time remaining, routine monitoring
+ * - YELLOW (50-80%): approaching deadline, examiner should prioritize
+ * - RED (>80%): critical — deadline imminent, requires immediate action
+ * - OVERDUE: past due date, compliance violation has occurred
+ */
 export type UrgencyLevel = 'GREEN' | 'YELLOW' | 'RED' | 'OVERDUE';
 
+/**
+ * A regulatory deadline enriched with computed urgency classification.
+ *
+ * Combines the persisted deadline record with runtime urgency analysis.
+ * The urgency is computed from the elapsed time percentage between creation
+ * and due date, not stored in the database, ensuring it is always current.
+ */
 export interface DeadlineWithUrgency {
+  /** Unique deadline record ID. */
   id: string;
+  /** The claim this deadline belongs to. */
   claimId: string;
+  /** Statutory deadline type (e.g., ACKNOWLEDGE_15DAY, TD_FIRST_14DAY). */
   deadlineType: DeadlineType;
+  /** Date this deadline is due. */
   dueDate: Date;
+  /** Persisted status (PENDING, MET, MISSED, WAIVED). */
   status: DeadlineStatus;
+  /** Statutory citation for this deadline type. */
   statutoryAuthority: string;
+  /** Computed urgency classification based on elapsed time. */
   urgency: UrgencyLevel;
+  /** Percentage of time elapsed from creation to due date (0-100). */
   percentElapsed: number;
+  /** Calendar days remaining until due date (0 if overdue). */
   daysRemaining: number;
+  /** When the deadline was created (start of the urgency window). */
   createdAt: Date;
+  /** When the deadline was completed (MET or WAIVED), null if still pending. */
   completedAt: Date | null;
 }
 

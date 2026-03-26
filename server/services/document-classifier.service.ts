@@ -19,9 +19,21 @@ import { prisma } from '../db.js';
 // Public types
 // ---------------------------------------------------------------------------
 
+/**
+ * Result of document type classification.
+ *
+ * The stub classifier uses keyword matching with a fixed confidence of 0.7
+ * for matched types and 0.3 for the fallback 'OTHER' type. The production
+ * LLM-backed classifier will provide calibrated confidence scores. Subtype
+ * is reserved for future use (e.g., distinguishing PR-2 from PR-4 within
+ * MEDICAL_REPORT).
+ */
 export interface ClassificationResult {
+  /** Prisma DocumentType enum value (e.g., 'MEDICAL_REPORT', 'DWC1_CLAIM_FORM'). */
   documentType: string;
+  /** Document subtype (currently null; reserved for future granular classification). */
   documentSubtype: string | null;
+  /** Classification confidence score (0-1). */
   confidence: number;
 }
 

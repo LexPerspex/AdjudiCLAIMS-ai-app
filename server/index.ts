@@ -5,6 +5,8 @@ import session from '@fastify/session';
 import rateLimit from '@fastify/rate-limit';
 import { validateEnv } from './lib/env.js';
 import { registerErrorHandler } from './lib/error-handler.js';
+import { initSentry, Sentry } from './lib/instrumentation.js';
+import { disconnectTemporal } from './lib/temporal.js';
 import { prisma } from './db.js';
 import { healthRoutes } from './routes/health.js';
 import { authRoutes } from './routes/auth.js';
@@ -30,6 +32,9 @@ import { lienRoutes } from './routes/liens.js';
 
 export async function buildServer() {
   const env = validateEnv();
+
+  // Initialize Sentry (no-op if SENTRY_DSN not set)
+  initSentry();
 
   const server = Fastify({
     logger: {
@@ -127,7 +132,9 @@ async function start() {
 
     try {
       await server.close();
+      await disconnectTemporal();
       await prisma.$disconnect();
+      await Sentry.close(2000);
       server.log.info('Shutdown complete');
       process.exit(0);
     } catch (err) {
@@ -140,11 +147,13 @@ async function start() {
   process.on('SIGINT', () => void shutdown('SIGINT'));
 
   process.on('uncaughtException', (err) => {
+    Sentry.captureException(err);
     server.log.fatal({ err }, 'Uncaught exception');
     void shutdown('uncaughtException');
   });
 
   process.on('unhandledRejection', (err) => {
+    Sentry.captureException(err);
     server.log.fatal({ err }, 'Unhandled rejection');
     void shutdown('unhandledRejection');
   });

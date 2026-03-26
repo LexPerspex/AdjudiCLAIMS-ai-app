@@ -29,6 +29,16 @@ const envSchema = z.object({
   DOCUMENT_AI_PROCESSOR: z.string().optional(),
   GCS_BUCKET: z.string().optional(),
   CORS_ORIGINS: z.string().optional(),
+
+  // Temporal
+  TEMPORAL_ADDRESS: z.string().default('localhost:7233'),
+  TEMPORAL_NAMESPACE: z.string().default('adjudiclaims'),
+  TEMPORAL_API_KEY: z.string().optional(),
+
+  // Sentry
+  SENTRY_DSN: z.string().url().optional(),
+  SENTRY_ENVIRONMENT: z.string().optional(),
+  SENTRY_RELEASE: z.string().optional(),
 });
 
 type Env = z.infer<typeof envSchema>;

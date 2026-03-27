@@ -274,6 +274,145 @@ enum WorkflowStepStatus {
 }
 
 // =============================================================================
+// Graph RAG Enums
+// =============================================================================
+
+enum GraphNodeType {
+  PERSON
+  ORGANIZATION
+  BODY_PART
+  CLAIM
+  DOCUMENT
+  PROCEEDING
+  LEGAL_ISSUE
+  LIEN
+  SETTLEMENT
+  TREATMENT
+  MEDICATION
+  RATING
+  BENEFIT
+
+  @@map("graph_node_type")
+}
+
+enum GraphEdgeType {
+  // Document-Entity (5)
+  ESTABLISHES
+  MENTIONS
+  AMENDS
+  SUPERSEDES
+  RESPONDS_TO
+  // Person-Relationship (4)
+  REPRESENTS
+  EMPLOYED_BY
+  AFFILIATED_WITH
+  DEPENDENT_OF
+  // Medical (9)
+  TREATS
+  EVALUATES
+  DIAGNOSES
+  INJURED
+  PRESCRIBED
+  PERFORMED
+  REVIEWS_UR
+  REVIEWS_IMR
+  REFERS
+  // Legal Process (8)
+  FILES
+  ADJUDICATES
+  DECIDES
+  ORDERS
+  AWARDS
+  PERTAINS_TO
+  APPEALS
+  CITES_STATUTE
+  // Financial/Lien (5)
+  PAYS
+  FILES_LIEN
+  SETTLES_LIEN
+  DENIES
+  INSURES
+  // Rating/Work (3)
+  RATES
+  APPORTIONS
+  OFFERS_WORK
+  // Communication (1)
+  SENDS
+
+  @@map("graph_edge_type")
+}
+
+enum ContradictionStatus {
+  NONE
+  UNRESOLVED
+  HUMAN_CONFIRMED
+  HUMAN_REJECTED
+  AUTO_RESOLVED
+
+  @@map("contradiction_status")
+}
+
+enum PersonRole {
+  APPLICANT
+  APPLICANT_ATTORNEY
+  DEFENSE_ATTORNEY
+  DEFENDANT
+  EMPLOYER_REP
+  CLAIMS_EXAMINER
+  CLAIMS_SUPERVISOR
+  TREATING_PHYSICIAN
+  QME
+  AME
+  IME
+  SURGEON
+  RADIOLOGIST
+  PSYCHIATRIST
+  PSYCHOLOGIST
+  CHIROPRACTOR
+  PHYSICAL_THERAPIST
+  PHARMACIST
+  VOCATIONAL_EXPERT
+  ECONOMIST
+  LIFE_CARE_PLANNER
+  INVESTIGATOR
+  WCAB_JUDGE
+  LIEN_CLAIMANT
+  WITNESS
+  GUARDIAN
+  INTERPRETER
+  NURSE_CASE_MANAGER
+
+  @@map("person_role")
+}
+
+enum OrgType {
+  EMPLOYER
+  CARRIER
+  TPA_ORG
+  MEDICAL_FACILITY
+  PHARMACY
+  LAW_FIRM
+  LIEN_CLAIMANT_ORG
+  VOCATIONAL_REHAB
+  WCAB
+  DEU
+  DWC
+  RECORD_COPY_SERVICE
+  BILLING_REVIEW
+
+  @@map("org_type")
+}
+
+enum MaturityLabel {
+  NASCENT
+  GROWING
+  MATURE
+  COMPLETE
+
+  @@map("maturity_label")
+}
+
+// =============================================================================
 // Models
 // =============================================================================
 
@@ -382,6 +521,14 @@ model Claim {
   generatedLetters  GeneratedLetter[]
   counselReferrals  CounselReferral[]
   liens             Lien[]
+
+  // Graph RAG relations
+  graphNodes          GraphNode[]
+  graphEdges          GraphEdge[]
+  graphSummaries      GraphSummary[]
+  graphMaturity       GraphMaturity?
+  graphStatusChanges  GraphStatusChange[]
+  graphQuerySignals   GraphQuerySignal[]
 
   @@index([organizationId], map: "idx_claims_organization_id")
   @@index([assignedExaminerId], map: "idx_claims_assigned_examiner_id")
@@ -845,4 +992,186 @@ model LienLineItem {
   @@index([lienId], map: "idx_lien_line_items_lien_id")
   @@index([cptCode], map: "idx_lien_line_items_cpt_code")
   @@map("lien_line_items")
+}
+
+// =============================================================================
+// Graph RAG Models
+// =============================================================================
+
+/// Per-claim graph node — entities extracted from documents.
+/// Nodes are scoped to a single claim and typed by the 13-value ontology.
+model GraphNode {
+  id              String        @id @default(cuid()) @map("id")
+  claimId         String        @map("claim_id")
+  nodeType        GraphNodeType @map("node_type")
+  canonicalName   String        @map("canonical_name") @db.VarChar(500)
+  aliases         Json          @default("[]") @map("aliases")
+  properties      Json          @default("{}") @map("properties")
+
+  // Person/Org subtype (stored as JSON since PersonRole/OrgType are domain-specific)
+  personRole      PersonRole?   @map("person_role")
+  orgType         OrgType?      @map("org_type")
+
+  // Provenance
+  sourceDocumentIds Json        @default("[]") @map("source_document_ids")
+  confidence        Float       @default(0) @map("confidence")
+
+  // Embedding (model-agnostic — dimension stored per-model, not per-schema)
+  embeddingModel  String?       @map("embedding_model")
+
+  // Human verification
+  humanVerified   Boolean       @default(false) @map("human_verified")
+  humanVerifiedBy String?       @map("human_verified_by")
+  locked          Boolean       @default(false) @map("locked")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  claim         Claim       @relation(fields: [claimId], references: [id])
+  outgoingEdges GraphEdge[] @relation("EdgeSource")
+  incomingEdges GraphEdge[] @relation("EdgeTarget")
+
+  @@index([claimId, nodeType], map: "idx_graph_nodes_claim_type")
+  @@index([claimId, canonicalName], map: "idx_graph_nodes_claim_name")
+  @@index([nodeType], map: "idx_graph_nodes_type")
+  @@map("graph_nodes")
+}
+
+/// Per-claim graph edge — relationships between nodes with neuro-plastic properties.
+/// Edges carry provenance, confidence (Noisy-OR), contradiction state, and traversal stats.
+model GraphEdge {
+  id           String        @id @default(cuid()) @map("id")
+  claimId      String        @map("claim_id")
+  edgeType     GraphEdgeType @map("edge_type")
+  sourceNodeId String        @map("source_node_id")
+  targetNodeId String        @map("target_node_id")
+  properties   Json          @default("{}") @map("properties")
+
+  // Provenance
+  sourceDocumentIds Json @default("[]") @map("source_document_ids")
+  sourceChunkIds    Json @default("[]") @map("source_chunk_ids")
+
+  // Confidence (Noisy-OR across sources)
+  confidence        Float @default(0) @map("confidence")
+  sourceConfidences Json  @default("[]") @map("source_confidences")
+
+  // Neuro-plastic weight (Hebbian strengthening / lazy decay)
+  weight          Float    @default(1.0) @map("weight")
+  traversalCount  Int      @default(0) @map("traversal_count")
+  lastTraversedAt DateTime? @map("last_traversed_at")
+
+  // Contradiction tracking
+  contradictionStatus    ContradictionStatus @default(NONE) @map("contradiction_status")
+  contradictedByEdgeIds  Json                @default("[]") @map("contradicted_by_edge_ids")
+  contradictionType      String?             @map("contradiction_type")
+
+  // Human verification
+  humanVerified   Boolean  @default(false) @map("human_verified")
+  humanVerifiedBy String?  @map("human_verified_by")
+  locked          Boolean  @default(false) @map("locked")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  claim      Claim     @relation(fields: [claimId], references: [id])
+  sourceNode GraphNode @relation("EdgeSource", fields: [sourceNodeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  targetNode GraphNode @relation("EdgeTarget", fields: [targetNodeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([claimId, edgeType], map: "idx_graph_edges_claim_type")
+  @@index([sourceNodeId], map: "idx_graph_edges_source")
+  @@index([targetNodeId], map: "idx_graph_edges_target")
+  @@index([claimId, weight], map: "idx_graph_edges_claim_weight")
+  @@index([contradictionStatus], map: "idx_graph_edges_contradiction")
+  @@map("graph_edges")
+}
+
+/// Subgraph summary — consolidated natural language summary of a node cluster.
+model GraphSummary {
+  id       String  @id @default(cuid()) @map("id")
+  claimId  String  @map("claim_id")
+  nodeIds  Json    @default("[]") @map("node_ids")
+  edgeIds  Json    @default("[]") @map("edge_ids")
+  summary  String  @map("summary") @db.Text
+  isValid  Boolean @default(true) @map("is_valid")
+
+  // Embedding
+  embeddingModel String? @map("embedding_model")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  claim Claim @relation(fields: [claimId], references: [id])
+
+  @@index([claimId], map: "idx_graph_summaries_claim")
+  @@map("graph_summaries")
+}
+
+/// Per-claim graph maturity — 5 examiner facets tracking enrichment completeness.
+model GraphMaturity {
+  id      String @id @default(cuid()) @map("id")
+  claimId String @unique @map("claim_id")
+
+  overallScore          Float        @default(0) @map("overall_score")
+  medicalScore          Float        @default(0) @map("medical_score")
+  insuranceBenefitScore Float        @default(0) @map("insurance_benefit_score")
+  employmentScore       Float        @default(0) @map("employment_score")
+  regulatoryScore       Float        @default(0) @map("regulatory_score")
+  evidentialScore       Float        @default(0) @map("evidential_score")
+  maturityLabel         MaturityLabel @default(NASCENT) @map("maturity_label")
+
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  claim Claim @relation(fields: [claimId], references: [id])
+
+  @@map("graph_maturity")
+}
+
+/// Tracks property changes on graph nodes for audit/timeline purposes.
+model GraphStatusChange {
+  id            String   @id @default(cuid()) @map("id")
+  claimId       String   @map("claim_id")
+  targetNodeId  String   @map("target_node_id")
+  field         String   @map("field")
+  oldValue      String?  @map("old_value") @db.Text
+  newValue      String?  @map("new_value") @db.Text
+  effectiveDate DateTime? @map("effective_date")
+  documentId    String?  @map("document_id")
+  confidence    Float    @default(0) @map("confidence")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  claim Claim @relation(fields: [claimId], references: [id])
+
+  @@index([claimId], map: "idx_graph_status_changes_claim")
+  @@index([targetNodeId], map: "idx_graph_status_changes_node")
+  @@map("graph_status_changes")
+}
+
+/// Cognitive router query signal — tracks how graph queries are routed and whether they succeeded.
+model GraphQuerySignal {
+  id              String   @id @default(cuid()) @map("id")
+  claimId         String   @map("claim_id")
+  queryText       String   @map("query_text") @db.Text
+  queryPattern    String?  @map("query_pattern")
+  observeSnapshot Json?    @map("observe_snapshot")
+  tierSelected    String?  @map("tier_selected")
+  tierUsed        String?  @map("tier_used")
+  escalated       Boolean  @default(false) @map("escalated")
+  iscDriftScore   Float?   @map("isc_drift_score")
+  succeeded       Boolean? @map("succeeded")
+  latencyMs       Int?     @map("latency_ms")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  claim Claim @relation(fields: [claimId], references: [id])
+
+  @@index([claimId], map: "idx_graph_query_signals_claim")
+  @@index([queryPattern], map: "idx_graph_query_signals_pattern")
+  @@map("graph_query_signals")
 }

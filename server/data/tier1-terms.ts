@@ -856,7 +856,8 @@ export const TIER1_TERMS_BY_ID = new Map<string, Tier1Term>(
 export const TIER1_TERMS_BY_CATEGORY: Record<Tier1Category, Tier1Term[]> =
   TIER1_TERMS.reduce(
     (acc, term) => {
-      if (!acc[term.category]) {
+      const existing: Tier1Term[] | undefined = acc[term.category] as Tier1Term[] | undefined;
+      if (!existing) {
         acc[term.category] = [];
       }
       acc[term.category].push(term);

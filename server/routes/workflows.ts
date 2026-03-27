@@ -124,7 +124,7 @@ export async function workflowRoutes(server: FastifyInstance): Promise<void> {
           request,
         });
 
-        return reply.code(201).send(progress);
+        return await reply.code(201).send(progress);
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
 

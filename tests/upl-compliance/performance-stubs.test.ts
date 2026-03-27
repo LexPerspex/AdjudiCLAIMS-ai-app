@@ -59,7 +59,7 @@ describe('Performance requirements: targets defined and documented', () => {
     expect(chatResponseMs).toBeDefined();
     expect(typeof chatResponseMs).toBe('number');
     expect(chatResponseMs).toBeLessThanOrEqual(5_000);
-    console.info(`[Perf] Chat response target: ${chatResponseMs}ms`);
+    console.info(`[Perf] Chat response target: ${String(chatResponseMs)}ms`);
   });
 
   it('document OCR target is defined and ≤30 seconds', () => {
@@ -67,7 +67,7 @@ describe('Performance requirements: targets defined and documented', () => {
     expect(documentOcrMs).toBeDefined();
     expect(typeof documentOcrMs).toBe('number');
     expect(documentOcrMs).toBeLessThanOrEqual(30_000);
-    console.info(`[Perf] Document OCR target: ${documentOcrMs}ms`);
+    console.info(`[Perf] Document OCR target: ${String(documentOcrMs)}ms`);
   });
 
   it('benefit calculation target is defined and ≤500ms', () => {
@@ -75,7 +75,7 @@ describe('Performance requirements: targets defined and documented', () => {
     expect(benefitCalculationMs).toBeDefined();
     expect(typeof benefitCalculationMs).toBe('number');
     expect(benefitCalculationMs).toBeLessThanOrEqual(500);
-    console.info(`[Perf] Benefit calculation target: ${benefitCalculationMs}ms`);
+    console.info(`[Perf] Benefit calculation target: ${String(benefitCalculationMs)}ms`);
   });
 
   it('deadline dashboard target is defined and ≤2 seconds', () => {
@@ -83,7 +83,7 @@ describe('Performance requirements: targets defined and documented', () => {
     expect(deadlineDashboardMs).toBeDefined();
     expect(typeof deadlineDashboardMs).toBe('number');
     expect(deadlineDashboardMs).toBeLessThanOrEqual(2_000);
-    console.info(`[Perf] Deadline dashboard target: ${deadlineDashboardMs}ms`);
+    console.info(`[Perf] Deadline dashboard target: ${String(deadlineDashboardMs)}ms`);
   });
 
   it('concurrent user target is defined and ≥50 users', () => {
@@ -91,28 +91,28 @@ describe('Performance requirements: targets defined and documented', () => {
     expect(concurrentUsers).toBeDefined();
     expect(typeof concurrentUsers).toBe('number');
     expect(concurrentUsers).toBeGreaterThanOrEqual(50);
-    console.info(`[Perf] Concurrent user target: ${concurrentUsers} users`);
+    console.info(`[Perf] Concurrent user target: ${String(concurrentUsers)} users`);
   });
 
   it('UPL sync classification target is defined and ≤10ms', () => {
     const { uplClassificationSyncMs } = PERFORMANCE_TARGETS;
     expect(uplClassificationSyncMs).toBeDefined();
     expect(uplClassificationSyncMs).toBeLessThanOrEqual(10);
-    console.info(`[Perf] UPL sync classification target: ${uplClassificationSyncMs}ms`);
+    console.info(`[Perf] UPL sync classification target: ${String(uplClassificationSyncMs)}ms`);
   });
 
   it('output validation target is defined and ≤10ms', () => {
     const { outputValidationMs } = PERFORMANCE_TARGETS;
     expect(outputValidationMs).toBeDefined();
     expect(outputValidationMs).toBeLessThanOrEqual(10);
-    console.info(`[Perf] Output validation target: ${outputValidationMs}ms`);
+    console.info(`[Perf] Output validation target: ${String(outputValidationMs)}ms`);
   });
 
   it('compliance dashboard target is defined and ≤3 seconds', () => {
     const { complianceDashboardMs } = PERFORMANCE_TARGETS;
     expect(complianceDashboardMs).toBeDefined();
     expect(complianceDashboardMs).toBeLessThanOrEqual(3_000);
-    console.info(`[Perf] Compliance dashboard target: ${complianceDashboardMs}ms`);
+    console.info(`[Perf] Compliance dashboard target: ${String(complianceDashboardMs)}ms`);
   });
 });
 
@@ -129,7 +129,7 @@ describe('Performance: synchronous calculation speed (unit-testable)', () => {
     const elapsed = performance.now() - start;
 
     expect(elapsed).toBeLessThan(PERFORMANCE_TARGETS.uplClassificationSyncMs);
-    console.info(`[Perf Actual] UPL sync classification: ${elapsed.toFixed(2)}ms (target: <${PERFORMANCE_TARGETS.uplClassificationSyncMs}ms)`);
+    console.info(`[Perf Actual] UPL sync classification: ${elapsed.toFixed(2)}ms (target: <${String(PERFORMANCE_TARGETS.uplClassificationSyncMs)}ms)`);
   });
 
   it('output validation runs in <10ms for a typical response', async () => {
@@ -146,7 +146,7 @@ describe('Performance: synchronous calculation speed (unit-testable)', () => {
     const elapsed = performance.now() - start;
 
     expect(elapsed).toBeLessThan(PERFORMANCE_TARGETS.outputValidationMs);
-    console.info(`[Perf Actual] Output validation: ${elapsed.toFixed(2)}ms (target: <${PERFORMANCE_TARGETS.outputValidationMs}ms)`);
+    console.info(`[Perf Actual] Output validation: ${elapsed.toFixed(2)}ms (target: <${String(PERFORMANCE_TARGETS.outputValidationMs)}ms)`);
   });
 
   it('benefit calculation runs in <500ms for a full TD rate calculation', async () => {
@@ -164,7 +164,7 @@ describe('Performance: synchronous calculation speed (unit-testable)', () => {
     const elapsed = performance.now() - start;
 
     expect(elapsed).toBeLessThan(PERFORMANCE_TARGETS.benefitCalculationMs);
-    console.info(`[Perf Actual] Benefit calculation (6-month schedule): ${elapsed.toFixed(2)}ms (target: <${PERFORMANCE_TARGETS.benefitCalculationMs}ms)`);
+    console.info(`[Perf Actual] Benefit calculation (6-month schedule): ${elapsed.toFixed(2)}ms (target: <${String(PERFORMANCE_TARGETS.benefitCalculationMs)}ms)`);
   });
 
   it('urgency classification runs in <1ms for 100 deadlines', async () => {
@@ -193,27 +193,27 @@ describe('Performance: synchronous calculation speed (unit-testable)', () => {
 
 describe('Performance: integration tests (require running system)', () => {
   it.todo(
-    `Chat response P95 latency < ${PERFORMANCE_TARGETS.chatResponseMs}ms — ` +
+    `Chat response P95 latency < ${String(PERFORMANCE_TARGETS.chatResponseMs)}ms — ` +
     'run with k6/artillery against staging',
   );
 
   it.todo(
-    `Document OCR pipeline P95 < ${PERFORMANCE_TARGETS.documentOcrMs}ms — ` +
+    `Document OCR pipeline P95 < ${String(PERFORMANCE_TARGETS.documentOcrMs)}ms — ` +
     'test with PDF uploads against staging',
   );
 
   it.todo(
-    `Deadline dashboard P95 load < ${PERFORMANCE_TARGETS.deadlineDashboardMs}ms — ` +
+    `Deadline dashboard P95 load < ${String(PERFORMANCE_TARGETS.deadlineDashboardMs)}ms — ` +
     'test with /api/claims/:id/deadlines against staging',
   );
 
   it.todo(
-    `Concurrent user test: ${PERFORMANCE_TARGETS.concurrentUsers} users — ` +
+    `Concurrent user test: ${String(PERFORMANCE_TARGETS.concurrentUsers)} users — ` +
     'run k6 load test against staging before launch',
   );
 
   it.todo(
-    `Compliance dashboard P95 < ${PERFORMANCE_TARGETS.complianceDashboardMs}ms — ` +
+    `Compliance dashboard P95 < ${String(PERFORMANCE_TARGETS.complianceDashboardMs)}ms — ` +
     'test /api/compliance/* with full dataset against staging',
   );
 

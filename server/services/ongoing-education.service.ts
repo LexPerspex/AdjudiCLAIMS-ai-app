@@ -12,7 +12,8 @@
  * Regulatory authority: 10 CCR 2695.6 — ongoing training standards for claims professionals.
  */
 
-import type { InputJsonValue } from '@prisma/client/runtime/library';
+import type { InputJsonValue, JsonValue } from '@prisma/client/runtime/library';
+import { parseJsonStringArray } from '../lib/json-array.js';
 import { prisma } from '../db.js';
 import {
   REGULATORY_CHANGES,
@@ -20,7 +21,6 @@ import {
   type RegulatoryChange,
 } from '../data/regulatory-changes.js';
 import {
-  QUARTERLY_REFRESHERS,
   QUARTERLY_REFRESHERS_BY_ID,
   type QuarterlyRefresher,
 } from '../data/quarterly-refreshers.js';
@@ -149,7 +149,7 @@ function getQuarterString(date: Date): string {
   const year = date.getFullYear();
   const month = date.getMonth(); // 0-indexed
   const quarter = Math.floor(month / 3) + 1;
-  return `${year}-Q${quarter}`;
+  return `${String(year)}-Q${String(quarter)}`;
 }
 
 /**
@@ -158,7 +158,7 @@ function getQuarterString(date: Date): string {
 function getMonthString(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
-  return `${year}-${month}`;
+  return `${String(year)}-${month}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -197,7 +197,7 @@ export async function acknowledgeChange(userId: string, changeId: string): Promi
   });
 
   // Deduplicate
-  const current = new Set(profile.acknowledgedChanges);
+  const current = new Set(parseJsonStringArray(profile.acknowledgedChanges));
   if (current.has(changeId)) return; // Already acknowledged
 
   await prisma.educationProfile.update({
@@ -219,7 +219,7 @@ export async function getPendingChanges(userId: string): Promise<RegulatoryChang
     select: { acknowledgedChanges: true },
   });
 
-  const acknowledged = new Set(profile?.acknowledgedChanges ?? []);
+  const acknowledged = new Set(parseJsonStringArray(profile?.acknowledgedChanges as JsonValue));
   return REGULATORY_CHANGES.filter((c) => !acknowledged.has(c.id));
 }
 
@@ -246,7 +246,7 @@ export async function generateMonthlyReview(
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
   // Query missed deadlines this month
-  let missedDeadlines: MissedDeadlineSummary[] = [];
+  let missedDeadlines: MissedDeadlineSummary[];
   try {
     const missed = await prisma.regulatoryDeadline.findMany({
       where: {
@@ -274,7 +274,7 @@ export async function generateMonthlyReview(
   }
 
   // Query approaching deadlines (next 14 days)
-  let approachingDeadlines: ApproachingDeadlineSummary[] = [];
+  let approachingDeadlines: ApproachingDeadlineSummary[];
   try {
     const approaching = await prisma.regulatoryDeadline.findMany({
       where: {
@@ -302,7 +302,7 @@ export async function generateMonthlyReview(
   }
 
   // Query claims without recent activity
-  let claimsWithoutRecentActivity: StaleClaimSummary[] = [];
+  let claimsWithoutRecentActivity: StaleClaimSummary[];
   try {
     const staleClaims = await prisma.claim.findMany({
       where: {

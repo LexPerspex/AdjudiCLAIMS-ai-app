@@ -7,12 +7,12 @@ import { join } from 'node:path';
 // Ensure session secret meets 32-char minimum for @fastify/session
 process.env['SESSION_SECRET'] ??= 'e2e-test-secret-key-must-be-32-chars-minimum!!';
 // Ensure DATABASE_URL is set
-process.env['DATABASE_URL'] ??= 'postgresql://adjudiclaims:password@localhost:5442/adjudiclaims';
+process.env['DATABASE_URL'] ??= 'mysql://adjudiclaims:password@localhost:3306/adjudiclaims';
 
 /**
  * Phase 2 — Document Pipeline End-to-End Integration Tests
  *
- * These tests run against the REAL database (PostgreSQL + pgvector)
+ * These tests run against the REAL database (MySQL / PlanetScale)
  * and exercise the full document lifecycle:
  *   1. Upload a document via HTTP
  *   2. Verify DB records created
@@ -20,7 +20,7 @@ process.env['DATABASE_URL'] ??= 'postgresql://adjudiclaims:password@localhost:54
  *   4. Verify all outputs in the database
  *
  * Prerequisites:
- *   - docker compose up (PostgreSQL on port 5442)
+ *   - docker compose up (MySQL on port 3306)
  *   - npx prisma migrate deploy
  *   - npx prisma db seed
  *
@@ -93,7 +93,7 @@ beforeAll(async () => {
   prisma = new PrismaClient({
     datasources: {
       db: {
-        url: process.env['DATABASE_URL'] ?? 'postgresql://adjudiclaims:password@localhost:5442/adjudiclaims',
+        url: process.env['DATABASE_URL'] ?? 'mysql://adjudiclaims:password@localhost:3306/adjudiclaims',
       },
     },
   });
@@ -613,7 +613,7 @@ describe('E2E: Timeline Generation', () => {
 // ===========================================================================
 
 describe('E2E: Document Chunking', () => {
-  it('chunks a long document and stores in DB (without embeddings in test)', async () => {
+  it('chunks a long document and stores in DB (embeddings in Vertex AI Vector Search)', async () => {
     const { chunkAndEmbed } = await import('../../server/services/embedding.service.js');
 
     // Create a document with enough text to produce multiple chunks
@@ -651,17 +651,14 @@ describe('E2E: Document Chunking', () => {
       expect(chunk.content.length).toBeGreaterThan(0);
     }
 
-    // Verify embeddings via raw query (Prisma can't select the pgvector column)
-    const embeddingCheck = await prisma.$queryRaw<Array<{ has_embedding: boolean }>>`
-      SELECT embedding IS NOT NULL AS has_embedding
-      FROM document_chunks
-      WHERE document_id = ${doc.id}
-      LIMIT 1
-    `;
-    // Without valid Vertex AI credentials, embeddings should be null
-    if (!process.env['VERTEX_AI_PROJECT'] || embeddingCheck[0]?.has_embedding === false) {
-      expect(embeddingCheck[0]?.has_embedding).toBe(false);
-    }
+    // Embeddings are stored in Vertex AI Vector Search, not in the DB.
+    // No embedding column exists on DocumentChunk in the MySQL schema.
+    // Verify that chunks are stored without an embedding column.
+    const chunkCheck = await prisma.documentChunk.findFirst({
+      where: { documentId: doc.id },
+    });
+    expect(chunkCheck).not.toBeNull();
+    expect(chunkCheck?.content.length).toBeGreaterThan(0);
   });
 
   it('returns 0 chunks for empty extracted text', async () => {

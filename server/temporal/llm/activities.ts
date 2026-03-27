@@ -227,9 +227,9 @@ export async function generateLlmResponse(
  * Uses the synchronous regex-based validator. Returns a plain serializable
  * result (Map is converted to plain object).
  */
-export async function validateUplOutput(
+export function validateUplOutput(
   text: string,
-): Promise<SerializableValidationResult> {
+): SerializableValidationResult {
   const result = validateOutput(text);
   return {
     result: result.result,
@@ -268,8 +268,7 @@ export async function generateReferralSummary(
       claimId,
       userId,
       legalIssue,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      request: undefined as any,
+      request: undefined as unknown as Parameters<typeof generateCounselReferral>[0]['request'],
     });
 
     return {

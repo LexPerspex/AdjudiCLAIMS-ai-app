@@ -26,12 +26,12 @@ const envSchema = z.object({
     .default('4901')
     .transform(Number)
     .pipe(z.number().int().positive()),
-  /** PostgreSQL connection string (with pgvector extension). Required. */
+  /** MySQL connection string. Required. */
   DATABASE_URL: z
     .string()
     .startsWith(
-      'postgresql://',
-      'DATABASE_URL must be a PostgreSQL connection string',
+      'mysql://',
+      'DATABASE_URL must be a MySQL connection string',
     ),
   /** Session encryption key. Required in production (min 32 chars). From GCP Secret Manager. */
   SESSION_SECRET: z
@@ -57,9 +57,17 @@ const envSchema = z.object({
   /** Temporal Cloud API key. When set, enables TLS for the Temporal connection. */
   TEMPORAL_API_KEY: z.string().optional(),
 
+  // Voyage Large + Vertex AI Vector Search
+  /** Voyage Large embedding API key. Enables Voyage embeddings when set. From GCP Secret Manager. */
+  VOYAGE_API_KEY: z.string().optional(),
+  /** Vertex AI Vector Search index endpoint URL. */
+  VECTOR_SEARCH_INDEX_ENDPOINT: z.string().optional(),
+  /** Deployed index identifier within the Vector Search index endpoint. */
+  VECTOR_SEARCH_DEPLOYED_INDEX_ID: z.string().optional(),
+
   // Sentry
   /** Sentry DSN URL. When absent, Sentry is completely disabled (no-op). */
-  SENTRY_DSN: z.string().url().optional(),
+  SENTRY_DSN: z.string().refine((val) => { try { new URL(val); return true; } catch { return false; } }, { message: 'Invalid URL' }).optional(),
   /** Sentry environment tag (defaults to NODE_ENV-based value). */
   SENTRY_ENVIRONMENT: z.string().optional(),
   /** Sentry release identifier for error grouping and source maps. */
@@ -88,7 +96,7 @@ export function validateEnv(): Env {
     ...process.env,
     // Provide test defaults
     ...(isTest && !process.env['DATABASE_URL']
-      ? { DATABASE_URL: 'postgresql://test:test@localhost:5432/test' }
+      ? { DATABASE_URL: 'mysql://test:test@localhost:3306/test' }
       : {}),
   };
 

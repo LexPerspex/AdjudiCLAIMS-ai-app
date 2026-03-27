@@ -17,6 +17,7 @@ import { getLLMAdapter } from '../lib/llm/index.js';
 import { COUNSEL_REFERRAL_PROMPT } from '../prompts/adjudiclaims-chat.prompts.js';
 import { validateOutput, type ValidationResult } from './upl-validator.service.js';
 import { logAuditEvent } from '../middleware/audit.js';
+import { parseJsonStringArray } from '../lib/json-array.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -140,7 +141,7 @@ function formatClaimContext(
     `Date of Injury: ${dateStr(claim.dateOfInjury)}`,
     `Employer: ${claim.employer}`,
     `Insurer: ${claim.insurer}`,
-    `Body Parts: ${claim.bodyParts.join(', ')}`,
+    `Body Parts: ${parseJsonStringArray(claim.bodyParts).join(', ')}`,
     `Status: ${claim.status}`,
     `Litigated: ${String(claim.isLitigated)}`,
     `Applicant Attorney: ${String(claim.hasApplicantAttorney)}`,
@@ -238,7 +239,7 @@ export async function generateCounselReferral(
       `Claimant: ${claim.claimantName} | Claim #: ${claim.claimNumber}`,
       `Date of Injury: ${dateStr(claim.dateOfInjury)}`,
       `Employer: ${claim.employer} | Insurer: ${claim.insurer}`,
-      `Body Parts: ${claim.bodyParts.join(', ')}`,
+      `Body Parts: ${parseJsonStringArray(claim.bodyParts).join(', ')}`,
       `Status: ${claim.status}`,
       '',
       '## 2. Medical Evidence Summary',

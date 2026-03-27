@@ -144,7 +144,7 @@ describe('Workflow definitions — Phase 10 (all 20 workflows)', () => {
       for (const step of workflow.steps) {
         if (step.isSkippable) {
           expect(step.skipReason, `step ${step.id} is skippable but has no skipReason`).toBeDefined();
-          expect(step.skipReason!.length).toBeGreaterThan(0);
+          expect((step.skipReason as string).length).toBeGreaterThan(0);
         }
       }
     });

@@ -105,7 +105,7 @@ const MOCK_DOCUMENT_ATTORNEY = {
   containsPrivileged: true,
 };
 
-const MOCK_DOCUMENT_SHARED = {
+const _MOCK_DOCUMENT_SHARED = {
   ...MOCK_DOCUMENT_EXAMINER,
   id: 'doc-shared',
   fileName: 'benefit-notice.pdf',

@@ -413,13 +413,13 @@ export async function generateDeadlineAdherenceReport(
       Array<{ claim_id: string; claim_number: string; missed_count: bigint }>
     >(
       `
-      SELECT c.id AS claim_id, c.claim_number, COUNT(rd.id)::bigint AS missed_count
+      SELECT c.id AS claim_id, c.claim_number, CAST(COUNT(rd.id) AS SIGNED) AS missed_count
       FROM regulatory_deadlines rd
       JOIN claims c ON c.id = rd.claim_id
-      WHERE c.organization_id = $1
+      WHERE c.organization_id = ?
         AND rd.status = 'MISSED'
-        ${dateFilter?.gte ? `AND rd.due_date >= $2` : ''}
-        ${dateFilter?.lte ? `AND rd.due_date <= $${dateFilter?.gte ? '3' : '2'}` : ''}
+        ${dateFilter?.gte ? `AND rd.due_date >= ?` : ''}
+        ${dateFilter?.lte ? `AND rd.due_date <= ?` : ''}
       GROUP BY c.id, c.claim_number
       ORDER BY missed_count DESC
       LIMIT 10
@@ -579,8 +579,8 @@ export async function generateAuditReadinessReport(orgId: string): Promise<Audit
   const deadlineScore = clamp(Math.round(deadlineRate * 30), 0, 30);
 
   // --- Investigation completeness score (0-25) ---
-  const invCompleteRow = investigationRows.find((r) => r.isComplete === true);
-  const invIncompleteRow = investigationRows.find((r) => r.isComplete === false);
+  const invCompleteRow = investigationRows.find((r) => r.isComplete);
+  const invIncompleteRow = investigationRows.find((r) => !r.isComplete);
   const invComplete = invCompleteRow?._count.id ?? 0;
   const invIncomplete = invIncompleteRow?._count.id ?? 0;
   const invRate = safeRate(invComplete, invComplete + invIncomplete);
@@ -615,31 +615,31 @@ export async function generateAuditReadinessReport(orgId: string): Promise<Audit
       category: 'Deadline Adherence',
       score: deadlineScore,
       maxScore: 30,
-      details: `${deadlineCounts.MET} met / ${deadlineCounts.MET + deadlineCounts.MISSED} decided (${Math.round(deadlineRate * 100)}%)`,
+      details: `${String(deadlineCounts.MET)} met / ${String(deadlineCounts.MET + deadlineCounts.MISSED)} decided (${String(Math.round(deadlineRate * 100))}%)`,
     },
     {
       category: 'Investigation Completeness',
       score: investigationScore,
       maxScore: 25,
-      details: `${invComplete} complete / ${invComplete + invIncomplete} total (${Math.round(invRate * 100)}%)`,
+      details: `${String(invComplete)} complete / ${String(invComplete + invIncomplete)} total (${String(Math.round(invRate * 100))}%)`,
     },
     {
       category: 'Documentation',
       score: documentationScore,
       maxScore: 20,
-      details: `${claimsWithDocs} / ${totalClaimCount} claims have documents (${Math.round(docRate * 100)}%)`,
+      details: `${String(claimsWithDocs)} / ${String(totalClaimCount)} claims have documents (${String(Math.round(docRate * 100))}%)`,
     },
     {
       category: 'UPL Compliance',
       score: uplScore,
       maxScore: 15,
-      details: `${uplBlockedCount} blocks / ${uplTotalCount} classifications (${Math.round((1 - blockRate) * 100)}% compliant)`,
+      details: `${String(uplBlockedCount)} blocks / ${String(uplTotalCount)} classifications (${String(Math.round((1 - blockRate) * 100))}% compliant)`,
     },
     {
       category: 'Lien Tracking',
       score: lienScore,
       maxScore: 10,
-      details: `${trackedLiens} / ${totalLiens} liens tracked past intake (${Math.round(lienRate * 100)}%)`,
+      details: `${String(trackedLiens)} / ${String(totalLiens)} liens tracked past intake (${String(Math.round(lienRate * 100))}%)`,
     },
   ];
 

@@ -184,7 +184,6 @@ import {
   getTemplate,
 } from '../../server/services/letter-template.service.js';
 
-import { LETTER_TEMPLATES } from '../../server/data/letter-templates.js';
 
 // ---------------------------------------------------------------------------
 // Helper: login and get session cookie
@@ -373,7 +372,7 @@ describe('Letter Template Service — unit tests', () => {
       };
 
       // Simulate token replacement
-      let content = template!.template;
+      let content = (template as NonNullable<typeof template>).template;
       content = content.replace(/\{\{(\w+)\}\}/g, (_match, token: string) => {
         return tokenData[token] ?? 'N/A';
       });
@@ -402,7 +401,7 @@ describe('Letter Template Service — unit tests', () => {
         claimantName: 'John Smith',
       };
 
-      let content = template!.template;
+      let content = (template as NonNullable<typeof template>).template;
       content = content.replace(/\{\{(\w+)\}\}/g, (_match, token: string) => {
         return tokenData[token] ?? 'N/A';
       });

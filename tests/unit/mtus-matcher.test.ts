@@ -191,21 +191,21 @@ beforeEach(() => {
 // ==========================================================================
 
 describe('MTUS Matcher Service — matchMtusGuidelines', () => {
-  it('matches lumbar spine and returns relevant guidelines', async () => {
+  it('matches lumbar spine and returns relevant guidelines', () => {
     const request: MtusMatchRequest = {
       bodyPart: 'lumbar spine',
       treatmentDescription: 'Physical therapy for acute low back pain',
     };
 
-    const result = await matchMtusGuidelines(request);
+    const result = matchMtusGuidelines(request);
 
     expect(result.matches.length).toBeGreaterThan(0);
     expect(result.totalMatches).toBe(result.matches.length);
     expect(result.matches[0]?.title).toContain('Low Back');
   });
 
-  it('matches cervical spine guidelines', async () => {
-    const result = await matchMtusGuidelines({
+  it('matches cervical spine guidelines', () => {
+    const result = matchMtusGuidelines({
       bodyPart: 'cervical spine',
       treatmentDescription: 'Cervical collar and physical therapy',
     });
@@ -214,8 +214,8 @@ describe('MTUS Matcher Service — matchMtusGuidelines', () => {
     expect(result.matches[0]?.title).toContain('Cervical');
   });
 
-  it('matches shoulder guidelines', async () => {
-    const result = await matchMtusGuidelines({
+  it('matches shoulder guidelines', () => {
+    const result = matchMtusGuidelines({
       bodyPart: 'shoulder',
       treatmentDescription: 'Rotator cuff repair surgery',
     });
@@ -224,8 +224,8 @@ describe('MTUS Matcher Service — matchMtusGuidelines', () => {
     expect(result.matches[0]?.guidelineText).toContain('rotator cuff');
   });
 
-  it('matches knee guidelines', async () => {
-    const result = await matchMtusGuidelines({
+  it('matches knee guidelines', () => {
+    const result = matchMtusGuidelines({
       bodyPart: 'knee',
       treatmentDescription: 'Arthroscopic meniscectomy',
     });
@@ -234,8 +234,8 @@ describe('MTUS Matcher Service — matchMtusGuidelines', () => {
     expect(result.matches[0]?.title).toContain('Knee');
   });
 
-  it('matches wrist guidelines for carpal tunnel', async () => {
-    const result = await matchMtusGuidelines({
+  it('matches wrist guidelines for carpal tunnel', () => {
+    const result = matchMtusGuidelines({
       bodyPart: 'wrist',
       treatmentDescription: 'Carpal tunnel release',
     });
@@ -244,9 +244,9 @@ describe('MTUS Matcher Service — matchMtusGuidelines', () => {
     expect(result.matches[0]?.guidelineText).toContain('carpal tunnel');
   });
 
-  it('narrows results when CPT code is provided', async () => {
+  it('narrows results when CPT code is provided', () => {
     // CPT 64721 = carpal tunnel release -> wrist
-    const result = await matchMtusGuidelines({
+    const result = matchMtusGuidelines({
       bodyPart: 'hand',
       treatmentDescription: 'Carpal tunnel release surgery',
       cptCode: '64721',
@@ -257,8 +257,8 @@ describe('MTUS Matcher Service — matchMtusGuidelines', () => {
     expect(result.matches[0]?.guidelineText).toContain('carpal tunnel');
   });
 
-  it('always includes the MTUS disclaimer', async () => {
-    const result = await matchMtusGuidelines({
+  it('always includes the MTUS disclaimer', () => {
+    const result = matchMtusGuidelines({
       bodyPart: 'lumbar spine',
       treatmentDescription: 'Any treatment',
     });
@@ -269,8 +269,8 @@ describe('MTUS Matcher Service — matchMtusGuidelines', () => {
     expect(result.disclaimer).toContain('does not make treatment recommendations');
   });
 
-  it('includes disclaimer even when no matches found', async () => {
-    const result = await matchMtusGuidelines({
+  it('includes disclaimer even when no matches found', () => {
+    const result = matchMtusGuidelines({
       bodyPart: 'nonexistent body part',
       treatmentDescription: 'Unknown treatment',
     });
@@ -278,8 +278,8 @@ describe('MTUS Matcher Service — matchMtusGuidelines', () => {
     expect(result.disclaimer).toBe(MTUS_DISCLAIMER);
   });
 
-  it('returns empty results gracefully for unknown body part', async () => {
-    const result = await matchMtusGuidelines({
+  it('returns empty results gracefully for unknown body part', () => {
+    const result = matchMtusGuidelines({
       bodyPart: 'left elbow crease',
       treatmentDescription: 'Experimental procedure',
     });
@@ -289,8 +289,8 @@ describe('MTUS Matcher Service — matchMtusGuidelines', () => {
     expect(result.sourceType).toBe('mtus');
   });
 
-  it('sets isStubData flag to true in stub mode', async () => {
-    const result = await matchMtusGuidelines({
+  it('sets isStubData flag to true in stub mode', () => {
+    const result = matchMtusGuidelines({
       bodyPart: 'lumbar spine',
       treatmentDescription: 'Physical therapy',
     });
@@ -298,8 +298,8 @@ describe('MTUS Matcher Service — matchMtusGuidelines', () => {
     expect(result.isStubData).toBe(true);
   });
 
-  it('sets sourceType to mtus on all results', async () => {
-    const result = await matchMtusGuidelines({
+  it('sets sourceType to mtus on all results', () => {
+    const result = matchMtusGuidelines({
       bodyPart: 'shoulder',
       treatmentDescription: 'Injection',
     });
@@ -307,7 +307,7 @@ describe('MTUS Matcher Service — matchMtusGuidelines', () => {
     expect(result.sourceType).toBe('mtus');
   });
 
-  it('preserves the original query in the result', async () => {
+  it('preserves the original query in the result', () => {
     const request: MtusMatchRequest = {
       bodyPart: 'knee',
       diagnosis: 'Meniscal tear',
@@ -315,13 +315,13 @@ describe('MTUS Matcher Service — matchMtusGuidelines', () => {
       cptCode: '29881',
     };
 
-    const result = await matchMtusGuidelines(request);
+    const result = matchMtusGuidelines(request);
 
     expect(result.query).toEqual(request);
   });
 
-  it('all matches include sourceSection reference', async () => {
-    const result = await matchMtusGuidelines({
+  it('all matches include sourceSection reference', () => {
+    const result = matchMtusGuidelines({
       bodyPart: 'lumbar spine',
       treatmentDescription: 'Physical therapy',
     });
@@ -333,8 +333,8 @@ describe('MTUS Matcher Service — matchMtusGuidelines', () => {
     }
   });
 
-  it('all matches have relevance scores between 0 and 1', async () => {
-    const result = await matchMtusGuidelines({
+  it('all matches have relevance scores between 0 and 1', () => {
+    const result = matchMtusGuidelines({
       bodyPart: 'cervical spine',
       treatmentDescription: 'Cervical fusion',
     });
@@ -345,8 +345,8 @@ describe('MTUS Matcher Service — matchMtusGuidelines', () => {
     }
   });
 
-  it('all matches have non-empty guidelineId and title', async () => {
-    const result = await matchMtusGuidelines({
+  it('all matches have non-empty guidelineId and title', () => {
+    const result = matchMtusGuidelines({
       bodyPart: 'wrist',
       treatmentDescription: 'Splinting',
     });
@@ -359,11 +359,11 @@ describe('MTUS Matcher Service — matchMtusGuidelines', () => {
   });
 
   // GREEN zone framing: no treatment recommendations
-  it('guideline text does not contain treatment recommendations (GREEN zone)', async () => {
+  it('guideline text does not contain treatment recommendations (GREEN zone)', () => {
     const bodyParts = ['lumbar spine', 'cervical spine', 'shoulder', 'knee', 'wrist'];
 
     for (const bodyPart of bodyParts) {
-      const result = await matchMtusGuidelines({
+      const result = matchMtusGuidelines({
         bodyPart,
         treatmentDescription: 'General treatment',
       });
@@ -386,33 +386,35 @@ describe('MTUS Matcher Service — matchMtusGuidelines', () => {
 // ==========================================================================
 
 describe('MTUS Matcher Service — getGuidelineDetail', () => {
-  it('returns a guideline by valid ID', async () => {
-    const guideline = await getGuidelineDetail('mtus-lumbar-001');
+  it('returns a guideline by valid ID', () => {
+    const guideline = getGuidelineDetail('mtus-lumbar-001');
 
     expect(guideline).not.toBeNull();
-    expect(guideline!.guidelineId).toBe('mtus-lumbar-001');
-    expect(guideline!.title).toContain('Low Back');
-    expect(guideline!.sourceSection).toContain('MTUS');
+    const g = guideline as NonNullable<typeof guideline>;
+    expect(g.guidelineId).toBe('mtus-lumbar-001');
+    expect(g.title).toContain('Low Back');
+    expect(g.sourceSection).toContain('MTUS');
   });
 
-  it('returns null for non-existent guideline ID', async () => {
-    const guideline = await getGuidelineDetail('mtus-nonexistent-999');
+  it('returns null for non-existent guideline ID', () => {
+    const guideline = getGuidelineDetail('mtus-nonexistent-999');
 
     expect(guideline).toBeNull();
   });
 
-  it('returned guideline has all required fields', async () => {
-    const guideline = await getGuidelineDetail('mtus-shoulder-001');
+  it('returned guideline has all required fields', () => {
+    const guideline = getGuidelineDetail('mtus-shoulder-001');
 
     expect(guideline).not.toBeNull();
-    expect(guideline!.guidelineId).toBeTruthy();
-    expect(guideline!.title).toBeTruthy();
-    expect(guideline!.guidelineText).toBeTruthy();
-    expect(guideline!.sourceSection).toBeTruthy();
-    expect(typeof guideline!.relevance).toBe('number');
+    const g = guideline as NonNullable<typeof guideline>;
+    expect(g.guidelineId).toBeTruthy();
+    expect(g.title).toBeTruthy();
+    expect(g.guidelineText).toBeTruthy();
+    expect(g.sourceSection).toBeTruthy();
+    expect(typeof g.relevance).toBe('number');
   });
 
-  it('retrieves guidelines from all body part categories', async () => {
+  it('retrieves guidelines from all body part categories', () => {
     const ids = [
       'mtus-lumbar-001',
       'mtus-cervical-001',
@@ -422,9 +424,9 @@ describe('MTUS Matcher Service — getGuidelineDetail', () => {
     ];
 
     for (const id of ids) {
-      const guideline = await getGuidelineDetail(id);
+      const guideline = getGuidelineDetail(id);
       expect(guideline).not.toBeNull();
-      expect(guideline!.guidelineId).toBe(id);
+      expect((guideline as NonNullable<typeof guideline>).guidelineId).toBe(id);
     }
   });
 });

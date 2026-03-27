@@ -22,7 +22,6 @@ import { verifyClaimAccess } from '../middleware/claim-access.js';
 import {
   getTemplates,
   getTemplate,
-  populateTemplate,
   generateLetter,
   getClaimLetters,
   getLetter,
@@ -153,11 +152,11 @@ export async function letterRoutes(server: FastifyInstance): Promise<void> {
           overrides,
         );
 
-        return reply.code(201).send({ letter });
+        return await reply.code(201).send({ letter });
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Letter generation failed';
         request.log.error({ err, claimId, templateId }, 'Letter generation failed');
-        return reply.code(500).send({ error: message });
+        return await reply.code(500).send({ error: message });
       }
     },
   );

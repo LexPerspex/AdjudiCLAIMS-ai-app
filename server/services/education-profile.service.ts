@@ -22,6 +22,8 @@ import {
 import type { Tier1Term, Tier1Category, FeatureContext } from '../data/tier1-terms.js';
 import { getTier2ForFeature } from '../data/tier2-education.js';
 import type { Tier2EducationEntry } from '../data/tier2-education.js';
+import type { JsonValue } from '@prisma/client/runtime/library';
+import { parseJsonStringArray } from '../lib/json-array.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -85,7 +87,7 @@ const LEARNING_MODE_DAYS = 30;
 function mapToRecord(raw: {
   id: string;
   userId: string;
-  dismissedTerms: string[];
+  dismissedTerms: unknown;
   trainingModulesCompleted: unknown;
   isTrainingComplete: boolean;
   learningModeExpiry: Date | null;
@@ -95,7 +97,7 @@ function mapToRecord(raw: {
   return {
     id: raw.id,
     userId: raw.userId,
-    dismissedTerms: raw.dismissedTerms,
+    dismissedTerms: parseJsonStringArray(raw.dismissedTerms as JsonValue),
     trainingModulesCompleted:
       raw.trainingModulesCompleted != null
         ? (raw.trainingModulesCompleted as Record<string, unknown>)
@@ -176,8 +178,9 @@ export async function dismissTerm(
   });
 
   // Prisma push does not deduplicate — normalize client-side
-  const unique = [...new Set(raw.dismissedTerms)];
-  if (unique.length !== raw.dismissedTerms.length) {
+  const parsed = parseJsonStringArray(raw.dismissedTerms);
+  const unique = [...new Set(parsed)];
+  if (unique.length !== parsed.length) {
     const deduped = await prisma.educationProfile.update({
       where: { userId },
       data: { dismissedTerms: unique },
@@ -218,7 +221,7 @@ export async function reEnableTerms(
   } else {
     // Only remove terms that belong to the given category
     const categoryTermIds = new Set(
-      (TIER1_TERMS_BY_CATEGORY[category] ?? []).map((t) => t.id),
+      TIER1_TERMS_BY_CATEGORY[category].map((t) => t.id),
     );
 
     const profile = await prisma.educationProfile.findUniqueOrThrow({
@@ -226,7 +229,7 @@ export async function reEnableTerms(
       select: { dismissedTerms: true },
     });
 
-    updatedDismissed = profile.dismissedTerms.filter((id) => !categoryTermIds.has(id));
+    updatedDismissed = parseJsonStringArray(profile.dismissedTerms).filter((id) => !categoryTermIds.has(id));
   }
 
   const raw = await prisma.educationProfile.update({

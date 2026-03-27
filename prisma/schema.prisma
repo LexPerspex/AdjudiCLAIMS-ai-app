@@ -4,20 +4,20 @@
 // CA Workers' Compensation claims management AI platform.
 // Phase 2A standalone deployment — no shared claims with attorney product.
 //
-// Database: PostgreSQL 15 + pgvector
+// Database: PlanetScale (MySQL/Vitess)
 // ORM: Prisma 6
 // Multi-tenancy: Organization-scoped (CARRIER, TPA, SELF_INSURED)
+// Vector search: Vertex AI Vector Search (Voyage Large embeddings)
 // =============================================================================
 
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["postgresqlExtensions"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider   = "postgresql"
-  url        = env("DATABASE_URL")
-  extensions = [pgvector(map: "vector", schema: "public")]
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
 }
 
 // =============================================================================
@@ -68,6 +68,15 @@ enum DocumentType {
   SETTLEMENT_DOCUMENT
   CORRESPONDENCE
   OTHER
+  WCAB_FILING
+  LIEN_CLAIM
+  DISCOVERY_REQUEST
+  RETURN_TO_WORK
+  PAYMENT_RECORD
+  DWC_OFFICIAL_FORM
+  WORK_PRODUCT
+  MEDICAL_CHRONOLOGY
+  CLAIM_ADMINISTRATION
 
   @@map("document_type")
 }
@@ -328,7 +337,7 @@ model Claim {
   // Claimant information
   claimantName String   @map("claimant_name")
   dateOfInjury DateTime @map("date_of_injury") @db.Date
-  bodyParts    String[] @map("body_parts")
+  bodyParts    Json     @map("body_parts")
   employer     String   @map("employer")
   insurer      String   @map("insurer")
 
@@ -407,7 +416,7 @@ model Document {
 
   // OCR / text extraction processing
   ocrStatus     OcrStatus @default(PENDING) @map("ocr_status")
-  extractedText String?   @map("extracted_text")
+  extractedText String?   @map("extracted_text") @db.LongText
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -429,15 +438,13 @@ model Document {
   @@map("documents")
 }
 
-/// Vector embedding chunk for RAG retrieval against claim documents.
+/// Text chunk for RAG retrieval against claim documents.
+/// Embeddings stored externally in Vertex AI Vector Search (Voyage Large model).
 model DocumentChunk {
   id         String @id @default(cuid()) @map("id")
   documentId String @map("document_id")
-  content    String @map("content")
+  content    String @map("content") @db.LongText
   chunkIndex Int    @map("chunk_index")
-
-  /// pgvector embedding — 768 dimensions (matches typical embedding model output).
-  embedding Unsupported("vector(768)")? @map("embedding")
 
   // Relations
   document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
@@ -482,6 +489,7 @@ model TimelineEvent {
   @@index([claimId], map: "idx_timeline_events_claim_id")
   @@index([claimId, eventDate], map: "idx_timeline_events_claim_date")
   @@index([eventType], map: "idx_timeline_events_event_type")
+  @@index([documentId], map: "idx_timeline_events_document_id")
   @@map("timeline_events")
 }
 
@@ -509,7 +517,7 @@ model ChatMessage {
   id        String   @id @default(cuid()) @map("id")
   sessionId String   @map("session_id")
   role      ChatRole @map("role")
-  content   String   @map("content")
+  content   String   @map("content") @db.Text
 
   /// UPL zone classification: GREEN (factual), YELLOW (needs disclaimer), RED (blocked).
   uplZone           UplZone? @map("upl_zone")
@@ -574,6 +582,8 @@ model InvestigationItem {
   @@index([isComplete], map: "idx_investigation_items_is_complete")
   @@unique([claimId, itemType])
   @@index([claimId, isComplete], map: "idx_investigation_items_claim_complete")
+  @@index([completedById], map: "idx_investigation_items_completed_by_id")
+  @@index([documentId], map: "idx_investigation_items_document_id")
   @@map("investigation_items")
 }
 
@@ -614,7 +624,7 @@ model EducationProfile {
   userId String @unique @map("user_id")
 
   /// Tier 1 legal terms the user has dismissed (understood).
-  dismissedTerms String[] @map("dismissed_terms")
+  dismissedTerms Json @default("[]") @map("dismissed_terms")
 
   /// Training module completion: { moduleId: { completedAt, score } }.
   trainingModulesCompleted Json? @map("training_modules_completed")
@@ -627,7 +637,7 @@ model EducationProfile {
 
   // Phase 10 — Layer 3: Ongoing Education
   /// Regulatory change IDs the user has acknowledged.
-  acknowledgedChanges String[] @map("acknowledged_changes")
+  acknowledgedChanges Json @default("[]") @map("acknowledged_changes")
 
   /// Monthly compliance reviews: { "2026-03": { completedAt, missedDeadlines } }.
   monthlyReviewsCompleted Json? @map("monthly_reviews_completed")
@@ -715,7 +725,7 @@ model GeneratedLetter {
   claimId       String     @map("claim_id")
   userId        String     @map("user_id")
   letterType    LetterType @map("letter_type")
-  content       String     @map("content")
+  content       String     @map("content") @db.LongText
   templateId    String     @map("template_id")
   populatedData Json       @map("populated_data")
 
@@ -736,7 +746,7 @@ model CounselReferral {
   claimId         String         @map("claim_id")
   userId          String         @map("user_id")
   legalIssue      String         @map("legal_issue")
-  summary         String         @map("summary")
+  summary         String         @map("summary") @db.Text
   status          ReferralStatus @default(PENDING) @map("status")
   counselEmail    String?        @map("counsel_email")
   counselResponse String?        @map("counsel_response")

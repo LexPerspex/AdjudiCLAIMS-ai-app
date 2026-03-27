@@ -254,7 +254,7 @@ export async function exportAuditEvents(
   const where = {
     user: { organizationId: orgId },
     ...(options?.startDate || options?.endDate
-      ? { createdAt: dateRangeFilter(options?.startDate, options?.endDate) }
+      ? { createdAt: dateRangeFilter(options.startDate, options.endDate) }
       : {}),
   };
 
@@ -289,7 +289,7 @@ export async function getAuditEventCounts(
   const where = {
     user: { organizationId: orgId },
     ...(options?.startDate || options?.endDate
-      ? { createdAt: dateRangeFilter(options?.startDate, options?.endDate) }
+      ? { createdAt: dateRangeFilter(options.startDate, options.endDate) }
       : {}),
   };
 

@@ -228,10 +228,11 @@ describe('Training Module Service', () => {
       const mod = getModule('module_1');
 
       expect(mod).not.toBeNull();
-      expect(mod!.id).toBe('module_1');
-      expect(mod!.questions.length).toBeGreaterThan(0);
+      const m = mod as NonNullable<typeof mod>;
+      expect(m.id).toBe('module_1');
+      expect(m.questions.length).toBeGreaterThan(0);
 
-      for (const q of mod!.questions) {
+      for (const q of m.questions) {
         expect(q).not.toHaveProperty('correctOptionId');
       }
     });
@@ -395,7 +396,7 @@ describe('Training Module Service', () => {
       await submitAssessment('user-1', 'module_1', MOD1_ALL_CORRECT);
 
       expect(mockEducationProfileUpsert).toHaveBeenCalledOnce();
-      const call = mockEducationProfileUpsert.mock.calls[0]![0] as {
+      const call = (mockEducationProfileUpsert.mock.calls[0] as unknown[])[0] as {
         where: { userId: string };
         create: { isTrainingComplete: boolean };
         update: { isTrainingComplete: boolean };
@@ -433,7 +434,7 @@ describe('Training Module Service', () => {
       expect(result.passed).toBe(true);
       expect(mockEducationProfileUpsert).toHaveBeenCalledOnce();
 
-      const call = mockEducationProfileUpsert.mock.calls[0]![0] as {
+      const call = (mockEducationProfileUpsert.mock.calls[0] as unknown[])[0] as {
         create: { isTrainingComplete: boolean };
         update: { isTrainingComplete: boolean };
       };
@@ -747,7 +748,7 @@ describe('requireTrainingComplete middleware', () => {
     };
 
     const handler = requireTrainingComplete();
-    (handler as Function)(
+    (handler as (...args: unknown[]) => void)(
       mockRequest as Parameters<typeof handler>[0],
       mockReply as unknown as Parameters<typeof handler>[1],
       mockDone,

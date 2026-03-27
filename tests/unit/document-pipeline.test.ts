@@ -50,7 +50,6 @@ const mockExtractedFieldDeleteMany = vi.fn();
 const mockExtractedFieldCreateMany = vi.fn();
 const mockTimelineEventCreateMany = vi.fn();
 const mockDocumentChunkDeleteMany = vi.fn();
-const mockExecuteRaw = vi.fn();
 
 vi.mock('../../server/db.js', () => ({
   prisma: {
@@ -72,8 +71,8 @@ vi.mock('../../server/db.js', () => ({
       return fn({
         documentChunk: {
           deleteMany: (...args: unknown[]) => mockDocumentChunkDeleteMany(...args) as unknown,
+          create: vi.fn().mockResolvedValue({ id: 'chunk-1' }),
         },
-        $executeRaw: (...args: unknown[]) => mockExecuteRaw(...args) as unknown,
       });
     }),
     auditEvent: {
@@ -100,6 +99,13 @@ vi.mock('../../server/services/storage.service.js', () => ({
   },
 }));
 
+// Mock Vector Search (Vertex AI Vector Search — replaces pgvector)
+vi.mock('../../server/services/vector-search.service.js', () => ({
+  upsertEmbeddings: vi.fn().mockResolvedValue(undefined),
+  removeEmbeddings: vi.fn().mockResolvedValue(undefined),
+  queryEmbeddings: vi.fn().mockResolvedValue([]),
+}));
+
 // Mock Document AI
 vi.mock('@google-cloud/documentai', () => ({
   DocumentProcessorServiceClient: vi.fn().mockImplementation(() => ({
@@ -113,9 +119,11 @@ vi.mock('@google-cloud/documentai', () => ({
 // Tests: Document Classifier
 // ---------------------------------------------------------------------------
 
-describe('Document Classifier (stub)', () => {
+describe('Document Classifier', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Ensure no API key so LLM fallback is skipped — tests are keyword-only
+    delete process.env['ANTHROPIC_API_KEY'];
   });
 
   it('classifies a QME report by keyword', async () => {
@@ -123,6 +131,7 @@ describe('Document Classifier (stub)', () => {
 
     mockDocumentFindUnique.mockResolvedValueOnce({
       id: 'doc-1',
+      fileName: 'qme-report.pdf',
       extractedText: 'This is a QME evaluation report for the injured worker.',
     });
     mockDocumentUpdate.mockResolvedValueOnce({});
@@ -130,19 +139,37 @@ describe('Document Classifier (stub)', () => {
     const result = await classifyDocument('doc-1');
 
     expect(result.documentType).toBe('AME_QME_REPORT');
-    expect(result.confidence).toBe(0.7);
+    expect(result.confidence).toBe(0.55);
+    expect(result.classificationMethod).toBe('keyword');
   });
 
-  it('classifies a DWC-1 form by keyword', async () => {
+  it('classifies a DWC-1 form by keyword with high confidence (3+ keywords)', async () => {
     const { classifyDocument } = await import('../../server/services/document-classifier.service.js');
 
     mockDocumentFindUnique.mockResolvedValueOnce({
       id: 'doc-2',
-      extractedText: "This is a DWC-1 Workers' Compensation Claim Form.",
+      fileName: 'dwc1.pdf',
+      extractedText: "This is a DWC-1 Workers' Compensation Claim Form for the claim form filing.",
     });
     mockDocumentUpdate.mockResolvedValueOnce({});
 
     const result = await classifyDocument('doc-2');
+
+    expect(result.documentType).toBe('DWC1_CLAIM_FORM');
+    expect(result.confidence).toBe(0.9);
+  });
+
+  it('classifies with medium confidence when 2 keywords match', async () => {
+    const { classifyDocument } = await import('../../server/services/document-classifier.service.js');
+
+    mockDocumentFindUnique.mockResolvedValueOnce({
+      id: 'doc-2b',
+      fileName: 'claim.pdf',
+      extractedText: "This is a DWC-1 claim form document.",
+    });
+    mockDocumentUpdate.mockResolvedValueOnce({});
+
+    const result = await classifyDocument('doc-2b');
 
     expect(result.documentType).toBe('DWC1_CLAIM_FORM');
     expect(result.confidence).toBe(0.7);
@@ -153,6 +180,7 @@ describe('Document Classifier (stub)', () => {
 
     mockDocumentFindUnique.mockResolvedValueOnce({
       id: 'doc-3',
+      fileName: 'unknown.pdf',
       extractedText: 'Random text with no recognizable keywords for classification.',
     });
     mockDocumentUpdate.mockResolvedValueOnce({});
@@ -168,6 +196,7 @@ describe('Document Classifier (stub)', () => {
 
     mockDocumentFindUnique.mockResolvedValueOnce({
       id: 'doc-4',
+      fileName: 'empty.pdf',
       extractedText: null,
     });
 
@@ -180,6 +209,84 @@ describe('Document Classifier (stub)', () => {
     mockDocumentFindUnique.mockResolvedValueOnce(null);
 
     await expect(classifyDocument('nonexistent')).rejects.toThrow('Document not found');
+  });
+
+  it('detects attorney-only content from text patterns', async () => {
+    const { classifyDocument } = await import('../../server/services/document-classifier.service.js');
+
+    mockDocumentFindUnique.mockResolvedValueOnce({
+      id: 'doc-5',
+      fileName: 'privileged.pdf',
+      extractedText: 'This document contains attorney-client privilege material and legal analysis of liability.',
+    });
+    mockDocumentUpdate.mockResolvedValueOnce({});
+
+    const result = await classifyDocument('doc-5');
+
+    expect(result.accessLevel).toBe('ATTORNEY_ONLY');
+    expect(result.containsLegalAnalysis).toBe(true);
+    expect(result.containsPrivileged).toBe(true);
+  });
+
+  it('sets EXAMINER_ONLY access for standard medical reports', async () => {
+    const { classifyDocument } = await import('../../server/services/document-classifier.service.js');
+
+    mockDocumentFindUnique.mockResolvedValueOnce({
+      id: 'doc-6',
+      fileName: 'medical.pdf',
+      extractedText: 'Medical report: diagnosis of lumbar strain, treatment plan includes physical therapy.',
+    });
+    mockDocumentUpdate.mockResolvedValueOnce({});
+
+    const result = await classifyDocument('doc-6');
+
+    expect(result.documentType).toBe('MEDICAL_REPORT');
+    expect(result.accessLevel).toBe('EXAMINER_ONLY');
+    expect(result.containsLegalAnalysis).toBe(false);
+  });
+
+  it('classifies all 24 non-OTHER document types by keyword', async () => {
+    const { classifyDocument } = await import('../../server/services/document-classifier.service.js');
+
+    const testCases: Array<{ text: string; expectedType: string }> = [
+      { text: 'DWC-1 claim form filing', expectedType: 'DWC1_CLAIM_FORM' },
+      { text: 'QME qualified medical evaluator report', expectedType: 'AME_QME_REPORT' },
+      { text: 'utilization review MTUS treatment guideline', expectedType: 'UTILIZATION_REVIEW' },
+      { text: 'application for adjudication declaration of readiness WCAB order', expectedType: 'WCAB_FILING' },
+      { text: 'lien claim lien claimant medical provider lien', expectedType: 'LIEN_CLAIM' },
+      { text: 'subpoena duces tecum deposition notice records subpoena', expectedType: 'DISCOVERY_REQUEST' },
+      { text: 'deposition transcript sworn testimony', expectedType: 'DEPOSITION_TRANSCRIPT' },
+      { text: 'offer of modified work SJDB voucher supplemental job displacement', expectedType: 'RETURN_TO_WORK' },
+      { text: 'trial brief case analysis memo settlement valuation', expectedType: 'WORK_PRODUCT' },
+      { text: 'medical chronology medical timeline vocational expert report', expectedType: 'MEDICAL_CHRONOLOGY' },
+      { text: 'radiology report diagnostic imaging MRI report', expectedType: 'IMAGING_REPORT' },
+      { text: 'compromise and release settlement agreement C&R', expectedType: 'SETTLEMENT_DOCUMENT' },
+      { text: 'DEU rating request MPN authorization first fill pharmacy', expectedType: 'DWC_OFFICIAL_FORM' },
+      { text: 'PD payment record TD payment log expense reimbursement', expectedType: 'PAYMENT_RECORD' },
+      { text: 'diagnosis treatment plan medical report', expectedType: 'MEDICAL_REPORT' },
+      { text: 'pharmacy record prescription history medication list', expectedType: 'PHARMACY_RECORD' },
+      { text: 'wage statement earnings record payroll record', expectedType: 'WAGE_STATEMENT' },
+      { text: 'billing statement itemized charges invoice total', expectedType: 'BILLING_STATEMENT' },
+      { text: 'notice of representation defense counsel law firm', expectedType: 'LEGAL_CORRESPONDENCE' },
+      { text: 'employer report incident report supervisor report', expectedType: 'EMPLOYER_REPORT' },
+      { text: 'investigation report surveillance report sub rosa', expectedType: 'INVESTIGATION_REPORT' },
+      { text: 'benefit notice notice of benefits claim acceptance', expectedType: 'BENEFIT_NOTICE' },
+      { text: 'claim notes reserve worksheet three-point contact', expectedType: 'CLAIM_ADMINISTRATION' },
+      { text: 'Dear Sir, Re: status update, Sincerely', expectedType: 'CORRESPONDENCE' },
+    ];
+
+    for (const { text, expectedType } of testCases) {
+      vi.clearAllMocks();
+      mockDocumentFindUnique.mockResolvedValueOnce({
+        id: 'doc-type-test',
+        fileName: 'test.pdf',
+        extractedText: text,
+      });
+      mockDocumentUpdate.mockResolvedValueOnce({});
+
+      const result = await classifyDocument('doc-type-test');
+      expect(result.documentType).toBe(expectedType);
+    }
   });
 });
 

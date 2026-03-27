@@ -31,32 +31,32 @@ const mockQueryRawUnsafe = vi.fn();
 vi.mock('../../server/db.js', () => ({
   prisma: {
     claim: {
-      findUniqueOrThrow: (...args: unknown[]) => mockClaimFindUniqueOrThrow(...args),
-      count: (...args: unknown[]) => mockClaimCount(...args),
+      findUniqueOrThrow: (...args: unknown[]): unknown => mockClaimFindUniqueOrThrow(...args),
+      count: (...args: unknown[]): unknown => mockClaimCount(...args),
     },
     document: {
-      findMany: (...args: unknown[]) => mockDocumentFindMany(...args),
-      groupBy: (...args: unknown[]) => mockDocumentGroupBy(...args),
+      findMany: (...args: unknown[]): unknown => mockDocumentFindMany(...args),
+      groupBy: (...args: unknown[]): unknown => mockDocumentGroupBy(...args),
     },
     investigationItem: {
-      findMany: (...args: unknown[]) => mockInvestigationItemFindMany(...args),
-      groupBy: (...args: unknown[]) => mockInvestigationItemGroupBy(...args),
+      findMany: (...args: unknown[]): unknown => mockInvestigationItemFindMany(...args),
+      groupBy: (...args: unknown[]): unknown => mockInvestigationItemGroupBy(...args),
     },
     regulatoryDeadline: {
-      findMany: (...args: unknown[]) => mockRegulatoryDeadlineFindMany(...args),
-      groupBy: (...args: unknown[]) => mockRegulatoryDeadlineGroupBy(...args),
+      findMany: (...args: unknown[]): unknown => mockRegulatoryDeadlineFindMany(...args),
+      groupBy: (...args: unknown[]): unknown => mockRegulatoryDeadlineGroupBy(...args),
     },
     benefitPayment: {
-      findMany: (...args: unknown[]) => mockBenefitPaymentFindMany(...args),
+      findMany: (...args: unknown[]): unknown => mockBenefitPaymentFindMany(...args),
     },
     auditEvent: {
-      count: (...args: unknown[]) => mockAuditEventCount(...args),
-      findMany: (...args: unknown[]) => mockAuditEventFindMany(...args),
+      count: (...args: unknown[]): unknown => mockAuditEventCount(...args),
+      findMany: (...args: unknown[]): unknown => mockAuditEventFindMany(...args),
     },
     lien: {
-      groupBy: (...args: unknown[]) => mockLienGroupBy(...args),
+      groupBy: (...args: unknown[]): unknown => mockLienGroupBy(...args),
     },
-    $queryRawUnsafe: (...args: unknown[]) => mockQueryRawUnsafe(...args),
+    $queryRawUnsafe: (...args: unknown[]): unknown => mockQueryRawUnsafe(...args),
   },
 }));
 
@@ -213,12 +213,12 @@ describe('generateClaimActivityLog', () => {
     expect(result.eventsByDate).toHaveLength(2);
 
     // First date group
-    expect(result.eventsByDate[0]!.date).toBe('2026-01-20');
-    expect(result.eventsByDate[0]!.events).toHaveLength(2);
+    expect((result.eventsByDate[0] as (typeof result.eventsByDate)[number]).date).toBe('2026-01-20');
+    expect((result.eventsByDate[0] as (typeof result.eventsByDate)[number]).events).toHaveLength(2);
 
     // Second date group
-    expect(result.eventsByDate[1]!.date).toBe('2026-01-22');
-    expect(result.eventsByDate[1]!.events).toHaveLength(1);
+    expect((result.eventsByDate[1] as (typeof result.eventsByDate)[number]).date).toBe('2026-01-22');
+    expect((result.eventsByDate[1] as (typeof result.eventsByDate)[number]).events).toHaveLength(1);
 
     expect(result.generatedAt).toBeInstanceOf(Date);
   });
@@ -242,7 +242,7 @@ describe('generateClaimActivityLog', () => {
         where: expect.objectContaining({
           claimId: 'claim-1',
           createdAt: { gte: startDate, lte: endDate },
-        }),
+        }) as unknown,
       }),
     );
   });
@@ -290,22 +290,23 @@ describe('generateDeadlineAdherenceReport', () => {
     // Per-type breakdown
     expect(result.byDeadlineType).toHaveLength(3);
 
-    const ack = result.byDeadlineType.find((t) => t.deadlineType === 'ACKNOWLEDGE_15DAY');
+    type DeadlineTypeEntry = (typeof result.byDeadlineType)[number];
+    const ack = result.byDeadlineType.find((t) => t.deadlineType === 'ACKNOWLEDGE_15DAY') as DeadlineTypeEntry;
     expect(ack).toBeDefined();
-    expect(ack!.met).toBe(2);
-    expect(ack!.missed).toBe(1);
-    expect(ack!.adherenceRate).toBeCloseTo(0.6667, 3);
+    expect(ack.met).toBe(2);
+    expect(ack.missed).toBe(1);
+    expect(ack.adherenceRate).toBeCloseTo(0.6667, 3);
 
-    const td = result.byDeadlineType.find((t) => t.deadlineType === 'TD_FIRST_14DAY');
+    const td = result.byDeadlineType.find((t) => t.deadlineType === 'TD_FIRST_14DAY') as DeadlineTypeEntry;
     expect(td).toBeDefined();
-    expect(td!.met).toBe(0);
-    expect(td!.missed).toBe(1);
-    expect(td!.adherenceRate).toBe(0);
+    expect(td.met).toBe(0);
+    expect(td.missed).toBe(1);
+    expect(td.adherenceRate).toBe(0);
 
     // Worst performers
     expect(result.worstPerformers).toHaveLength(2);
-    expect(result.worstPerformers[0]!.claimNumber).toBe('WC-003');
-    expect(result.worstPerformers[0]!.missedCount).toBe(1);
+    expect((result.worstPerformers[0] as (typeof result.worstPerformers)[number]).claimNumber).toBe('WC-003');
+    expect((result.worstPerformers[0] as (typeof result.worstPerformers)[number]).missedCount).toBe(1);
 
     expect(result.generatedAt).toBeInstanceOf(Date);
   });
@@ -336,7 +337,7 @@ describe('generateDeadlineAdherenceReport', () => {
       expect.objectContaining({
         where: expect.objectContaining({
           dueDate: { gte: startDate, lte: endDate },
-        }),
+        }) as unknown,
       }),
     );
   });
@@ -363,7 +364,7 @@ describe('generateAuditReadinessReport', () => {
 
     // Documentation: 9 claims with docs / 10 total => 90% => 18/20
     mockDocumentGroupBy.mockResolvedValue(
-      Array.from({ length: 9 }, (_, i) => ({ claimId: `c-${i}` })),
+      Array.from({ length: 9 }, (_, i) => ({ claimId: `c-${String(i)}` })),
     );
     mockClaimCount.mockResolvedValue(10);
 
@@ -384,30 +385,31 @@ describe('generateAuditReadinessReport', () => {
     expect(result.categories).toHaveLength(5);
 
     // Verify individual scores
-    const deadline = result.categories.find((c) => c.category === 'Deadline Adherence');
+    type CategoryEntry = (typeof result.categories)[number];
+    const deadline = result.categories.find((c) => c.category === 'Deadline Adherence') as CategoryEntry;
     expect(deadline).toBeDefined();
-    expect(deadline!.score).toBe(24);
-    expect(deadline!.maxScore).toBe(30);
+    expect(deadline.score).toBe(24);
+    expect(deadline.maxScore).toBe(30);
 
-    const investigation = result.categories.find((c) => c.category === 'Investigation Completeness');
+    const investigation = result.categories.find((c) => c.category === 'Investigation Completeness') as CategoryEntry;
     expect(investigation).toBeDefined();
-    expect(investigation!.score).toBe(18);
-    expect(investigation!.maxScore).toBe(25);
+    expect(investigation.score).toBe(18);
+    expect(investigation.maxScore).toBe(25);
 
-    const documentation = result.categories.find((c) => c.category === 'Documentation');
+    const documentation = result.categories.find((c) => c.category === 'Documentation') as CategoryEntry;
     expect(documentation).toBeDefined();
-    expect(documentation!.score).toBe(18);
-    expect(documentation!.maxScore).toBe(20);
+    expect(documentation.score).toBe(18);
+    expect(documentation.maxScore).toBe(20);
 
-    const upl = result.categories.find((c) => c.category === 'UPL Compliance');
+    const upl = result.categories.find((c) => c.category === 'UPL Compliance') as CategoryEntry;
     expect(upl).toBeDefined();
-    expect(upl!.score).toBe(15);
-    expect(upl!.maxScore).toBe(15);
+    expect(upl.score).toBe(15);
+    expect(upl.maxScore).toBe(15);
 
-    const lien = result.categories.find((c) => c.category === 'Lien Tracking');
+    const lien = result.categories.find((c) => c.category === 'Lien Tracking') as CategoryEntry;
     expect(lien).toBeDefined();
-    expect(lien!.score).toBe(6);
-    expect(lien!.maxScore).toBe(10);
+    expect(lien.score).toBe(6);
+    expect(lien.maxScore).toBe(10);
 
     // Composite: 24 + 18 + 18 + 15 + 6 = 81
     expect(result.compositeScore).toBe(81);
@@ -446,7 +448,7 @@ describe('generateAuditReadinessReport', () => {
       { isComplete: true, _count: { id: 50 } },
     ]);
     mockDocumentGroupBy.mockResolvedValue(
-      Array.from({ length: 20 }, (_, i) => ({ claimId: `c-${i}` })),
+      Array.from({ length: 20 }, (_, i) => ({ claimId: `c-${String(i)}` })),
     );
     mockClaimCount.mockResolvedValue(20);
     mockAuditEventCount.mockResolvedValueOnce(0); // 0 blocks
@@ -459,19 +461,20 @@ describe('generateAuditReadinessReport', () => {
 
     expect(result.compositeScore).toBe(100);
 
-    const deadline = result.categories.find((c) => c.category === 'Deadline Adherence');
-    expect(deadline!.score).toBe(30);
+    type CatEntry = (typeof result.categories)[number];
+    const deadline = result.categories.find((c) => c.category === 'Deadline Adherence') as CatEntry;
+    expect(deadline.score).toBe(30);
 
-    const investigation = result.categories.find((c) => c.category === 'Investigation Completeness');
-    expect(investigation!.score).toBe(25);
+    const investigation = result.categories.find((c) => c.category === 'Investigation Completeness') as CatEntry;
+    expect(investigation.score).toBe(25);
 
-    const documentation = result.categories.find((c) => c.category === 'Documentation');
-    expect(documentation!.score).toBe(20);
+    const documentation = result.categories.find((c) => c.category === 'Documentation') as CatEntry;
+    expect(documentation.score).toBe(20);
 
-    const upl = result.categories.find((c) => c.category === 'UPL Compliance');
-    expect(upl!.score).toBe(15);
+    const upl = result.categories.find((c) => c.category === 'UPL Compliance') as CatEntry;
+    expect(upl.score).toBe(15);
 
-    const lien = result.categories.find((c) => c.category === 'Lien Tracking');
-    expect(lien!.score).toBe(10);
+    const lien = result.categories.find((c) => c.category === 'Lien Tracking') as CatEntry;
+    expect(lien.score).toBe(10);
   });
 });

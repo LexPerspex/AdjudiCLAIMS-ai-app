@@ -22,7 +22,9 @@ import * as auditQuery from '../services/audit-query.service.js';
 
 function jsonToCsv(records: Record<string, unknown>[]): string {
   if (records.length === 0) return '';
-  const headers = Object.keys(records[0]!);
+  const firstRecord = records[0];
+  if (!firstRecord) return '';
+  const headers = Object.keys(firstRecord);
   const rows = records.map((r) => headers.map((h) => JSON.stringify(r[h] ?? '')).join(','));
   return [headers.join(','), ...rows].join('\n');
 }

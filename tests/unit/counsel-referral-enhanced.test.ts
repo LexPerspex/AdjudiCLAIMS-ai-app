@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vitest';
+import type { FastifyRequest } from 'fastify';
 
 /**
  * Enhanced counsel referral tests — Phase 10D.
@@ -294,7 +295,7 @@ describe('Counsel Referral Service — createTrackedReferral', () => {
     ip: '127.0.0.1',
     log: { error: vi.fn() },
     session: { user: MOCK_USER },
-  } as unknown as import('fastify').FastifyRequest;
+  } as unknown as FastifyRequest;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -380,7 +381,7 @@ describe('Counsel Referral Service — updateReferralStatus', () => {
     ip: '127.0.0.1',
     log: { error: vi.fn() },
     session: { user: MOCK_USER },
-  } as unknown as import('fastify').FastifyRequest;
+  } as unknown as FastifyRequest;
 
   beforeEach(() => {
     vi.clearAllMocks();

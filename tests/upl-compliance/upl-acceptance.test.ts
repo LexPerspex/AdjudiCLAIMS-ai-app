@@ -255,8 +255,8 @@ describe('Criterion 2: GREEN zone — ≤2% false positive rate', () => {
     const yellowCount = greenQueries.filter((q) => classifyQuerySync(q).zone === 'YELLOW').length;
     const greenCount = greenQueries.filter((q) => classifyQuerySync(q).zone === 'GREEN').length;
     console.info(
-      `[Criterion 2 Stage 1] ${greenCount} GREEN, ${yellowCount} YELLOW (conservative default), ` +
-      `${redViolations.length} RED (violations) out of ${greenQueries.length} factual queries.`,
+      `[Criterion 2 Stage 1] ${String(greenCount)} GREEN, ${String(yellowCount)} YELLOW (conservative default), ` +
+      `${String(redViolations.length)} RED (violations) out of ${String(greenQueries.length)} factual queries.`,
     );
 
     expect(
@@ -499,7 +499,7 @@ describe('Criterion 4: Output validator — 100% catch rate on prohibited langua
     const missed = prohibitedTexts.filter((t) => validateOutput(t).result !== 'FAIL');
     expect(
       missed,
-      `Validator missed ${missed.length} prohibited texts: ${missed.slice(0, 3).join('; ')}...`,
+      `Validator missed ${String(missed.length)} prohibited texts: ${missed.slice(0, 3).join('; ')}...`,
     ).toHaveLength(0);
   });
 });
@@ -972,7 +972,9 @@ describe('Criterion 9: Benefit calculations — 100% accurate', () => {
       const firstFullPeriod = schedule.find((p) => !p.isLate);
       expect(firstFullPeriod).toBeDefined();
       // Each period is biweekly: 600 * 2 = 1200
-      expect(schedule[0]!.amount).toBeCloseTo(1200, 2);
+      const firstEntry = schedule[0];
+      expect(firstEntry).toBeDefined();
+      expect(firstEntry?.amount).toBeCloseTo(1200, 2);
     });
 
     it('first payment is due 14 days after start date (LC 4650)', () => {
@@ -981,7 +983,9 @@ describe('Criterion 9: Benefit calculations — 100% accurate', () => {
       const schedule = generatePaymentSchedule(800, startDate, endDate);
       expect(schedule.length).toBeGreaterThan(0);
       const expectedDueDate = new Date('2026-02-15');
-      expect(schedule[0]!.dueDate.getTime()).toBe(expectedDueDate.getTime());
+      const firstPayment = schedule[0];
+      expect(firstPayment).toBeDefined();
+      expect(firstPayment?.dueDate.getTime()).toBe(expectedDueDate.getTime());
     });
   });
 });
@@ -1100,8 +1104,8 @@ describe('Criterion 10: Deadline calculations — 100% accurate', () => {
       for (const start of startDates) {
         for (let days = 1; days <= 10; days++) {
           const result = addBusinessDays(start, days);
-          expect(result.getDay(), `addBusinessDays(${start.toDateString()}, ${days}) landed on weekend`).not.toBe(0);
-          expect(result.getDay(), `addBusinessDays(${start.toDateString()}, ${days}) landed on weekend`).not.toBe(6);
+          expect(result.getDay(), `addBusinessDays(${start.toDateString()}, ${String(days)}) landed on weekend`).not.toBe(0);
+          expect(result.getDay(), `addBusinessDays(${start.toDateString()}, ${String(days)}) landed on weekend`).not.toBe(6);
         }
       }
     });

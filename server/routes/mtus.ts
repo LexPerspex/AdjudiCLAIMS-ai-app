@@ -75,7 +75,7 @@ export async function mtusRoutes(server: FastifyInstance): Promise<void> {
         request,
       });
 
-      const result = await matchMtusGuidelines(matchRequest);
+      const result = matchMtusGuidelines(matchRequest);
 
       return result;
     },
@@ -100,7 +100,7 @@ export async function mtusRoutes(server: FastifyInstance): Promise<void> {
 
       const { guidelineId } = parsed.data;
 
-      const guideline = await getGuidelineDetail(guidelineId);
+      const guideline = getGuidelineDetail(guidelineId);
 
       if (!guideline) {
         return reply.code(404).send({ error: 'Guideline not found' });

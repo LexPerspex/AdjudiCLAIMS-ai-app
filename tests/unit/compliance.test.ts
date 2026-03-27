@@ -207,7 +207,7 @@ async function loginAs(
   mockUserFindUnique.mockResolvedValueOnce(user);
   // login route also queries educationProfile
   const { prisma } = await import('../../server/db.js');
-  vi.mocked(prisma.educationProfile.findUnique).mockResolvedValueOnce(null);
+  (prisma.educationProfile.findUnique as unknown as ReturnType<typeof vi.fn>).mockResolvedValueOnce(null);
 
   const loginResponse = await server.inject({
     method: 'POST',
@@ -412,8 +412,8 @@ describe('Compliance Dashboard Service', () => {
       expect(Array.isArray(result.blocksPerPeriod)).toBe(true);
       // Both block events on same day should be grouped into one entry
       expect(result.blocksPerPeriod).toHaveLength(1);
-      expect(result.blocksPerPeriod[0]!.period).toBe('2026-03-20');
-      expect(result.blocksPerPeriod[0]!.count).toBe(2);
+      expect((result.blocksPerPeriod[0] as (typeof result.blocksPerPeriod)[number]).period).toBe('2026-03-20');
+      expect((result.blocksPerPeriod[0] as (typeof result.blocksPerPeriod)[number]).count).toBe(2);
 
       expect(result.adversarialDetectionRate).toBeDefined();
       expect(result.adversarialDetectionRate).toBeGreaterThanOrEqual(0);

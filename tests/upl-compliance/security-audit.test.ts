@@ -78,7 +78,7 @@ describe('Security: No hardcoded secrets in source files', () => {
     { name: 'Google API key', pattern: /AIza[0-9A-Za-z\-_]{35}/g },
     { name: 'Generic password assignment', pattern: /password\s*=\s*['"][^'"]{8,}['"]/gi },
     { name: 'Generic secret assignment', pattern: /secret\s*=\s*['"][^'"]{8,}['"]/gi },
-    { name: 'Bearer token hardcoded', pattern: /Bearer\s+[a-zA-Z0-9\-_\.]{40,}/g },
+    { name: 'Bearer token hardcoded', pattern: /Bearer\s+[a-zA-Z0-9\-_.]{40,}/g },
     { name: 'Database URL with credentials', pattern: /postgresql:\/\/[^@]+:[^@]+@[^/]+/g },
     { name: 'Private key header', pattern: /-----BEGIN (RSA |EC )?PRIVATE KEY-----/g },
   ];
@@ -87,7 +87,7 @@ describe('Security: No hardcoded secrets in source files', () => {
     const violations: string[] = [];
 
     // Files that may legitimately reference connection string FORMAT (not credentials):
-    // - server/lib/env.ts: uses 'postgresql://' as a .startsWith() format validator,
+    // - server/lib/env.ts: uses 'mysql://' as a .startsWith() format validator,
     //   not as a hardcoded credential. The actual value comes from GCP Secret Manager.
     const ALLOWED_CREDENTIAL_PATTERN_FILES = new Set([
       'server/lib/env.ts',
@@ -165,7 +165,7 @@ describe('Security: No PHI/PII in audit logs', () => {
 
     // The audit logger must not log content, text, or body fields from documents
     // It should only log document IDs, event types, and metadata
-    const prohibitedAuditFields = [
+    const _prohibitedAuditFields = [
       'content:',     // Document content
       'text:',        // OCR/extracted text
       '.content,',    // Field access to content
@@ -209,7 +209,7 @@ describe('Security: No PHI/PII in audit logs', () => {
 
     // Chat messages contain PHI — they must not appear in audit eventData
     // The audit should record: sessionId, claimId, zone, processingMs — NOT the message text
-    const chatAuditPattern = /logAuditEvent[^}]*message[^}]*\}/s;
+    const _chatAuditPattern = /logAuditEvent[^}]*message[^}]*\}/s;
     // We can't perfectly detect this with regex alone, so we verify the principle
     // by checking that raw message strings aren't being spread into eventData
     expect(typeof chatServiceContent).toBe('string'); // File exists and is readable

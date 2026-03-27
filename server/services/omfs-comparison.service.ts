@@ -121,7 +121,7 @@ function roundCurrency(value: number): number {
  * In stub mode, returns data from the built-in rate table. Unknown CPT
  * codes return omfsRate = null with a descriptive message.
  */
-export async function lookupOmfsRate(cptCode: string): Promise<OmfsRateLookup> {
+export function lookupOmfsRate(cptCode: string): OmfsRateLookup {
   const entry = STUB_OMFS_RATES[cptCode];
 
   if (entry) {
@@ -153,15 +153,15 @@ export async function lookupOmfsRate(cptCode: string): Promise<OmfsRateLookup> {
  * @param lineItems - Array of billed items with CPT code, amount, and description.
  * @returns Comparison result with per-item and aggregate discrepancy data.
  */
-export async function compareBillToOmfs(
+export function compareBillToOmfs(
   lineItems: { cptCode: string; amount: number; description: string }[],
-): Promise<BillComparisonResult> {
+): BillComparisonResult {
   const comparedItems: BillComparisonLineItem[] = [];
   let totalClaimed = 0;
   let totalOmfsAllowed = 0;
 
   for (const item of lineItems) {
-    const lookup = await lookupOmfsRate(item.cptCode);
+    const lookup = lookupOmfsRate(item.cptCode);
     const amountClaimed = roundCurrency(item.amount);
     totalClaimed += amountClaimed;
 

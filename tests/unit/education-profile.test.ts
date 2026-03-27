@@ -451,7 +451,7 @@ describe('Education Profile Service', () => {
       expect(result.learningModeExpiry).toBeInstanceOf(Date);
 
       // Should be set to roughly 30 days from now (within 1 minute of tolerance)
-      const diffMs = result.learningModeExpiry!.getTime() - Date.now();
+      const diffMs = (result.learningModeExpiry as Date).getTime() - Date.now();
       const diffDays = diffMs / (1000 * 60 * 60 * 24);
       expect(diffDays).toBeGreaterThan(29);
       expect(diffDays).toBeLessThan(31);

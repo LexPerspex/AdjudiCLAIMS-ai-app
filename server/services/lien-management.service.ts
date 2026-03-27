@@ -348,14 +348,14 @@ export async function runOmfsComparison(lienId: string): Promise<BillComparisonR
 
   // Build comparison input from line items
   const comparisonInput = lien.lineItems
-    .filter((item) => item.cptCode !== null)
+    .filter((item): item is typeof item & { cptCode: string } => item.cptCode !== null)
     .map((item) => ({
-      cptCode: item.cptCode!,
+      cptCode: item.cptCode,
       amount: Number(item.amountClaimed),
       description: item.description,
     }));
 
-  const result = await compareBillToOmfs(comparisonInput);
+  const result = compareBillToOmfs(comparisonInput);
 
   // Update each line item with OMFS data
   for (const compared of result.lineItems) {

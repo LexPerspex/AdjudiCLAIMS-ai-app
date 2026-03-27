@@ -32,7 +32,7 @@ const CreateReferralBodySchema = z.object({
 
 const UpdateReferralBodySchema = z.object({
   status: z.enum(['PENDING', 'SENT', 'RESPONDED', 'CLOSED']),
-  counselEmail: z.string().email().optional(),
+  counselEmail: z.string().refine((val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), { message: 'Invalid email' }).optional(),
   counselResponse: z.string().optional(),
 });
 
@@ -85,11 +85,11 @@ export async function referralRoutes(server: FastifyInstance): Promise<void> {
           request,
         );
 
-        return reply.code(201).send({ referral });
+        return await reply.code(201).send({ referral });
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Referral creation failed';
         request.log.error({ err, claimId }, 'Referral creation failed');
-        return reply.code(500).send({ error: message });
+        return await reply.code(500).send({ error: message });
       }
     },
   );

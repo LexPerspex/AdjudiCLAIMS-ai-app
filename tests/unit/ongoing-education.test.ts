@@ -29,7 +29,7 @@ const mockEducationProfile: Record<string, {
 vi.mock('../../server/db.js', () => ({
   prisma: {
     educationProfile: {
-      upsert: vi.fn(async ({ where, create }: {
+      upsert: vi.fn(({ where, create }: {
         where: { userId: string };
         create: { userId: string };
       }) => {
@@ -46,15 +46,15 @@ vi.mock('../../server/db.js', () => ({
         }
         return mockEducationProfile[userId];
       }),
-      findUnique: vi.fn(async ({ where }: { where: { userId: string } }) => {
+      findUnique: vi.fn(({ where }: { where: { userId: string } }) => {
         return mockEducationProfile[where.userId] ?? null;
       }),
-      findUniqueOrThrow: vi.fn(async ({ where }: { where: { userId: string } }) => {
+      findUniqueOrThrow: vi.fn(({ where }: { where: { userId: string } }) => {
         const profile = mockEducationProfile[where.userId];
         if (!profile) throw new Error('Not found');
         return profile;
       }),
-      update: vi.fn(async ({ where, data }: {
+      update: vi.fn(({ where, data }: {
         where: { userId: string };
         data: Record<string, unknown>;
       }) => {
@@ -79,10 +79,10 @@ vi.mock('../../server/db.js', () => ({
       }),
     },
     deadline: {
-      findMany: vi.fn(async () => []),
+      findMany: vi.fn(() => []),
     },
     claim: {
-      findMany: vi.fn(async () => []),
+      findMany: vi.fn(() => []),
     },
   },
 }));
@@ -114,7 +114,7 @@ import { QUARTERLY_REFRESHERS } from '../../server/data/quarterly-refreshers.js'
 beforeEach(() => {
   // Clear mock profiles between tests
   for (const key of Object.keys(mockEducationProfile)) {
-    delete mockEducationProfile[key];
+    Reflect.deleteProperty(mockEducationProfile, key);
   }
 });
 
@@ -152,7 +152,7 @@ describe('Regulatory changes', () => {
       lastRecertificationDate: null,
     };
 
-    const changeId = REGULATORY_CHANGES[0]!.id;
+    const changeId = (REGULATORY_CHANGES[0] as (typeof REGULATORY_CHANGES)[number]).id;
     await acknowledgeChange(TEST_USER_ID, changeId);
 
     const pending = await getPendingChanges(TEST_USER_ID);
@@ -168,7 +168,7 @@ describe('Regulatory changes', () => {
   });
 
   it('acknowledging an already-acknowledged change is a no-op', async () => {
-    const changeId = REGULATORY_CHANGES[0]!.id;
+    const changeId = (REGULATORY_CHANGES[0] as (typeof REGULATORY_CHANGES)[number]).id;
     mockEducationProfile[TEST_USER_ID] = {
       userId: TEST_USER_ID,
       acknowledgedChanges: [changeId],
@@ -180,7 +180,7 @@ describe('Regulatory changes', () => {
 
     // Should not throw or duplicate
     await acknowledgeChange(TEST_USER_ID, changeId);
-    expect(mockEducationProfile[TEST_USER_ID]!.acknowledgedChanges.filter((id) => id === changeId).length).toBe(1);
+    expect(mockEducationProfile[TEST_USER_ID].acknowledgedChanges.filter((id) => id === changeId).length).toBe(1);
   });
 });
 
@@ -196,7 +196,7 @@ describe('Monthly compliance review', () => {
 
   it('detects monthly review as not due after completion', async () => {
     const now = new Date();
-    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const currentMonth = `${String(now.getFullYear())}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
     mockEducationProfile[TEST_USER_ID] = {
       userId: TEST_USER_ID,
@@ -245,7 +245,7 @@ describe('Monthly compliance review', () => {
     };
 
     await completeMonthlyReview(TEST_USER_ID, '2026-03');
-    expect(mockEducationProfile[TEST_USER_ID]!.monthlyReviewsCompleted).toHaveProperty('2026-03');
+    expect(mockEducationProfile[TEST_USER_ID].monthlyReviewsCompleted).toHaveProperty('2026-03');
   });
 
   it('rejects invalid month format', async () => {
@@ -291,7 +291,7 @@ describe('Quarterly refreshers', () => {
   });
 
   it('scores a refresher assessment correctly — all correct', async () => {
-    const refresher = QUARTERLY_REFRESHERS[0]!; // Q1 2026
+    const refresher = (QUARTERLY_REFRESHERS[0] as (typeof QUARTERLY_REFRESHERS)[number]); // Q1 2026
     mockEducationProfile[TEST_USER_ID] = {
       userId: TEST_USER_ID,
       acknowledgedChanges: [],
@@ -319,7 +319,7 @@ describe('Quarterly refreshers', () => {
   });
 
   it('scores a refresher assessment correctly — all wrong', async () => {
-    const refresher = QUARTERLY_REFRESHERS[0]!;
+    const refresher = (QUARTERLY_REFRESHERS[0] as (typeof QUARTERLY_REFRESHERS)[number]);
     mockEducationProfile[TEST_USER_ID] = {
       userId: TEST_USER_ID,
       acknowledgedChanges: [],
@@ -333,7 +333,7 @@ describe('Quarterly refreshers', () => {
     for (const q of refresher.questions) {
       // Pick a wrong answer
       const wrongOption = q.options.find((o) => o.id !== q.correctOptionId);
-      allWrongAnswers[q.id] = wrongOption!.id;
+      allWrongAnswers[q.id] = (wrongOption as NonNullable<typeof wrongOption>).id;
     }
 
     const result = await submitRefresherAssessment(
@@ -354,7 +354,7 @@ describe('Quarterly refreshers', () => {
   });
 
   it('throws for incomplete answers', async () => {
-    const refresher = QUARTERLY_REFRESHERS[0]!;
+    const refresher = (QUARTERLY_REFRESHERS[0] as (typeof QUARTERLY_REFRESHERS)[number]);
     mockEducationProfile[TEST_USER_ID] = {
       userId: TEST_USER_ID,
       acknowledgedChanges: [],
@@ -366,7 +366,7 @@ describe('Quarterly refreshers', () => {
 
     // Only answer the first question
     const partial: Record<string, string> = {
-      [refresher.questions[0]!.id]: refresher.questions[0]!.correctOptionId,
+      [(refresher.questions[0] as (typeof refresher.questions)[number]).id]: (refresher.questions[0] as (typeof refresher.questions)[number]).correctOptionId,
     };
 
     await expect(
@@ -375,7 +375,7 @@ describe('Quarterly refreshers', () => {
   });
 
   it('tracks refresher status with completions', async () => {
-    const refresher = QUARTERLY_REFRESHERS[0]!;
+    const refresher = (QUARTERLY_REFRESHERS[0] as (typeof QUARTERLY_REFRESHERS)[number]);
     mockEducationProfile[TEST_USER_ID] = {
       userId: TEST_USER_ID,
       acknowledgedChanges: [],
@@ -394,7 +394,7 @@ describe('Quarterly refreshers', () => {
     const status = await getRefresherStatus(TEST_USER_ID);
     expect(status).toHaveProperty('completedRefreshers');
     expect(status.completedRefreshers).toHaveProperty(refresher.quarter);
-    expect(status.completedRefreshers[refresher.quarter]!.passed).toBe(true);
+    expect((status.completedRefreshers[refresher.quarter] as NonNullable<(typeof status.completedRefreshers)[string]>).passed).toBe(true);
   });
 });
 

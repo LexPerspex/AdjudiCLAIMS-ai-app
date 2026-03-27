@@ -145,7 +145,7 @@ describe('Lien Management Service — createLien', () => {
       expect.objectContaining({
         data: expect.objectContaining({
           filingFeeStatus: 'UNKNOWN',
-        }),
+        }) as unknown,
       }),
     );
   });
@@ -165,9 +165,10 @@ describe('Lien Management Service — getLien', () => {
     const result = await getLien('lien-1');
 
     expect(result).not.toBeNull();
-    expect(result!.id).toBe('lien-1');
-    expect(result!.lineItems).toHaveLength(1);
-    expect(result!.lineItems[0]!.cptCode).toBe('99213');
+    const lien = result as NonNullable<typeof result>;
+    expect(lien.id).toBe('lien-1');
+    expect(lien.lineItems).toHaveLength(1);
+    expect((lien.lineItems[0] as (typeof lien.lineItems)[number]).cptCode).toBe('99213');
   });
 
   it('returns null when lien not found', async () => {
@@ -193,8 +194,8 @@ describe('Lien Management Service — getClaimLiens', () => {
     const result = await getClaimLiens('claim-1');
 
     expect(result).toHaveLength(2);
-    expect(result[0]!.id).toBe('lien-1');
-    expect(result[1]!.id).toBe('lien-2');
+    expect((result[0] as (typeof result)[number]).id).toBe('lien-1');
+    expect((result[1] as (typeof result)[number]).id).toBe('lien-2');
   });
 
   it('returns empty array when no liens exist', async () => {
@@ -348,8 +349,8 @@ describe('Lien Management Service — addLineItems', () => {
     ]);
 
     expect(result).toHaveLength(1);
-    expect(result[0]!.cptCode).toBe('99213');
-    expect(result[0]!.amountClaimed).toBe(150);
+    expect((result[0] as (typeof result)[number]).cptCode).toBe('99213');
+    expect((result[0] as (typeof result)[number]).amountClaimed).toBe(150);
   });
 
   it('throws when lien not found', async () => {
@@ -395,7 +396,7 @@ describe('Lien Management Service — runOmfsComparison', () => {
       expect.objectContaining({
         data: expect.objectContaining({
           status: 'OMFS_COMPARED',
-        }),
+        }) as unknown,
       }),
     );
   });
@@ -429,8 +430,8 @@ describe('Lien Management Service — runOmfsComparison', () => {
     expect(mockLienUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.not.objectContaining({
-          status: expect.anything(),
-        }),
+          status: expect.anything() as unknown,
+        }) as unknown,
       }),
     );
   });

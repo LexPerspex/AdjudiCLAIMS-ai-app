@@ -15,6 +15,7 @@ import type { LetterType } from '@prisma/client';
 import { prisma } from '../db.js';
 import { logAuditEvent } from '../middleware/audit.js';
 import { LETTER_TEMPLATES, type LetterTemplate } from '../data/letter-templates.js';
+import { parseJsonStringArray } from '../lib/json-array.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -117,7 +118,7 @@ function buildTokenData(
     employer: claim.employer,
     insurer: claim.insurer,
     dateReceived: formatDate(claim.dateReceived),
-    bodyParts: claim.bodyParts.join(', ') || 'N/A',
+    bodyParts: parseJsonStringArray(claim.bodyParts).join(', ') || 'N/A',
     examinerName: claim.assignedExaminer.name,
     injuryYear: String(injuryYear),
     currentDate: formatDate(new Date()),

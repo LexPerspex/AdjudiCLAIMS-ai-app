@@ -379,9 +379,9 @@ function findStubMatches(request: MtusMatchRequest): MtusGuidelineMatch[] {
  * @param request - The treatment match request.
  * @returns MTUS guideline matches with disclaimer.
  */
-export async function matchMtusGuidelines(
+export function matchMtusGuidelines(
   request: MtusMatchRequest,
-): Promise<MtusMatchResult> {
+): MtusMatchResult {
   const kbAvailable = isKbAvailable();
 
   if (kbAvailable) {
@@ -415,9 +415,9 @@ export async function matchMtusGuidelines(
  * @param guidelineId - The guideline identifier.
  * @returns The guideline match object, or null if not found.
  */
-export async function getGuidelineDetail(
+export function getGuidelineDetail(
   guidelineId: string,
-): Promise<MtusGuidelineMatch | null> {
+): MtusGuidelineMatch | null {
   const kbAvailable = isKbAvailable();
 
   if (kbAvailable) {

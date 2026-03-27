@@ -268,10 +268,10 @@ export async function lienRoutes(server: FastifyInstance): Promise<void> {
 
       try {
         const items = await addLineItems(lienId, parsed.data.items);
-        return reply.code(201).send(items);
+        return await reply.code(201).send(items);
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Failed to add line items';
-        return reply.code(400).send({ error: message });
+        return await reply.code(400).send({ error: message });
       }
     },
   );
@@ -353,9 +353,8 @@ export async function lienRoutes(server: FastifyInstance): Promise<void> {
       }
 
       // Build report from stored line item data + lookup descriptions
-      const lineItems = await Promise.all(
-        lien.lineItems.map(async (li) => {
-          const lookup = li.cptCode ? await lookupOmfsRate(li.cptCode) : null;
+      const lineItems = lien.lineItems.map((li) => {
+          const lookup = li.cptCode ? lookupOmfsRate(li.cptCode) : null;
           return {
             cptCode: li.cptCode ?? 'N/A',
             description: li.description,
@@ -365,8 +364,7 @@ export async function lienRoutes(server: FastifyInstance): Promise<void> {
             overchargeAmount: li.overchargeAmount ?? 0,
             feeScheduleSection: lookup?.feeScheduleSection ?? 'N/A',
           };
-        }),
-      );
+        });
 
       return {
         lienId: lien.id,

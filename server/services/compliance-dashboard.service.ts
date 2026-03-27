@@ -287,8 +287,8 @@ export async function getExaminerMetrics(
   // Map UPL zone group-by to named counts
   const zoneCounts = { GREEN: 0, YELLOW: 0, RED: 0 };
   for (const row of uplRows) {
-    const z = row.uplZone as keyof typeof zoneCounts;
-    if (z && z in zoneCounts) zoneCounts[z] = row._count.id;
+    const z = row.uplZone as string;
+    if (z in zoneCounts) zoneCounts[z as keyof typeof zoneCounts] = row._count.id;
   }
 
   // Count explicit block events for this user
@@ -396,8 +396,8 @@ export async function getTeamMetrics(orgId: string): Promise<SupervisorTeamMetri
   // --- Team UPL compliance ---
   const orgZoneCounts = { GREEN: 0, YELLOW: 0, RED: 0 };
   for (const row of orgUplRows) {
-    const z = row.uplZone as keyof typeof orgZoneCounts;
-    if (z && z in orgZoneCounts) orgZoneCounts[z] = row._count.id;
+    const z = row.uplZone as string;
+    if (z in orgZoneCounts) orgZoneCounts[z as keyof typeof orgZoneCounts] = row._count.id;
   }
   const orgUplTotal = orgZoneCounts.GREEN + orgZoneCounts.YELLOW + orgZoneCounts.RED;
 
@@ -467,10 +467,10 @@ export async function getTeamMetrics(orgId: string): Promise<SupervisorTeamMetri
     Array<{ assigned_examiner_id: string; status: string; cnt: bigint }>
   >(
     `
-    SELECT c.assigned_examiner_id, rd.status, COUNT(rd.id)::bigint AS cnt
+    SELECT c.assigned_examiner_id, rd.status, CAST(COUNT(rd.id) AS SIGNED) AS cnt
     FROM regulatory_deadlines rd
     JOIN claims c ON c.id = rd.claim_id
-    WHERE c.organization_id = $1
+    WHERE c.organization_id = ?
     GROUP BY c.assigned_examiner_id, rd.status
     `,
     orgId,
@@ -560,8 +560,8 @@ export async function getAdminReport(orgId: string): Promise<AdminComplianceRepo
   ]);
 
   // --- Investigation score (0–30) ---
-  const invCompleteRow = investigationRows.find((r) => r.isComplete === true);
-  const invIncompleteRow = investigationRows.find((r) => r.isComplete === false);
+  const invCompleteRow = investigationRows.find((r) => r.isComplete);
+  const invIncompleteRow = investigationRows.find((r) => !r.isComplete);
   const invComplete = invCompleteRow?._count.id ?? 0;
   const invIncomplete = invIncompleteRow?._count.id ?? 0;
   const invTotal = invComplete + invIncomplete;
@@ -672,8 +672,8 @@ export async function getUplDashboard(
   // --- Zone distribution ---
   const zoneCounts = { GREEN: 0, YELLOW: 0, RED: 0 };
   for (const row of zoneRows) {
-    const z = row.uplZone as keyof typeof zoneCounts;
-    if (z && z in zoneCounts) zoneCounts[z] = row._count.id;
+    const z = row.uplZone as string;
+    if (z in zoneCounts) zoneCounts[z as keyof typeof zoneCounts] = row._count.id;
   }
 
   // --- Blocks per day ---

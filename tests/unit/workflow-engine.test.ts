@@ -38,7 +38,7 @@ const MOCK_CLAIM = {
 
 // Known workflow / step IDs from workflow-definitions.ts
 const WORKFLOW_ID = 'new_claim_intake';
-const STEP_SKIPPABLE_ID = 'intake_step_7'; // reserves step — isSkippable: true
+const _STEP_SKIPPABLE_ID = 'intake_step_7'; // reserves step — isSkippable: true
 const STEP_NOT_SKIPPABLE_ID = 'intake_step_1'; // receive/log — isSkippable: false
 
 function makeProgressRecord(overrides?: Partial<{
@@ -242,7 +242,7 @@ describe('Workflow Engine Service', () => {
       const { startWorkflow } = await import('../../server/services/workflow-engine.service.js');
       const { getWorkflow } = await import('../../server/services/workflow-engine.service.js');
 
-      const workflow = getWorkflow(WORKFLOW_ID)!;
+      const workflow = getWorkflow(WORKFLOW_ID) as NonNullable<ReturnType<typeof getWorkflow>>;
       const pendingStatuses = workflow.steps.map((s) => ({ stepId: s.id, status: 'PENDING' }));
 
       const record = makeProgressRecord({ stepStatuses: pendingStatuses });
@@ -269,8 +269,8 @@ describe('Workflow Engine Service', () => {
     it('marks a step as COMPLETED and returns updated progress', async () => {
       const { completeStep, getWorkflow } = await import('../../server/services/workflow-engine.service.js');
 
-      const workflow = getWorkflow(WORKFLOW_ID)!;
-      const stepId = workflow.steps[0]!.id;
+      const workflow = getWorkflow(WORKFLOW_ID) as NonNullable<ReturnType<typeof getWorkflow>>;
+      const stepId = (workflow.steps[0] as (typeof workflow.steps)[number]).id;
       const pendingStatuses = workflow.steps.map((s) => ({ stepId: s.id, status: 'PENDING' }));
       const completedStatuses = workflow.steps.map((s) =>
         s.id === stepId
@@ -294,8 +294,8 @@ describe('Workflow Engine Service', () => {
     it('sets isComplete=true when all steps are completed', async () => {
       const { completeStep, getWorkflow } = await import('../../server/services/workflow-engine.service.js');
 
-      const workflow = getWorkflow(WORKFLOW_ID)!;
-      const lastStep = workflow.steps[workflow.steps.length - 1]!;
+      const workflow = getWorkflow(WORKFLOW_ID) as NonNullable<ReturnType<typeof getWorkflow>>;
+      const lastStep = workflow.steps[workflow.steps.length - 1] as (typeof workflow.steps)[number];
 
       // All steps completed except the last
       const allButLastCompleted = workflow.steps.map((s) =>
@@ -326,10 +326,10 @@ describe('Workflow Engine Service', () => {
     it('marks a skippable step as SKIPPED with a reason', async () => {
       const { skipStep, getWorkflow } = await import('../../server/services/workflow-engine.service.js');
 
-      const workflow = getWorkflow(WORKFLOW_ID)!;
+      const workflow = getWorkflow(WORKFLOW_ID) as NonNullable<ReturnType<typeof getWorkflow>>;
       const skippableStep = workflow.steps.find((s) => s.isSkippable);
       expect(skippableStep).toBeDefined();
-      const stepId = skippableStep!.id;
+      const stepId = (skippableStep as NonNullable<typeof skippableStep>).id;
 
       const pendingStatuses = workflow.steps.map((s) => ({ stepId: s.id, status: 'PENDING' }));
       const skippedStatuses = workflow.steps.map((s) =>
@@ -368,7 +368,7 @@ describe('Workflow Engine Service', () => {
         '../../server/services/workflow-engine.service.js'
       );
 
-      const workflow = getWorkflow(WORKFLOW_ID)!;
+      const workflow = getWorkflow(WORKFLOW_ID) as NonNullable<ReturnType<typeof getWorkflow>>;
       const statuses = workflow.steps.map((s) => ({ stepId: s.id, status: 'PENDING' }));
 
       mockWorkflowProgressFindUniqueOrThrow.mockResolvedValueOnce(
@@ -481,7 +481,7 @@ describe('Workflow Routes', () => {
       mockClaimFindUnique.mockResolvedValueOnce(MOCK_CLAIM);
 
       const { getWorkflow } = await import('../../server/services/workflow-engine.service.js');
-      const workflow = getWorkflow(WORKFLOW_ID)!;
+      const workflow = getWorkflow(WORKFLOW_ID) as NonNullable<ReturnType<typeof getWorkflow>>;
       const pendingStatuses = workflow.steps.map((s) => ({ stepId: s.id, status: 'PENDING' }));
       mockWorkflowProgressCreate.mockResolvedValueOnce(makeProgressRecord({ stepStatuses: pendingStatuses }));
 
@@ -524,8 +524,8 @@ describe('Workflow Routes', () => {
       mockClaimFindUnique.mockResolvedValueOnce(MOCK_CLAIM);
 
       const { getWorkflow } = await import('../../server/services/workflow-engine.service.js');
-      const workflow = getWorkflow(WORKFLOW_ID)!;
-      const stepId = workflow.steps[0]!.id;
+      const workflow = getWorkflow(WORKFLOW_ID) as NonNullable<ReturnType<typeof getWorkflow>>;
+      const stepId = (workflow.steps[0] as (typeof workflow.steps)[number]).id;
       const pendingStatuses = workflow.steps.map((s) => ({ stepId: s.id, status: 'PENDING' }));
       const completedStatuses = workflow.steps.map((s) =>
         s.id === stepId
@@ -559,8 +559,8 @@ describe('Workflow Routes', () => {
       mockClaimFindUnique.mockResolvedValueOnce(MOCK_CLAIM);
 
       const { getWorkflow } = await import('../../server/services/workflow-engine.service.js');
-      const workflow = getWorkflow(WORKFLOW_ID)!;
-      const skippableStep = workflow.steps.find((s) => s.isSkippable)!;
+      const workflow = getWorkflow(WORKFLOW_ID) as NonNullable<ReturnType<typeof getWorkflow>>;
+      const skippableStep = workflow.steps.find((s) => s.isSkippable) as (typeof workflow.steps)[number];
       const stepId = skippableStep.id;
 
       const pendingStatuses = workflow.steps.map((s) => ({ stepId: s.id, status: 'PENDING' }));
@@ -600,7 +600,7 @@ describe('Workflow Routes', () => {
       mockClaimFindUnique.mockResolvedValueOnce(MOCK_CLAIM);
 
       const { getWorkflow } = await import('../../server/services/workflow-engine.service.js');
-      const workflow = getWorkflow(WORKFLOW_ID)!;
+      const workflow = getWorkflow(WORKFLOW_ID) as NonNullable<ReturnType<typeof getWorkflow>>;
       const statuses = workflow.steps.map((s) => ({ stepId: s.id, status: 'PENDING' }));
 
       mockWorkflowProgressFindUniqueOrThrow.mockResolvedValueOnce(

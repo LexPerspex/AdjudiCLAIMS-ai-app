@@ -13,7 +13,7 @@
  * no legal conclusions — it tracks examiner procedural compliance only.
  */
 
-import { Prisma } from '@prisma/client';
+import { type Prisma } from '@prisma/client';
 import { prisma } from '../db.js';
 import { WORKFLOWS_BY_ID, WORKFLOW_DEFINITIONS } from '../data/workflow-definitions.js';
 import type { WorkflowDefinition } from '../data/workflow-definitions.js';

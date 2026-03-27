@@ -223,7 +223,7 @@ async function loginAs(
   mockUserFindUnique.mockResolvedValueOnce(user);
   // login route also queries educationProfile
   const { prisma } = await import('../../server/db.js');
-  vi.mocked(prisma.educationProfile.findUnique).mockResolvedValueOnce(null);
+  (prisma.educationProfile.findUnique as unknown as ReturnType<typeof vi.fn>).mockResolvedValueOnce(null);
 
   const loginResponse = await server.inject({
     method: 'POST',
@@ -254,7 +254,7 @@ describe('Audit Query Service', () => {
       const result = await auditQuery.getClaimAuditTrail('claim-1');
 
       expect(result.items).toHaveLength(1);
-      expect(result.items[0]!.claimId).toBe('claim-1');
+      expect((result.items[0] as (typeof result.items)[number]).claimId).toBe('claim-1');
       expect(result.total).toBe(1);
       expect(result.take).toBe(50); // default
       expect(result.skip).toBe(0);
@@ -301,7 +301,7 @@ describe('Audit Query Service', () => {
       const result = await auditQuery.getUserAuditTrail('user-1');
 
       expect(result.items).toHaveLength(2);
-      expect(result.items[0]!.userId).toBe('user-1');
+      expect((result.items[0] as (typeof result.items)[number]).userId).toBe('user-1');
       expect(result.total).toBe(2);
     });
   });
@@ -323,7 +323,7 @@ describe('Audit Query Service', () => {
       expect(eventTypeFilter.in).toContain('UPL_OUTPUT_VALIDATION_FAIL');
 
       expect(result.items).toHaveLength(1);
-      expect(result.items[0]!.eventType).toBe('UPL_ZONE_CLASSIFICATION');
+      expect((result.items[0] as (typeof result.items)[number]).eventType).toBe('UPL_ZONE_CLASSIFICATION');
     });
   });
 
@@ -337,10 +337,10 @@ describe('Audit Query Service', () => {
       const result = await auditQuery.getAuditEventCounts('org-1');
 
       expect(result).toHaveLength(2);
-      expect(result[0]!.eventType).toBe('CLAIM_VIEWED');
-      expect(result[0]!.count).toBe(10);
-      expect(result[1]!.eventType).toBe('UPL_ZONE_CLASSIFICATION');
-      expect(result[1]!.count).toBe(5);
+      expect((result[0] as (typeof result)[number]).eventType).toBe('CLAIM_VIEWED');
+      expect((result[0] as (typeof result)[number]).count).toBe(10);
+      expect((result[1] as (typeof result)[number]).eventType).toBe('UPL_ZONE_CLASSIFICATION');
+      expect((result[1] as (typeof result)[number]).count).toBe(5);
     });
   });
 
@@ -351,11 +351,11 @@ describe('Audit Query Service', () => {
       const result = await auditQuery.exportAuditEvents('org-1', { format: 'json' });
 
       expect(result).toHaveLength(1);
-      expect(result[0]!.id).toBe('ae-1');
-      expect(result[0]!.userId).toBe('user-1');
-      expect(result[0]!.claimId).toBe('claim-1');
-      expect(typeof result[0]!.createdAt).toBe('string'); // ISO string
-      expect(typeof result[0]!.eventDataJson).toBe('string');
+      expect((result[0] as (typeof result)[number]).id).toBe('ae-1');
+      expect((result[0] as (typeof result)[number]).userId).toBe('user-1');
+      expect((result[0] as (typeof result)[number]).claimId).toBe('claim-1');
+      expect(typeof (result[0] as (typeof result)[number]).createdAt).toBe('string'); // ISO string
+      expect(typeof (result[0] as (typeof result)[number]).eventDataJson).toBe('string');
     });
 
     it('serialises eventData as JSON string for CSV format', async () => {
@@ -363,7 +363,7 @@ describe('Audit Query Service', () => {
 
       const result = await auditQuery.exportAuditEvents('org-1', { format: 'csv' });
 
-      expect(result[0]!.eventDataJson).toBe(JSON.stringify({ action: 'view' }));
+      expect((result[0] as (typeof result)[number]).eventDataJson).toBe(JSON.stringify({ action: 'view' }));
     });
   });
 });

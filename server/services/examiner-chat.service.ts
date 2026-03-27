@@ -20,6 +20,7 @@ import { getDisclaimer, type DisclaimerResult } from './disclaimer.service.js';
 import { getLLMAdapter } from '../lib/llm/index.js';
 import { EXAMINER_CASE_CHAT_PROMPT } from '../prompts/adjudiclaims-chat.prompts.js';
 import { logAuditEvent } from '../middleware/audit.js';
+import { hybridSearch } from './hybrid-search.service.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -54,6 +55,8 @@ export interface Citation {
   documentName: string;
   content: string;
   similarity: number;
+  /** Heading breadcrumb for source attribution (L1 > L2 > L3) */
+  headingBreadcrumb?: string;
 }
 
 /**
@@ -97,14 +100,34 @@ export interface ChatResponse {
  */
 async function retrieveContext(
   claimId: string,
-  _query: string,
+  query: string,
   topK = 5,
 ): Promise<Citation[]> {
+  // Try hybrid search (vector + keyword fusion)
+  try {
+    const results = await hybridSearch(query, claimId, { finalTopK: topK });
+
+    if (results.length > 0) {
+      return results.map((r) => ({
+        documentId: r.documentId,
+        documentName: r.headingBreadcrumb ?? 'Unknown Document',
+        content: r.parentContent ?? r.content,  // Prefer parent content for broader LLM context
+        similarity: r.fusedScore,
+      }));
+    }
+  } catch (err) {
+    console.warn(
+      '[examiner-chat] Hybrid search failed, falling back to document order:',
+      err instanceof Error ? err.message : String(err),
+    );
+  }
+
+  // Fallback: ordered chunk retrieval (no search infrastructure configured)
   const chunks = await prisma.documentChunk.findMany({
     where: {
+      isParent: false,
       document: {
         claimId,
-        // Exclude restricted documents
         accessLevel: { not: 'ATTORNEY_ONLY' },
         containsLegalAnalysis: false,
         containsWorkProduct: false,
@@ -129,7 +152,7 @@ async function retrieveContext(
     documentId: chunk.document.id,
     documentName: chunk.document.fileName,
     content: chunk.content,
-    similarity: 1.0, // Placeholder until vector search is active
+    similarity: 1.0,
   }));
 }
 

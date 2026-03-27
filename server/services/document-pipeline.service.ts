@@ -19,6 +19,7 @@ import { classifyDocument } from './document-classifier.service.js';
 import { extractFields } from './field-extraction.service.js';
 import { chunkAndEmbed } from './embedding.service.js';
 import { generateTimelineEvents } from './timeline.service.js';
+import { enrichGraph } from './graph/graph-enrichment.service.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -47,12 +48,18 @@ export interface PipelineResult {
   embeddingSuccess: boolean;
   /** Whether timeline event extraction succeeded. */
   timelineSuccess: boolean;
+  /** Whether graph enrichment succeeded. */
+  graphEnrichmentSuccess: boolean;
   /** Number of vector embedding chunks created for RAG retrieval. */
   chunksCreated: number;
   /** Number of structured fields extracted (dates, names, amounts, etc.). */
   fieldsExtracted: number;
   /** Number of timeline events created from date references in the text. */
   timelineEventsCreated: number;
+  /** Number of graph nodes created during enrichment. */
+  graphNodesCreated: number;
+  /** Number of graph edges created during enrichment. */
+  graphEdgesCreated: number;
   /** Error messages from any failed stages. */
   errors: string[];
 }
@@ -81,9 +88,12 @@ export async function processDocumentPipeline(
     extractionSuccess: false,
     embeddingSuccess: false,
     timelineSuccess: false,
+    graphEnrichmentSuccess: false,
     chunksCreated: 0,
     fieldsExtracted: 0,
     timelineEventsCreated: 0,
+    graphNodesCreated: 0,
+    graphEdgesCreated: 0,
     errors: [],
   };
 
@@ -133,6 +143,19 @@ export async function processDocumentPipeline(
     result.errors.push(`Timeline generation failed: ${err instanceof Error ? err.message : String(err)}`);
   }
 
+  // --- Step 6: Graph enrichment ---
+  try {
+    const graphResult = await enrichGraph(documentId);
+    result.graphNodesCreated = graphResult.nodesCreated;
+    result.graphEdgesCreated = graphResult.edgesCreated;
+    result.graphEnrichmentSuccess = true;
+    if (graphResult.errors.length > 0) {
+      result.errors.push(...graphResult.errors.map((e) => `Graph enrichment: ${e}`));
+    }
+  } catch (err) {
+    result.errors.push(`Graph enrichment failed: ${err instanceof Error ? err.message : String(err)}`);
+  }
+
   // Log audit event for pipeline completion
   try {
     const doc = await prisma.document.findUnique({
@@ -153,6 +176,8 @@ export async function processDocumentPipeline(
             fieldsExtracted: result.fieldsExtracted,
             chunksCreated: result.chunksCreated,
             timelineEventsCreated: result.timelineEventsCreated,
+            graphNodesCreated: result.graphNodesCreated,
+            graphEdgesCreated: result.graphEdgesCreated,
             errors: result.errors,
           },
         },

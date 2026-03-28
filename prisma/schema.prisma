@@ -15,7 +15,7 @@ generator client {
 }
 
 datasource db {
-  provider     = "mysql"
+  provider     = "postgresql"
   url          = env("DATABASE_URL")
   relationMode = "prisma"
 }
@@ -563,7 +563,7 @@ model Document {
 
   // OCR / text extraction processing
   ocrStatus     OcrStatus @default(PENDING) @map("ocr_status")
-  extractedText String?   @map("extracted_text") @db.LongText
+  extractedText String?   @map("extracted_text") 
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -597,13 +597,13 @@ model Document {
 model DocumentChunk {
   id         String @id @default(cuid()) @map("id")
   documentId String @map("document_id")
-  content    String @map("content") @db.LongText
+  content    String @map("content") 
   chunkIndex Int    @map("chunk_index")
 
   // 3-level heading structure
-  headingL1 String? @map("heading_l1") @db.Text
-  headingL2 String? @map("heading_l2") @db.Text
-  headingL3 String? @map("heading_l3") @db.Text
+  headingL1 String? @map("heading_l1") 
+  headingL2 String? @map("heading_l2") 
+  headingL3 String? @map("heading_l3") 
 
   // Atomic preservation flags
   pageNumbers       Json?   @map("page_numbers")
@@ -617,14 +617,14 @@ model DocumentChunk {
   isParent      Boolean  @default(false) @map("is_parent")
 
   // Contextual prefix (included in embedding, excluded from LLM generation)
-  contextPrefix String? @map("context_prefix") @db.Text
+  contextPrefix String? @map("context_prefix") 
 
   // Token-based metadata
   tokenCount Int? @map("token_count")
 
   // Relations
   document    Document       @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  parentChunk DocumentChunk? @relation("ChunkParent", fields: [parentChunkId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  parentChunk DocumentChunk? @relation("ChunkParent", fields: [parentChunkId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   childChunks DocumentChunk[] @relation("ChunkParent")
 
   @@index([documentId], map: "idx_document_chunks_document_id")
@@ -697,7 +697,7 @@ model ChatMessage {
   id        String   @id @default(cuid()) @map("id")
   sessionId String   @map("session_id")
   role      ChatRole @map("role")
-  content   String   @map("content") @db.Text
+  content   String   @map("content") 
 
   /// UPL zone classification: GREEN (factual), YELLOW (needs disclaimer), RED (blocked).
   uplZone           UplZone? @map("upl_zone")
@@ -905,7 +905,7 @@ model GeneratedLetter {
   claimId       String     @map("claim_id")
   userId        String     @map("user_id")
   letterType    LetterType @map("letter_type")
-  content       String     @map("content") @db.LongText
+  content       String     @map("content") 
   templateId    String     @map("template_id")
   populatedData Json       @map("populated_data")
 
@@ -926,7 +926,7 @@ model CounselReferral {
   claimId         String         @map("claim_id")
   userId          String         @map("user_id")
   legalIssue      String         @map("legal_issue")
-  summary         String         @map("summary") @db.Text
+  summary         String         @map("summary") 
   status          ReferralStatus @default(PENDING) @map("status")
   counselEmail    String?        @map("counsel_email")
   counselResponse String?        @map("counsel_response")
@@ -1004,7 +1004,7 @@ model GraphNode {
   id              String        @id @default(cuid()) @map("id")
   claimId         String        @map("claim_id")
   nodeType        GraphNodeType @map("node_type")
-  canonicalName   String        @map("canonical_name") @db.VarChar(500)
+  canonicalName   String        @map("canonical_name") 
   aliases         Json          @default("[]") @map("aliases")
   properties      Json          @default("{}") @map("properties")
 
@@ -1076,8 +1076,8 @@ model GraphEdge {
 
   // Relations
   claim      Claim     @relation(fields: [claimId], references: [id])
-  sourceNode GraphNode @relation("EdgeSource", fields: [sourceNodeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  targetNode GraphNode @relation("EdgeTarget", fields: [targetNodeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  sourceNode GraphNode @relation("EdgeSource", fields: [sourceNodeId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  targetNode GraphNode @relation("EdgeTarget", fields: [targetNodeId], references: [id], onDelete: Restrict, onUpdate: Restrict)
 
   @@index([claimId, edgeType], map: "idx_graph_edges_claim_type")
   @@index([sourceNodeId], map: "idx_graph_edges_source")
@@ -1093,7 +1093,7 @@ model GraphSummary {
   claimId  String  @map("claim_id")
   nodeIds  Json    @default("[]") @map("node_ids")
   edgeIds  Json    @default("[]") @map("edge_ids")
-  summary  String  @map("summary") @db.Text
+  summary  String  @map("summary") 
   isValid  Boolean @default(true) @map("is_valid")
 
   // Embedding
@@ -1136,8 +1136,8 @@ model GraphStatusChange {
   claimId       String   @map("claim_id")
   targetNodeId  String   @map("target_node_id")
   field         String   @map("field")
-  oldValue      String?  @map("old_value") @db.Text
-  newValue      String?  @map("new_value") @db.Text
+  oldValue      String?  @map("old_value") 
+  newValue      String?  @map("new_value") 
   effectiveDate DateTime? @map("effective_date")
   documentId    String?  @map("document_id")
   confidence    Float    @default(0) @map("confidence")
@@ -1156,7 +1156,7 @@ model GraphStatusChange {
 model GraphQuerySignal {
   id              String   @id @default(cuid()) @map("id")
   claimId         String   @map("claim_id")
-  queryText       String   @map("query_text") @db.Text
+  queryText       String   @map("query_text") 
   queryPattern    String?  @map("query_pattern")
   observeSnapshot Json?    @map("observe_snapshot")
   tierSelected    String?  @map("tier_selected")

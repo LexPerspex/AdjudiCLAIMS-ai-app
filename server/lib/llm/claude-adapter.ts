@@ -46,7 +46,7 @@ export class ClaudeAdapter implements ILLMAdapter {
       const tools = request.tools?.map((t) => ({
         name: t.name,
         description: t.description,
-        input_schema: t.inputSchema,
+        input_schema: t.inputSchema as Anthropic.Tool.InputSchema,
       }));
 
       const response = await client.messages.create({
@@ -55,7 +55,7 @@ export class ClaudeAdapter implements ILLMAdapter {
         temperature: request.temperature ?? 0.3,
         ...(systemPrompt ? { system: systemPrompt } : {}),
         ...(tools?.length ? { tools } : {}),
-        messages,
+        messages: messages as Anthropic.MessageParam[],
       });
 
       const textBlock = response.content.find((block) => block.type === 'text');
@@ -63,7 +63,7 @@ export class ClaudeAdapter implements ILLMAdapter {
 
       // Extract tool_use blocks into ToolCall[]
       const toolCalls: ToolCall[] = response.content
-        .filter((block): block is { type: 'tool_use'; id: string; name: string; input: Record<string, unknown> } =>
+        .filter((block): block is Anthropic.ToolUseBlock =>
           block.type === 'tool_use',
         )
         .map((block) => ({

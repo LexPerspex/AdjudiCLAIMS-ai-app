@@ -198,7 +198,7 @@ describe('GeminiAdapter — generate()', () => {
       ],
     });
 
-    const callArgs = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    const callArgs = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0]!;
     const body = JSON.parse(callArgs[1].body);
     expect(body.contents).toEqual([
       { role: 'user', parts: [{ text: 'Hi' }] },
@@ -220,7 +220,7 @@ describe('GeminiAdapter — generate()', () => {
       ],
     });
 
-    const callArgs = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    const callArgs = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0]!;
     const body = JSON.parse(callArgs[1].body);
     expect(body.contents).toEqual([
       { role: 'user', parts: [{ text: 'test' }] },
@@ -238,7 +238,7 @@ describe('GeminiAdapter — generate()', () => {
       systemPrompt: 'Be helpful',
     });
 
-    const callArgs = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    const callArgs = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0]!;
     const body = JSON.parse(callArgs[1].body);
     expect(body.systemInstruction).toEqual({ parts: [{ text: 'Be helpful' }] });
   });
@@ -256,7 +256,7 @@ describe('GeminiAdapter — generate()', () => {
       ],
     });
 
-    const callArgs = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    const callArgs = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0]!;
     const body = JSON.parse(callArgs[1].body);
     expect(body.systemInstruction).toEqual({ parts: [{ text: 'Instruction from message' }] });
   });
@@ -271,7 +271,7 @@ describe('GeminiAdapter — generate()', () => {
       messages: [{ role: 'user', content: 'test' }],
     });
 
-    const callArgs = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    const callArgs = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0]!;
     const body = JSON.parse(callArgs[1].body);
     expect(body).not.toHaveProperty('systemInstruction');
   });
@@ -286,7 +286,7 @@ describe('GeminiAdapter — generate()', () => {
       messages: [{ role: 'user', content: 'test' }],
     });
 
-    const callArgs = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    const callArgs = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0]!;
     const body = JSON.parse(callArgs[1].body);
     expect(body.generationConfig.maxOutputTokens).toBe(8192);
     expect(body.generationConfig.temperature).toBe(0.3);
@@ -304,7 +304,7 @@ describe('GeminiAdapter — generate()', () => {
       temperature: 0.7,
     });
 
-    const callArgs = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    const callArgs = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0]!;
     const body = JSON.parse(callArgs[1].body);
     expect(body.generationConfig.maxOutputTokens).toBe(2048);
     expect(body.generationConfig.temperature).toBe(0.7);
@@ -322,7 +322,7 @@ describe('GeminiAdapter — generate()', () => {
       messages: [{ role: 'user', content: 'test' }],
     });
 
-    const callArgs = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    const callArgs = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0]!;
     expect(callArgs[1].headers.Authorization).toBe('Bearer my-token');
   });
 
@@ -517,7 +517,7 @@ describe('GeminiAdapter — generateStructured()', () => {
       systemPrompt: 'Base prompt',
     });
 
-    const callArgs = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    const callArgs = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0]!;
     const body = JSON.parse(callArgs[1].body);
     expect(body.systemInstruction.parts[0].text).toContain('Base prompt');
     expect(body.systemInstruction.parts[0].text).toContain('Respond with valid JSON only');
@@ -602,7 +602,7 @@ describe('GeminiAdapter — classify()', () => {
       'UPL classifier',
     );
 
-    const callArgs = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    const callArgs = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0]!;
     const body = JSON.parse(callArgs[1].body);
     expect(body.systemInstruction.parts[0].text).toContain('UPL classifier');
   });
@@ -615,7 +615,7 @@ describe('GeminiAdapter — classify()', () => {
 
     await adapter.classify('test', ['GREEN', 'RED']);
 
-    const callArgs = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    const callArgs = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0]!;
     const body = JSON.parse(callArgs[1].body);
     expect(body.generationConfig.temperature).toBe(0);
   });
@@ -628,7 +628,7 @@ describe('GeminiAdapter — classify()', () => {
 
     await adapter.classify('text', ['A', 'B', 'C']);
 
-    const callArgs = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    const callArgs = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0]!;
     const body = JSON.parse(callArgs[1].body);
     const userContent = body.contents[0].parts[0].text;
     expect(userContent).toContain('A, B, C');

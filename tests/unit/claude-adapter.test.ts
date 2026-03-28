@@ -179,7 +179,7 @@ describe('ClaudeAdapter — generate()', () => {
       expect.objectContaining({ system: 'System instruction' }),
     );
     // System message should be filtered out of messages array
-    const callArgs = mockCreate.mock.calls[0][0];
+    const callArgs = mockCreate.mock.calls[0]![0];
     expect(callArgs.messages).toEqual([{ role: 'user', content: 'test' }]);
   });
 
@@ -190,7 +190,7 @@ describe('ClaudeAdapter — generate()', () => {
       messages: [{ role: 'user', content: 'test' }],
     });
 
-    const callArgs = mockCreate.mock.calls[0][0];
+    const callArgs = mockCreate.mock.calls[0]![0];
     expect(callArgs).not.toHaveProperty('system');
   });
 
@@ -295,7 +295,7 @@ describe('ClaudeAdapter — generate()', () => {
       ],
     });
 
-    const callArgs = mockCreate.mock.calls[0][0];
+    const callArgs = mockCreate.mock.calls[0]![0];
     expect(callArgs.messages).toEqual([
       { role: 'user', content: 'Hi' },
       { role: 'assistant', content: 'Hello' },
@@ -363,7 +363,7 @@ describe('ClaudeAdapter — generateStructured()', () => {
       systemPrompt: 'Base prompt',
     });
 
-    const callArgs = mockCreate.mock.calls[0][0];
+    const callArgs = mockCreate.mock.calls[0]![0];
     expect(callArgs.system).toContain('Base prompt');
     expect(callArgs.system).toContain('Respond with valid JSON only');
   });
@@ -377,7 +377,7 @@ describe('ClaudeAdapter — generateStructured()', () => {
       messages: [{ role: 'user', content: 'test' }],
     });
 
-    const callArgs = mockCreate.mock.calls[0][0];
+    const callArgs = mockCreate.mock.calls[0]![0];
     expect(callArgs.system).toContain('Respond with valid JSON only');
   });
 
@@ -453,7 +453,7 @@ describe('ClaudeAdapter — classify()', () => {
       'UPL classifier system prompt',
     );
 
-    const callArgs = mockCreate.mock.calls[0][0];
+    const callArgs = mockCreate.mock.calls[0]![0];
     expect(callArgs.system).toContain('UPL classifier system prompt');
   });
 
@@ -464,7 +464,7 @@ describe('ClaudeAdapter — classify()', () => {
 
     await adapter.classify('test', ['GREEN', 'RED']);
 
-    const callArgs = mockCreate.mock.calls[0][0];
+    const callArgs = mockCreate.mock.calls[0]![0];
     expect(callArgs.temperature).toBe(0);
   });
 
@@ -475,7 +475,7 @@ describe('ClaudeAdapter — classify()', () => {
 
     await adapter.classify('text', ['A', 'B', 'C']);
 
-    const callArgs = mockCreate.mock.calls[0][0];
+    const callArgs = mockCreate.mock.calls[0]![0];
     const userMessage = callArgs.messages[0].content;
     expect(userMessage).toContain('A, B, C');
   });
@@ -527,7 +527,7 @@ describe('ClaudeAdapter — tool use', () => {
       tools: TEST_TOOLS,
     });
 
-    const callArgs = mockCreate.mock.calls[0][0];
+    const callArgs = mockCreate.mock.calls[0]![0];
     expect(callArgs.tools).toEqual([
       {
         name: 'search_documents',
@@ -557,7 +557,7 @@ describe('ClaudeAdapter — tool use', () => {
       messages: [{ role: 'user', content: 'test' }],
     });
 
-    const callArgs = mockCreate.mock.calls[0][0];
+    const callArgs = mockCreate.mock.calls[0]![0];
     expect(callArgs).not.toHaveProperty('tools');
   });
 
@@ -619,8 +619,8 @@ describe('ClaudeAdapter — tool use', () => {
     });
 
     expect(response.toolCalls).toHaveLength(2);
-    expect(response.toolCalls![0].name).toBe('search_documents');
-    expect(response.toolCalls![1].name).toBe('calculate_benefit');
+    expect(response.toolCalls![0]!.name).toBe('search_documents');
+    expect(response.toolCalls![1]!.name).toBe('calculate_benefit');
   });
 
   it('does not include toolCalls when response has no tool_use blocks', async () => {
@@ -646,7 +646,7 @@ describe('ClaudeAdapter — tool use', () => {
       ],
     });
 
-    const callArgs = mockCreate.mock.calls[0][0];
+    const callArgs = mockCreate.mock.calls[0]![0];
     const lastMessage = callArgs.messages[callArgs.messages.length - 1];
     expect(lastMessage.role).toBe('user');
     expect(lastMessage.content).toEqual([
@@ -670,7 +670,7 @@ describe('ClaudeAdapter — tool use', () => {
       ],
     });
 
-    const callArgs = mockCreate.mock.calls[0][0];
+    const callArgs = mockCreate.mock.calls[0]![0];
     const lastMessage = callArgs.messages[callArgs.messages.length - 1];
     expect(lastMessage.content).toHaveLength(2);
     expect(lastMessage.content[0].tool_use_id).toBe('toolu_01');

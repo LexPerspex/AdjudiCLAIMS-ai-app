@@ -11,6 +11,7 @@
  * other operations or the wider pipeline.
  */
 
+import type { InputJsonValue } from '@prisma/client/runtime/library';
 import { prisma } from '../../db.js';
 import { extractEntities } from './entity-extraction.service.js';
 import { resolveAndMerge } from './entity-resolution.service.js';
@@ -133,8 +134,8 @@ export async function enrichGraph(
   const nameToNodeId = new Map<string, string>();
 
   for (let i = 0; i < resolvedNodes.length; i++) {
-    const resolved = resolvedNodes[i];
-    const candidate = extraction.candidateNodes[i];
+    const resolved = resolvedNodes[i]!;
+    const candidate = extraction.candidateNodes[i]!;
 
     try {
       if (resolved.resolution.matchTier === 'new') {
@@ -145,7 +146,7 @@ export async function enrichGraph(
             nodeType: candidate.nodeType,
             canonicalName: resolved.resolution.resolvedName,
             aliases: [],
-            properties: candidate.properties,
+            properties: candidate.properties as unknown as InputJsonValue,
             personRole: candidate.personRole ?? null,
             orgType: candidate.orgType ?? null,
             sourceDocumentIds: [documentId],
@@ -277,7 +278,7 @@ export async function enrichGraph(
             edgeType: candidateEdge.edgeType,
             sourceNodeId,
             targetNodeId,
-            properties: candidateEdge.properties,
+            properties: candidateEdge.properties as unknown as InputJsonValue,
             sourceDocumentIds: [documentId],
             confidence: candidateEdge.confidence,
           },

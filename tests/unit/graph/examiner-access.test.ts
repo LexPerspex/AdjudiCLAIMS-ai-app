@@ -364,7 +364,7 @@ describe('Filter 3: Node Type Restrictions', () => {
     const result = await queryGraphForExaminer('claim-1', 'GREEN');
 
     expect(result.nodes).toHaveLength(1);
-    expect(result.nodes[0].properties).toEqual({ type: 'compensability', status: 'contested' });
+    expect(result.nodes[0]!.properties).toEqual({ type: 'compensability', status: 'contested' });
     expect(result.filterStats.propertiesStripped).toBe(3);
   });
 
@@ -390,7 +390,7 @@ describe('Filter 3: Node Type Restrictions', () => {
     const result = await queryGraphForExaminer('claim-1', 'GREEN');
 
     expect(result.nodes).toHaveLength(1);
-    expect(result.nodes[0].properties).toEqual({
+    expect(result.nodes[0]!.properties).toEqual({
       type: 'compromise_and_release',
       amount: 85000,
       date: '2026-01-15',
@@ -410,7 +410,7 @@ describe('Filter 3: Node Type Restrictions', () => {
 
     const result = await queryGraphForExaminer('claim-1', 'GREEN');
 
-    expect(result.nodes[0].properties).toEqual({
+    expect(result.nodes[0]!.properties).toEqual({
       role: 'applicant',
       dateOfBirth: '1985-03-12',
       ssn_last4: '1234',
@@ -445,7 +445,7 @@ describe('Filter 4: Edge Type Restrictions', () => {
     const result = await queryGraphForExaminer('claim-1', 'GREEN');
 
     expect(result.edges).toHaveLength(1);
-    expect(result.edges[0].properties).toEqual({ date: '2026-02-10', outcome: 'denied' });
+    expect(result.edges[0]!.properties).toEqual({ date: '2026-02-10', outcome: 'denied' });
     expect(result.filterStats.propertiesStripped).toBe(1);
   });
 
@@ -465,7 +465,7 @@ describe('Filter 4: Edge Type Restrictions', () => {
 
     const result = await queryGraphForExaminer('claim-1', 'GREEN');
 
-    expect(result.edges[0].properties).toEqual({
+    expect(result.edges[0]!.properties).toEqual({
       icd10: 'M54.5',
       reasoning: 'clinical correlation',
     });
@@ -484,7 +484,7 @@ describe('Confidence badges', () => {
     mockDocumentFindMany.mockResolvedValue([makeDoc()]);
 
     const result = await queryGraphForExaminer('claim-1', 'GREEN');
-    expect(result.nodes[0].confidenceBadge).toBe('verified');
+    expect(result.nodes[0]!.confidenceBadge).toBe('verified');
   });
 
   it('assigns confident badge for confidence >= 0.80', async () => {
@@ -493,7 +493,7 @@ describe('Confidence badges', () => {
     mockDocumentFindMany.mockResolvedValue([makeDoc()]);
 
     const result = await queryGraphForExaminer('claim-1', 'GREEN');
-    expect(result.nodes[0].confidenceBadge).toBe('confident');
+    expect(result.nodes[0]!.confidenceBadge).toBe('confident');
   });
 
   it('assigns suggested badge for confidence >= 0.50', async () => {
@@ -502,7 +502,7 @@ describe('Confidence badges', () => {
     mockDocumentFindMany.mockResolvedValue([makeDoc()]);
 
     const result = await queryGraphForExaminer('claim-1', 'GREEN');
-    expect(result.nodes[0].confidenceBadge).toBe('suggested');
+    expect(result.nodes[0]!.confidenceBadge).toBe('suggested');
   });
 
   it('assigns ai_generated badge for confidence < 0.50', async () => {
@@ -511,7 +511,7 @@ describe('Confidence badges', () => {
     mockDocumentFindMany.mockResolvedValue([makeDoc()]);
 
     const result = await queryGraphForExaminer('claim-1', 'GREEN');
-    expect(result.nodes[0].confidenceBadge).toBe('ai_generated');
+    expect(result.nodes[0]!.confidenceBadge).toBe('ai_generated');
   });
 });
 
@@ -534,8 +534,8 @@ describe('maxNodes and maxEdges limits', () => {
     const result = await queryGraphForExaminer('claim-1', 'GREEN', { maxNodes: 2 });
 
     expect(result.nodes).toHaveLength(2);
-    expect(result.nodes[0].id).toBe('n2'); // highest confidence
-    expect(result.nodes[1].id).toBe('n3');
+    expect(result.nodes[0]!.id).toBe('n2'); // highest confidence
+    expect(result.nodes[1]!.id).toBe('n3');
   });
 
   it('limits edges to maxEdges, sorted by confidence descending', async () => {
@@ -554,8 +554,8 @@ describe('maxNodes and maxEdges limits', () => {
     const result = await queryGraphForExaminer('claim-1', 'GREEN', { maxEdges: 2 });
 
     expect(result.edges).toHaveLength(2);
-    expect(result.edges[0].id).toBe('e2'); // highest confidence
-    expect(result.edges[1].id).toBe('e3');
+    expect(result.edges[0]!.id).toBe('e2'); // highest confidence
+    expect(result.edges[1]!.id).toBe('e3');
   });
 });
 

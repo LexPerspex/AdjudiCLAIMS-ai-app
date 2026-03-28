@@ -101,7 +101,7 @@ const { buildServer } = await import('../../server/index.js');
 
 async function loginAs(
   server: Awaited<ReturnType<typeof buildServer>>,
-  user: typeof MOCK_USER,
+  user: typeof MOCK_USER | typeof MOCK_SUPERVISOR,
 ): Promise<string> {
   mockUserFindUnique.mockResolvedValueOnce(user);
 

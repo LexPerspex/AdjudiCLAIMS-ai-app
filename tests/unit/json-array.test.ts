@@ -40,7 +40,7 @@ describe('parseJsonStringArray', () => {
 
   it('filters out non-string items from array', () => {
     // Prisma Json can contain mixed types
-    const mixed = ['valid', 42, null, true, 'also-valid', { key: 'val' }] as unknown[];
+    const mixed = ['valid', 42, null, true, 'also-valid', { key: 'val' }] as unknown as import('@prisma/client/runtime/library').JsonValue;
     const result = parseJsonStringArray(mixed);
     expect(result).toEqual(['valid', 'also-valid']);
   });

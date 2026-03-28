@@ -108,10 +108,10 @@ describe('extractEntities', () => {
       (n) => n.nodeType === 'PERSON' && n.personRole === 'APPLICANT',
     );
     expect(personNodes).toHaveLength(1);
-    expect(personNodes[0].canonicalName).toBe('John Doe');
-    expect(personNodes[0].confidence).toBe(0.9);
-    expect(personNodes[0].sourceDocumentId).toBe('doc-1');
-    expect(personNodes[0].sourceFieldName).toBe('claimantName');
+    expect(personNodes[0]!.canonicalName).toBe('John Doe');
+    expect(personNodes[0]!.confidence).toBe(0.9);
+    expect(personNodes[0]!.sourceDocumentId).toBe('doc-1');
+    expect(personNodes[0]!.sourceFieldName).toBe('claimantName');
   });
 
   it('extracts ORGANIZATION/EMPLOYER node from employerName field', async () => {
@@ -127,7 +127,7 @@ describe('extractEntities', () => {
       (n) => n.nodeType === 'ORGANIZATION' && n.orgType === 'EMPLOYER',
     );
     expect(orgNodes).toHaveLength(1);
-    expect(orgNodes[0].canonicalName).toBe('Acme Corp');
+    expect(orgNodes[0]!.canonicalName).toBe('Acme Corp');
   });
 
   it('extracts PERSON/TREATING_PHYSICIAN from physicianName field', async () => {
@@ -143,7 +143,7 @@ describe('extractEntities', () => {
       (n) => n.nodeType === 'PERSON' && n.personRole === 'TREATING_PHYSICIAN',
     );
     expect(physicians).toHaveLength(1);
-    expect(physicians[0].canonicalName).toBe('Dr. Smith');
+    expect(physicians[0]!.canonicalName).toBe('Dr. Smith');
   });
 
   // -------------------------------------------------------------------------
@@ -185,7 +185,7 @@ describe('extractEntities', () => {
       (n) => n.nodeType === 'BODY_PART',
     );
     expect(bodyParts).toHaveLength(1);
-    expect(bodyParts[0].canonicalName).toBe('lumbar spine');
+    expect(bodyParts[0]!.canonicalName).toBe('lumbar spine');
   });
 
   // -------------------------------------------------------------------------
@@ -211,8 +211,8 @@ describe('extractEntities', () => {
       (e) => e.edgeType === 'DIAGNOSES',
     );
     expect(diagnoseEdges.length).toBeGreaterThanOrEqual(1);
-    expect(diagnoseEdges[0].sourceNodeKey).toBe('Dr. Smith');
-    expect(diagnoseEdges[0].targetNodeKey).toBe('lumbar spine');
+    expect(diagnoseEdges[0]!.sourceNodeKey).toBe('Dr. Smith');
+    expect(diagnoseEdges[0]!.targetNodeKey).toBe('lumbar spine');
   });
 
   it('creates edge with applicant source and employer target strategies', async () => {
@@ -234,7 +234,7 @@ describe('extractEntities', () => {
       (e) => e.edgeType === 'EMPLOYED_BY',
     );
     expect(employedEdges.length).toBeGreaterThanOrEqual(1);
-    expect(employedEdges[0].sourceNodeKey).toBe('Jane Doe');
+    expect(employedEdges[0]!.sourceNodeKey).toBe('Jane Doe');
   });
 
   it('creates edge with claim target strategy', async () => {
@@ -256,7 +256,7 @@ describe('extractEntities', () => {
     );
     // The FILES edge has sourceStrategy: 'applicant', targetStrategy: 'field_value_node'
     if (filesEdges.length > 0) {
-      expect(filesEdges[0].sourceNodeKey).toBe('Jane Doe');
+      expect(filesEdges[0]!.sourceNodeKey).toBe('Jane Doe');
     }
   });
 
@@ -282,7 +282,7 @@ describe('extractEntities', () => {
     // Should be deduplicated — both map to PERSON:APPLICANT "John Doe"
     expect(applicantNodes).toHaveLength(1);
     // Keeps higher confidence
-    expect(applicantNodes[0].confidence).toBe(0.9);
+    expect(applicantNodes[0]!.confidence).toBe(0.9);
   });
 
   it('does not deduplicate nodes with different types', async () => {
@@ -343,7 +343,7 @@ describe('extractEntities', () => {
 
     const result = await extractEntities('doc-1');
 
-    expect(result.candidateNodes[0].confidence).toBe(0.75);
+    expect(result.candidateNodes[0]!.confidence).toBe(0.75);
   });
 
   it('defaults confidence to 0.5 when field confidence is negative', async () => {
@@ -414,7 +414,7 @@ describe('extractEntities', () => {
       (n) => n.nodeType === 'RATING',
     );
     expect(ratingNodes).toHaveLength(1);
-    expect(ratingNodes[0].canonicalName).toBe('12%');
+    expect(ratingNodes[0]!.canonicalName).toBe('12%');
   });
 
   it('skips empty/whitespace field values', async () => {

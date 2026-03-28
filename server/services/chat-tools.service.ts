@@ -201,7 +201,7 @@ async function executeQueryGraph(
   const entityType = input['entityType'] ? String(input['entityType']) : undefined;
 
   const matchedNodes = graphResult.nodes.filter((n) => {
-    const nameMatch = n.name.toLowerCase().includes(lowerName);
+    const nameMatch = n.canonicalName.toLowerCase().includes(lowerName);
     const typeMatch = entityType ? n.nodeType === entityType : true;
     return nameMatch && typeMatch;
   });
@@ -248,7 +248,7 @@ function executeCalculateBenefit(input: Record<string, unknown>): string {
       `  TD Rate (2/3 AWE): $${result.tdRate.toFixed(2)}/week`,
       `  Statutory Min: $${result.statutoryMin.toFixed(2)}`,
       `  Statutory Max: $${result.statutoryMax.toFixed(2)}`,
-      `  Authority: ${result.authority}`,
+      `  Authority: ${result.statutoryAuthority}`,
     ].join('\n');
   }
 
@@ -285,7 +285,7 @@ async function executeCheckDeadlines(
   return filtered
     .map(
       (d) =>
-        `[${d.urgency}] ${d.deadlineType}: ${d.description} — due ${d.dueDate.toISOString().split('T')[0]}${d.statutoryCitation ? ` (${d.statutoryCitation})` : ''}`,
+        `[${d.urgency}] ${d.deadlineType} — due ${d.dueDate.toISOString().split('T')[0]}${d.statutoryAuthority ? ` (${d.statutoryAuthority})` : ''}`,
     )
     .join('\n');
 }

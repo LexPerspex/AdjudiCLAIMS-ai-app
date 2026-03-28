@@ -20,6 +20,9 @@ import { extractFields } from './field-extraction.service.js';
 import { chunkAndEmbed } from './embedding.service.js';
 import { generateTimelineEvents } from './timeline.service.js';
 import { enrichGraph } from './graph/graph-enrichment.service.js';
+import { processWorkflowTriggers } from './workflow-trigger-map.service.js';
+import { autoAdvanceWorkflow } from './workflow-engine.service.js';
+import { generateDocument } from './document-generation.service.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -60,6 +63,12 @@ export interface PipelineResult {
   graphNodesCreated: number;
   /** Number of graph edges created during enrichment. */
   graphEdgesCreated: number;
+  /** Number of workflows triggered by document classification. */
+  workflowsTriggered: number;
+  /** Number of workflow steps auto-advanced by document classification. */
+  stepsAutoAdvanced: number;
+  /** Number of documents queued for generation based on workflow triggers. */
+  documentsQueued: number;
   /** Error messages from any failed stages. */
   errors: string[];
 }
@@ -94,6 +103,9 @@ export async function processDocumentPipeline(
     timelineEventsCreated: 0,
     graphNodesCreated: 0,
     graphEdgesCreated: 0,
+    workflowsTriggered: 0,
+    stepsAutoAdvanced: 0,
+    documentsQueued: 0,
     errors: [],
   };
 
@@ -114,6 +126,91 @@ export async function processDocumentPipeline(
   } catch (err) {
     result.errors.push(`Classification failed: ${err instanceof Error ? err.message : String(err)}`);
     // Non-fatal — continue with extraction
+  }
+
+  // --- Step 2b: Workflow triggers (runs only if classification succeeded) ---
+  if (result.classificationSuccess) {
+    try {
+      const doc = await prisma.document.findUnique({
+        where: { id: documentId },
+        select: { claimId: true, documentType: true },
+      });
+
+      if (doc?.documentType) {
+        // Use 'system' as the userId for pipeline-triggered workflows.
+        // The claim owner can be resolved downstream if needed.
+        const triggerResult = await processWorkflowTriggers(
+          doc.claimId,
+          'system',
+          doc.documentType,
+        );
+        result.workflowsTriggered = triggerResult.triggeredWorkflows.length;
+      }
+    } catch (err) {
+      result.errors.push(
+        `Workflow triggers failed: ${err instanceof Error ? err.message : String(err)}`,
+      );
+      // Non-fatal — continue with extraction
+    }
+
+    // --- Step 2c: Auto-advance workflow steps based on document type ---
+    try {
+      const doc2c = await prisma.document.findUnique({
+        where: { id: documentId },
+        select: { claimId: true, documentType: true },
+      });
+
+      if (doc2c?.documentType) {
+        // Auto-advance steps in all active workflows for this claim
+        const workflowIds = [
+          'new_claim_intake', 'three_point_contact', 'qme_ame_process',
+          'ur_treatment_authorization', 'reserve_setting', 'lien_management',
+          'return_to_work', 'employer_notification',
+        ];
+
+        for (const wfId of workflowIds) {
+          const advanceResult = await autoAdvanceWorkflow(doc2c.claimId, wfId, doc2c.documentType);
+          result.stepsAutoAdvanced += advanceResult.stepsAdvanced.length;
+        }
+      }
+    } catch (err) {
+      result.errors.push(
+        `Auto-advance failed: ${err instanceof Error ? err.message : String(err)}`,
+      );
+    }
+
+    // --- Step 2d: Queue document generation for triggered workflows ---
+    try {
+      const doc2d = await prisma.document.findUnique({
+        where: { id: documentId },
+        select: { claimId: true, documentType: true },
+      });
+
+      if (doc2d?.documentType) {
+        // Map workflow triggers to document generation templates
+        const TRIGGER_TO_TEMPLATE: Record<string, string> = {
+          new_claim_intake: 'employer_notification_lc3761',
+          td_benefit_initiation: 'td_benefit_explanation',
+          delay_notification: 'delay_notice',
+        };
+
+        for (const [workflowId, templateId] of Object.entries(TRIGGER_TO_TEMPLATE)) {
+          // Only generate if this workflow was just triggered
+          if (result.workflowsTriggered > 0) {
+            try {
+              await generateDocument(templateId, doc2d.claimId);
+              result.documentsQueued++;
+            } catch {
+              // Non-fatal — template generation may fail due to missing data
+            }
+          }
+        }
+      }
+    } catch (err) {
+      result.errors.push(
+        `Document generation queueing failed: ${err instanceof Error ? err.message : String(err)}`,
+      );
+    }
   }
 
   // --- Step 3: Field extraction ---

@@ -301,6 +301,186 @@ export async function getWorkflowProgress(
   return buildProgressDetail(workflow, record);
 }
 
+/**
+ * Auto-advance workflow steps based on a newly classified document type.
+ *
+ * When a document is classified, certain workflow steps can be automatically
+ * completed. For example, receiving a DWC-1 claim form auto-completes the
+ * "Receive and log claim notice" step in the new_claim_intake workflow.
+ *
+ * This function finds all active (non-complete) WorkflowProgress records for
+ * the claim with the given workflowId (any user), updates matching steps to
+ * COMPLETED, and checks if the workflow is now fully complete.
+ *
+ * @param claimId - The claim to advance.
+ * @param workflowId - The workflow to advance steps in.
+ * @param documentType - The classified DocumentType that triggers auto-completion.
+ * @returns The step IDs that were advanced and whether the workflow is now complete.
+ */
+export async function autoAdvanceWorkflow(
+  claimId: string,
+  workflowId: string,
+  documentType: string,
+): Promise<{ stepsAdvanced: string[]; isComplete: boolean }> {
+  const workflow = getWorkflow(workflowId);
+  if (!workflow) {
+    return { stepsAdvanced: [], isComplete: false };
+  }
+
+  const workflowMap = AUTO_COMPLETE_MAP[workflowId];
+  if (!workflowMap) {
+    return { stepsAdvanced: [], isComplete: false };
+  }
+
+  const stepsToComplete = workflowMap[documentType];
+  if (!stepsToComplete || stepsToComplete.length === 0) {
+    return { stepsAdvanced: [], isComplete: false };
+  }
+
+  // Find all active workflow progress records for this claim+workflow (any user)
+  const records = await prisma.workflowProgress.findMany({
+    where: { claimId, workflowId, isComplete: false },
+  });
+
+  if (records.length === 0) {
+    return { stepsAdvanced: [], isComplete: false };
+  }
+
+  const allAdvanced: string[] = [];
+  let anyComplete = false;
+
+  for (const record of records) {
+    const statuses = parseStepStatuses(record.stepStatuses);
+    const advanced: string[] = [];
+
+    const updated = statuses.map((s) => {
+      if (stepsToComplete.includes(s.stepId) && s.status === 'PENDING') {
+        advanced.push(s.stepId);
+        return { stepId: s.stepId, status: 'COMPLETED' as const, completedAt: new Date().toISOString() };
+      }
+      return s;
+    });
+
+    if (advanced.length > 0) {
+      const nowComplete = checkAllComplete(updated);
+      const completedAt = nowComplete ? new Date() : null;
+
+      await prisma.workflowProgress.update({
+        where: { id: record.id },
+        data: {
+          stepStatuses: updated as unknown as Prisma.InputJsonValue,
+          isComplete: nowComplete,
+          ...(nowComplete ? { completedAt } : {}),
+        },
+      });
+
+      allAdvanced.push(...advanced);
+      if (nowComplete) anyComplete = true;
+    }
+  }
+
+  return { stepsAdvanced: [...new Set(allAdvanced)], isComplete: anyComplete };
+}
+
+/**
+ * Get workflows that need examiner attention for a claim, sorted by urgency.
+ *
+ * Returns all active (non-complete) workflows for the claim with a count of
+ * pending steps and an urgency classification based on workflow start date:
+ *   - overdue: started more than 5 days ago with pending steps
+ *   - due_soon: started more than 2 days ago with pending steps
+ *   - normal: all others
+ *
+ * @param claimId - The claim to check workflows for.
+ * @returns Array of workflows needing attention, sorted by urgency.
+ */
+export async function getWorkflowsNeedingAttention(
+  claimId: string,
+): Promise<Array<{ workflowId: string; title: string; pendingSteps: number; urgency: 'overdue' | 'due_soon' | 'normal' }>> {
+  const records = await prisma.workflowProgress.findMany({
+    where: { claimId, isComplete: false },
+  });
+
+  const now = new Date();
+  const results: Array<{ workflowId: string; title: string; pendingSteps: number; urgency: 'overdue' | 'due_soon' | 'normal' }> = [];
+
+  for (const record of records) {
+    const workflow = getWorkflow(record.workflowId);
+    if (!workflow) continue;
+
+    const statuses = parseStepStatuses(record.stepStatuses);
+    const pendingSteps = statuses.filter((s) => s.status === 'PENDING').length;
+
+    if (pendingSteps === 0) continue;
+
+    const daysSinceStart = (now.getTime() - record.startedAt.getTime()) / (1000 * 60 * 60 * 24);
+
+    let urgency: 'overdue' | 'due_soon' | 'normal';
+    if (daysSinceStart > 5) {
+      urgency = 'overdue';
+    } else if (daysSinceStart > 2) {
+      urgency = 'due_soon';
+    } else {
+      urgency = 'normal';
+    }
+
+    results.push({
+      workflowId: record.workflowId,
+      title: workflow.title,
+      pendingSteps,
+      urgency,
+    });
+  }
+
+  // Sort by urgency: overdue first, then due_soon, then normal
+  const urgencyOrder = { overdue: 0, due_soon: 1, normal: 2 };
+  results.sort((a, b) => urgencyOrder[a.urgency] - urgencyOrder[b.urgency]);
+
+  return results;
+}
+
+// ---------------------------------------------------------------------------
+// Auto-complete map — maps workflow+documentType to auto-completable step IDs
+// ---------------------------------------------------------------------------
+
+/**
+ * Static map of workflow ID → document type → step IDs that can be
+ * auto-completed when a document of that type is classified.
+ *
+ * Only the initial receipt/logging steps are auto-completed — substantive
+ * review steps always require examiner action.
+ */
+const AUTO_COMPLETE_MAP: Record<string, Record<string, string[]>> = {
+  new_claim_intake: {
+    DWC1_CLAIM_FORM: ['intake_step_1'],       // Receive and log claim notice
+    EMPLOYER_REPORT: ['intake_step_4'],        // Notify the employer
+  },
+  three_point_contact: {
+    EMPLOYER_REPORT: ['three_point_step_2'],   // Contact the employer
+    MEDICAL_REPORT: ['three_point_step_3'],    // Contact the treating physician
+  },
+  qme_ame_process: {
+    AME_QME_REPORT: ['qme_step_3'],           // Receive QME/AME report
+  },
+  ur_treatment_authorization: {
+    UTILIZATION_REVIEW: ['ur_step_1'],         // Receive UR determination
+  },
+  reserve_setting: {
+    WAGE_STATEMENT: ['reserve_step_1'],        // Gather financial data
+    MEDICAL_REPORT: ['reserve_step_2'],        // Review medical data
+  },
+  lien_management: {
+    LIEN_CLAIM: ['lien_step_1'],              // Receive and log lien
+    BILLING_STATEMENT: ['lien_step_2'],       // Review billing
+  },
+  return_to_work: {
+    RETURN_TO_WORK: ['rtw_step_1'],           // Receive RTW document
+  },
+  employer_notification: {
+    EMPLOYER_REPORT: ['employer_step_1'],      // Receive employer report
+  },
+};
+
 // ---------------------------------------------------------------------------
 // Internal builder
 // ---------------------------------------------------------------------------

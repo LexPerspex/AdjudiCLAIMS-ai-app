@@ -27,8 +27,8 @@ steps:
         rm -rf node_modules/@adjudica/document-classifier
         mkdir -p node_modules/@adjudica/document-classifier/dist
         echo '{"name":"@adjudica/document-classifier","version":"1.0.0","main":"dist/index.js","types":"dist/index.d.ts"}' > node_modules/@adjudica/document-classifier/package.json
-        echo 'module.exports = { DocumentClassifier: class { classify() { return { documentType: null, documentSubtype: null, confidence: 0, aiReasoning: "", documentDate: null }; } }, getExtractionFields: () => null, buildExtractionResponseSchema: () => ({}), buildExtractionPrompt: () => "" };' > node_modules/@adjudica/document-classifier/dist/index.js
-        echo 'export declare class DocumentClassifier { classify(text: string, filename?: string): Promise<any>; } export declare function getExtractionFields(subtype: string): any; export declare function buildExtractionResponseSchema(fields: any): any; export declare function buildExtractionPrompt(fields: any, type: string, subtype: string): string;' > node_modules/@adjudica/document-classifier/dist/index.d.ts
+        echo 'module.exports = { DocumentClassifier: class { constructor() {} classify() { return { documentType: null, documentSubtype: null, confidence: 0, aiReasoning: "", documentDate: null }; } }, getExtractionFields: () => null, buildExtractionResponseSchema: () => ({}), buildExtractionPrompt: () => "" };' > node_modules/@adjudica/document-classifier/dist/index.js
+        echo 'export declare class DocumentClassifier { constructor(...args: any[]); classify(text: string, filename?: string): Promise<any>; } export declare function getExtractionFields(subtype: string): any; export declare function buildExtractionResponseSchema(fields: any): any; export declare function buildExtractionPrompt(fields: any, type: string, subtype: string): string;' > node_modules/@adjudica/document-classifier/dist/index.d.ts
     id: install
 
   # ---- Step 2: Generate Prisma client ----

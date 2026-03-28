@@ -15,6 +15,10 @@ import { prisma } from '../../db.js';
 import { extractEntities } from './entity-extraction.service.js';
 import { resolveAndMerge } from './entity-resolution.service.js';
 import { noisyOr } from './confidence.js';
+import { processGraphWorkflowTriggers } from './graph-workflow-bridge.service.js';
+import { processGraphDeadlineTriggers } from './graph-deadline-bridge.service.js';
+import { processGraphInvestigationTriggers } from './graph-investigation-bridge.service.js';
+import { processGraphBenefitTriggers } from './graph-benefit-bridge.service.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -110,6 +114,10 @@ export async function enrichGraph(
 
   const { claimId } = document;
 
+  // --- Bridge tracking arrays ---
+  const createdNodes: Array<{ nodeType: string; canonicalName: string; personRole?: string | null; properties: Record<string, unknown> }> = [];
+  const createdEdges: Array<{ edgeType: string; properties: Record<string, unknown> }> = [];
+
   // --- Step 3: Resolve entities against existing graph ---
   const resolutionInput = extraction.candidateNodes.map((cn) => ({
     name: cn.canonicalName,
@@ -149,6 +157,12 @@ export async function enrichGraph(
           resolved.resolution.resolvedName.toLowerCase().trim(),
           node.id,
         );
+        createdNodes.push({
+          nodeType: candidate.nodeType,
+          canonicalName: resolved.resolution.resolvedName,
+          personRole: candidate.personRole ?? null,
+          properties: candidate.properties as Record<string, unknown>,
+        });
         result.nodesCreated++;
       } else {
         // Update existing node (exact or fuzzy match)
@@ -269,6 +283,10 @@ export async function enrichGraph(
           },
         });
 
+        createdEdges.push({
+          edgeType: candidateEdge.edgeType,
+          properties: candidateEdge.properties as Record<string, unknown>,
+        });
         result.edgesCreated++;
       }
     } catch (err) {
@@ -276,6 +294,18 @@ export async function enrichGraph(
         `Edge "${candidateEdge.edgeType}" (${candidateEdge.sourceNodeKey} -> ${candidateEdge.targetNodeKey}) failed: ${err instanceof Error ? err.message : String(err)}`,
       );
     }
+  }
+
+  // --- Bridge processing (non-fatal) ---
+  try {
+    await Promise.all([
+      processGraphWorkflowTriggers(claimId, createdNodes, createdEdges),
+      processGraphDeadlineTriggers(claimId, createdNodes, createdEdges),
+      processGraphInvestigationTriggers(claimId, createdNodes, createdEdges),
+      processGraphBenefitTriggers(claimId, createdEdges),
+    ]);
+  } catch (err) {
+    console.warn('[graph-enrichment] Bridge processing failed:', err instanceof Error ? err.message : String(err));
   }
 
   return result;

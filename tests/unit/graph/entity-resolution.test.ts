@@ -302,8 +302,8 @@ describe('resolveAndMerge', () => {
     );
 
     expect(results).toHaveLength(2);
-    expect(results[0].resolution.matchTier).toBe('exact');
-    expect(results[1].resolution.matchTier).toBe('new');
+    expect(results[0]!.resolution.matchTier).toBe('exact');
+    expect(results[1]!.resolution.matchTier).toBe('new');
   });
 
   it('deduplicates within the same batch', async () => {
@@ -319,10 +319,10 @@ describe('resolveAndMerge', () => {
 
     expect(results).toHaveLength(2);
     // First is new
-    expect(results[0].resolution.matchTier).toBe('new');
+    expect(results[0]!.resolution.matchTier).toBe('new');
     // Second should match the first (now in cache)
-    expect(results[1].resolution.matchTier).toBe('exact');
-    expect(results[1].resolution.existingNodeId).toContain('pending-');
+    expect(results[1]!.resolution.matchTier).toBe('exact');
+    expect(results[1]!.resolution.existingNodeId).toContain('pending-');
   });
 
   it('handles mixed node types in a batch', async () => {
@@ -341,8 +341,8 @@ describe('resolveAndMerge', () => {
       CLAIM_ID,
     );
 
-    expect(results[0].resolution.matchTier).toBe('exact');
-    expect(results[1].resolution.matchTier).toBe('new');
+    expect(results[0]!.resolution.matchTier).toBe('exact');
+    expect(results[1]!.resolution.matchTier).toBe('new');
     // Should have queried for both node types
     expect(mockGraphNodeFindMany).toHaveBeenCalledTimes(2);
   });

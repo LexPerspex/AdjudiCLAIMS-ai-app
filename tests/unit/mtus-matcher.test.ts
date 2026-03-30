@@ -41,6 +41,14 @@ const MOCK_USER = {
   role: 'CLAIMS_EXAMINER' as const,
   organizationId: 'org-1',
   isActive: true,
+  emailVerified: true,
+  passwordHash: '$argon2id$mock-hash',
+  failedLoginAttempts: 0,
+  lockedUntil: null,
+  mfaEnabled: false,
+  mfaSecret: null,
+  deletedAt: null,
+  deletedBy: null,
 };
 
 // ---------------------------------------------------------------------------
@@ -49,11 +57,28 @@ const MOCK_USER = {
 
 const mockUserFindUnique = vi.fn();
 
+vi.mock('argon2', () => ({
+  default: { verify: vi.fn().mockResolvedValue(true), hash: vi.fn().mockResolvedValue('$argon2id$mock-hash'), argon2id: 2 },
+  verify: vi.fn().mockResolvedValue(true),
+  hash: vi.fn().mockResolvedValue('$argon2id$mock-hash'),
+  argon2id: 2,
+}));
+vi.mock('@otplib/preset-default', () => ({
+  authenticator: {
+    generateSecret: vi.fn().mockReturnValue('JBSWY3DPEHPK3PXP'),
+    keyuri: vi.fn().mockReturnValue('otpauth://totp/AdjudiCLAIMS:test@test.com?secret=JBSWY3DPEHPK3PXP'),
+    verify: vi.fn().mockReturnValue(true),
+  },
+}));
+
 vi.mock('../../server/db.js', () => ({
   prisma: {
     $queryRaw: vi.fn().mockResolvedValue([{ '?column?': 1 }]),
     user: {
       findUnique: (...args: unknown[]) => mockUserFindUnique(...args) as unknown,
+      update: vi.fn().mockResolvedValue({}),
+      findFirst: vi.fn().mockResolvedValue(null),
+      create: vi.fn().mockResolvedValue({}),
     },
     claim: {
       findMany: vi.fn().mockResolvedValue([]),
@@ -157,7 +182,7 @@ async function loginAs(
   const loginResponse = await server.inject({
     method: 'POST',
     url: '/api/auth/login',
-    payload: { email: user.email },
+    payload: { email: user.email, password: 'TestPassword1!' },
   });
 
   const setCookie = loginResponse.headers['set-cookie'];

@@ -165,14 +165,14 @@ describe('vector-search.service', () => {
       expect(mockFetch).toHaveBeenCalledOnce();
 
       // Verify URL
-      const callUrl = mockFetch.mock.calls[0][0] as string;
+      const callUrl = mockFetch.mock.calls[0]![0] as string;
       expect(callUrl).toContain('us-central1-aiplatform.googleapis.com');
       expect(callUrl).toContain(':upsertDatapoints');
       expect(callUrl).toContain(VALID_ENV.VECTOR_SEARCH_INDEX_ENDPOINT);
       expect(callUrl).toContain(VALID_ENV.VECTOR_SEARCH_DEPLOYED_INDEX_ID);
 
       // Verify body
-      const callOptions = mockFetch.mock.calls[0][1] as RequestInit;
+      const callOptions = mockFetch.mock.calls[0]![1] as RequestInit;
       const body = JSON.parse(callOptions.body as string);
       expect(body.datapoints).toHaveLength(2);
       expect(body.datapoints[0]).toEqual({
@@ -196,7 +196,7 @@ describe('vector-search.service', () => {
 
       await upsertEmbeddings([{ id: 'x', embedding: [1] }]);
 
-      const callUrl = mockFetch.mock.calls[0][0] as string;
+      const callUrl = mockFetch.mock.calls[0]![0] as string;
       expect(callUrl).toContain('us-central1-aiplatform.googleapis.com');
     });
 
@@ -277,11 +277,11 @@ describe('vector-search.service', () => {
 
       expect(mockFetch).toHaveBeenCalledOnce();
 
-      const callUrl = mockFetch.mock.calls[0][0] as string;
+      const callUrl = mockFetch.mock.calls[0]![0] as string;
       expect(callUrl).toContain(':removeDatapoints');
       expect(callUrl).toContain(VALID_ENV.VECTOR_SEARCH_DEPLOYED_INDEX_ID);
 
-      const callOptions = mockFetch.mock.calls[0][1] as RequestInit;
+      const callOptions = mockFetch.mock.calls[0]![1] as RequestInit;
       const body = JSON.parse(callOptions.body as string);
       expect(body.datapointIds).toEqual(['chunk:1', 'chunk:2']);
     });
@@ -357,11 +357,11 @@ describe('vector-search.service', () => {
       ]);
 
       // Verify URL
-      const callUrl = mockFetch.mock.calls[0][0] as string;
+      const callUrl = mockFetch.mock.calls[0]![0] as string;
       expect(callUrl).toContain(':findNeighbors');
 
       // Verify body structure
-      const callOptions = mockFetch.mock.calls[0][1] as RequestInit;
+      const callOptions = mockFetch.mock.calls[0]![1] as RequestInit;
       const body = JSON.parse(callOptions.body as string);
       expect(body.deployedIndexId).toBe(VALID_ENV.VECTOR_SEARCH_DEPLOYED_INDEX_ID);
       expect(body.queries[0].datapoint.featureVector).toEqual([0.1, 0.2, 0.3]);
@@ -422,8 +422,8 @@ describe('vector-search.service', () => {
 
       const result = await queryEmbeddings([0.1], 10);
       expect(result).toHaveLength(2);
-      expect(result[0].id).toBe('chunk:valid');
-      expect(result[1].id).toBe('chunk:also-valid');
+      expect(result[0]!.id).toBe('chunk:valid');
+      expect(result[1]!.id).toBe('chunk:also-valid');
     });
 
     it('handles empty nearestNeighbors array', async () => {

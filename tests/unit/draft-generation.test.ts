@@ -273,7 +273,7 @@ describe('generateDraft', () => {
     });
 
     // Verify LLM received graph context in its prompt
-    const llmCall = mockGenerate.mock.calls[0][0];
+    const llmCall = mockGenerate.mock.calls[0]![0];
     expect(llmCall.messages[0].content).toContain('GRAPH CONTEXT');
   });
 
@@ -350,7 +350,7 @@ describe('generateDraft', () => {
       instructions: 'Emphasize the 3-day waiting period',
     });
 
-    const llmCall = mockGenerate.mock.calls[0][0];
+    const llmCall = mockGenerate.mock.calls[0]![0];
     expect(llmCall.messages[0].content).toContain('Emphasize the 3-day waiting period');
     expect(llmCall.messages[0].content).toContain('ADDITIONAL INSTRUCTIONS');
   });
@@ -363,7 +363,7 @@ describe('generateDraft', () => {
       overrides: { statutoryMin: '$242.86', statutoryMax: '$1,619.15' },
     });
 
-    const llmCall = mockGenerate.mock.calls[0][0];
+    const llmCall = mockGenerate.mock.calls[0]![0];
     expect(llmCall.messages[0].content).toContain('$242.86');
     expect(llmCall.messages[0].content).toContain('$1,619.15');
   });
@@ -376,7 +376,7 @@ describe('generateDraft', () => {
     });
 
     expect(mockGeneratedLetterCreate).toHaveBeenCalledTimes(1);
-    const createArg = mockGeneratedLetterCreate.mock.calls[0][0];
+    const createArg = mockGeneratedLetterCreate.mock.calls[0]![0];
     expect(createArg.data.claimId).toBe('claim-1');
     expect(createArg.data.userId).toBe('user-1');
     expect(createArg.data.templateId).toBe('td_benefit_explanation');
@@ -437,7 +437,7 @@ describe('refineDraft', () => {
 
     // Verify update was called with incremented count
     expect(mockGeneratedLetterUpdate).toHaveBeenCalledTimes(1);
-    const updateArg = mockGeneratedLetterUpdate.mock.calls[0][0];
+    const updateArg = mockGeneratedLetterUpdate.mock.calls[0]![0];
     expect(updateArg.data.populatedData.iterationCount).toBe('1');
   });
 
@@ -456,7 +456,7 @@ describe('refineDraft', () => {
       userId: 'user-1',
     });
 
-    const llmCall = mockGenerate.mock.calls[0][0];
+    const llmCall = mockGenerate.mock.calls[0]![0];
     expect(llmCall.messages[0].content).toContain('Add the physician WPI rating');
     expect(llmCall.messages[0].content).toContain('CURRENT DRAFT');
     expect(llmCall.messages[0].content).toContain('REFINEMENT INSTRUCTION');
@@ -511,7 +511,7 @@ describe('refineDraft', () => {
       userId: 'user-1',
     });
 
-    const updateArg = mockGeneratedLetterUpdate.mock.calls[0][0];
+    const updateArg = mockGeneratedLetterUpdate.mock.calls[0]![0];
     const revisionHistory = JSON.parse(updateArg.data.populatedData.revisionHistory);
     expect(revisionHistory).toHaveLength(1);
     expect(revisionHistory[0].iteration).toBe(0);
@@ -552,12 +552,12 @@ describe('getDraftHistory', () => {
     const history = await getDraftHistory('draft-1');
 
     expect(history).toHaveLength(2);
-    expect(history[0].iteration).toBe(0);
-    expect(history[0].content).toBe('Initial draft');
-    expect(history[0].instruction).toBe('Initial generation');
-    expect(history[0].timestamp).toBeInstanceOf(Date);
-    expect(history[1].iteration).toBe(1);
-    expect(history[1].instruction).toBe('Add WPI rating');
+    expect(history[0]!.iteration).toBe(0);
+    expect(history[0]!.content).toBe('Initial draft');
+    expect(history[0]!.instruction).toBe('Initial generation');
+    expect(history[0]!.timestamp).toBeInstanceOf(Date);
+    expect(history[1]!.iteration).toBe(1);
+    expect(history[1]!.instruction).toBe('Add WPI rating');
   });
 
   it('returns empty array for draft with no revisions', async () => {

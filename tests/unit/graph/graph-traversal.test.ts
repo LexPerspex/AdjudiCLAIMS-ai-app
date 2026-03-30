@@ -366,10 +366,10 @@ describe('findNodesByQuery', () => {
 
     expect(results).toHaveLength(2);
     // n2 matches both tokens (john + robert), n1 matches only john
-    expect(results[0].nodeId).toBe('n2');
-    expect(results[0].relevance).toBe(1.0);
-    expect(results[1].nodeId).toBe('n1');
-    expect(results[1].relevance).toBe(0.5);
+    expect(results[0]!.nodeId).toBe('n2');
+    expect(results[0]!.relevance).toBe(1.0);
+    expect(results[1]!.nodeId).toBe('n1');
+    expect(results[1]!.relevance).toBe(0.5);
   });
 
   it('ignores tokens shorter than 3 characters', async () => {
@@ -381,7 +381,7 @@ describe('findNodesByQuery', () => {
     const results = await findNodesByQuery(CLAIM_ID, 'dr smith');
 
     expect(results).toHaveLength(1);
-    expect(results[0].relevance).toBe(1.0); // 1 token matches out of 1
+    expect(results[0]!.relevance).toBe(1.0); // 1 token matches out of 1
   });
 
   it('returns empty for query with all short tokens', async () => {

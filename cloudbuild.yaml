@@ -8,16 +8,36 @@
 
 substitutions:
   _REGION: us-west1
-  _ARTIFACT_REGISTRY: us-west1-docker.pkg.dev/${PROJECT_ID}/adjudiclaims
+  _ARTIFACT_REGISTRY: us-west1-docker.pkg.dev/adjudica-internal/adjudiclaims
+  _ENVIRONMENT: production
+  _IMAGE_TAG: latest
+  # Service names are environment-prefixed for isolation
   _SERVICE_NAME: adjudiclaims-api
   _WORKER_DOC_SERVICE: adjudiclaims-worker-document
   _WORKER_LLM_SERVICE: adjudiclaims-worker-llm
+  # Secret names are environment-specific — production and staging NEVER share a database
+  _DB_SECRET: adjudiclaims-db-url
+  _ANTHROPIC_SECRET: adjudiclaims-anthropic-key
+  _SESSION_SECRET: adjudiclaims-session-secret
+  _SENTRY_SECRET: adjudiclaims-sentry-dsn
+  _TEMPORAL_SECRET: adjudiclaims-temporal-api-key
 
 steps:
   # ---- Step 1: Install dependencies ----
+  # Note: @adjudica/document-classifier is a file: dependency (../Adjudica-classifier).
+  # In Cloud Build, this package is not available. npm ci will fail for it.
+  # We use --ignore-scripts and install without it, then create a stub.
   - name: 'node:20-slim'
-    entrypoint: npm
-    args: ['ci', '--legacy-peer-deps', '--ignore-scripts']
+    entrypoint: bash
+    args:
+      - '-c'
+      - |
+        npm ci --legacy-peer-deps --ignore-scripts 2>&1 || true
+        rm -rf node_modules/@adjudica/document-classifier
+        mkdir -p node_modules/@adjudica/document-classifier/dist
+        echo '{"name":"@adjudica/document-classifier","version":"1.0.0","main":"dist/index.js","types":"dist/index.d.ts"}' > node_modules/@adjudica/document-classifier/package.json
+        echo 'module.exports = { DocumentClassifier: class { constructor() {} classify() { return { documentType: null, documentSubtype: null, confidence: 0, aiReasoning: "", documentDate: null }; } }, getExtractionFields: () => null, buildExtractionResponseSchema: () => ({}), buildExtractionPrompt: () => "" };' > node_modules/@adjudica/document-classifier/dist/index.js
+        echo 'export declare class DocumentClassifier { constructor(...args: any[]); classify(text: string, filename?: string): Promise<any>; } export declare function getExtractionFields(subtype: string): any; export declare function buildExtractionResponseSchema(fields: any): any; export declare function buildExtractionPrompt(fields: any, type: string, subtype: string): string;' > node_modules/@adjudica/document-classifier/dist/index.d.ts
     id: install
 
   # ---- Step 2: Generate Prisma client ----
@@ -56,9 +76,9 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
-      - '--build-arg=SENTRY_RELEASE=${SHORT_SHA}'
+      - '--build-arg=SENTRY_RELEASE=${_IMAGE_TAG}'
       - '-t'
-      - '${_ARTIFACT_REGISTRY}/${_SERVICE_NAME}:${SHORT_SHA}'
+      - '${_ARTIFACT_REGISTRY}/${_SERVICE_NAME}:${_IMAGE_TAG}'
       - '-t'
       - '${_ARTIFACT_REGISTRY}/${_SERVICE_NAME}:latest'
       - '.'
@@ -77,7 +97,7 @@ steps:
       - 'run'
       - 'deploy'
       - '${_SERVICE_NAME}'
-      - '--image=${_ARTIFACT_REGISTRY}/${_SERVICE_NAME}:${SHORT_SHA}'
+      - '--image=${_ARTIFACT_REGISTRY}/${_SERVICE_NAME}:${_IMAGE_TAG}'
       - '--region=${_REGION}'
       - '--platform=managed'
       - '--port=4901'
@@ -85,8 +105,8 @@ steps:
       - '--max-instances=10'
       - '--memory=1Gi'
       - '--cpu=1'
-      - '--set-secrets=DATABASE_URL=adjudiclaims-db-url:latest,ANTHROPIC_API_KEY=adjudiclaims-anthropic-key:latest,SESSION_SECRET=adjudiclaims-session-secret:latest,SENTRY_DSN=adjudiclaims-sentry-dsn:latest,TEMPORAL_API_KEY=adjudiclaims-temporal-api-key:latest'
-      - '--set-env-vars=NODE_ENV=production,PORT=4901,TEMPORAL_ADDRESS=${_TEMPORAL_ADDRESS},TEMPORAL_NAMESPACE=adjudiclaims,SENTRY_ENVIRONMENT=production,SENTRY_RELEASE=${SHORT_SHA}'
+      - '--set-secrets=DATABASE_URL=${_DB_SECRET}:latest,ANTHROPIC_API_KEY=${_ANTHROPIC_SECRET}:latest,SESSION_SECRET=${_SESSION_SECRET}:latest,SENTRY_DSN=${_SENTRY_SECRET}:latest,TEMPORAL_API_KEY=${_TEMPORAL_SECRET}:latest'
+      - '--set-env-vars=NODE_ENV=${_ENVIRONMENT},TEMPORAL_ADDRESS=${_TEMPORAL_ADDRESS},TEMPORAL_NAMESPACE=adjudiclaims,SENTRY_ENVIRONMENT=${_ENVIRONMENT},SENTRY_RELEASE=${_IMAGE_TAG}'
     id: deploy-api
     waitFor: ['docker-push']
 
@@ -96,7 +116,7 @@ steps:
       - 'run'
       - 'deploy'
       - '${_WORKER_DOC_SERVICE}'
-      - '--image=${_ARTIFACT_REGISTRY}/${_SERVICE_NAME}:${SHORT_SHA}'
+      - '--image=${_ARTIFACT_REGISTRY}/${_SERVICE_NAME}:${_IMAGE_TAG}'
       - '--region=${_REGION}'
       - '--platform=managed'
       - '--min-instances=1'
@@ -106,8 +126,8 @@ steps:
       - '--no-cpu-throttling'
       - '--command=npx'
       - '--args=tsx,server/temporal/document/worker.ts'
-      - '--set-secrets=DATABASE_URL=adjudiclaims-db-url:latest,ANTHROPIC_API_KEY=adjudiclaims-anthropic-key:latest,SENTRY_DSN=adjudiclaims-sentry-dsn:latest,TEMPORAL_API_KEY=adjudiclaims-temporal-api-key:latest'
-      - '--set-env-vars=NODE_ENV=production,TEMPORAL_ADDRESS=${_TEMPORAL_ADDRESS},TEMPORAL_NAMESPACE=adjudiclaims,SENTRY_ENVIRONMENT=production,SENTRY_RELEASE=${SHORT_SHA}'
+      - '--set-secrets=DATABASE_URL=${_DB_SECRET}:latest,ANTHROPIC_API_KEY=${_ANTHROPIC_SECRET}:latest,SENTRY_DSN=${_SENTRY_SECRET}:latest,TEMPORAL_API_KEY=${_TEMPORAL_SECRET}:latest'
+      - '--set-env-vars=NODE_ENV=${_ENVIRONMENT},TEMPORAL_ADDRESS=${_TEMPORAL_ADDRESS},TEMPORAL_NAMESPACE=adjudiclaims,SENTRY_ENVIRONMENT=${_ENVIRONMENT},SENTRY_RELEASE=${_IMAGE_TAG}'
     id: deploy-worker-document
     waitFor: ['docker-push']
 
@@ -117,7 +137,7 @@ steps:
       - 'run'
       - 'deploy'
       - '${_WORKER_LLM_SERVICE}'
-      - '--image=${_ARTIFACT_REGISTRY}/${_SERVICE_NAME}:${SHORT_SHA}'
+      - '--image=${_ARTIFACT_REGISTRY}/${_SERVICE_NAME}:${_IMAGE_TAG}'
       - '--region=${_REGION}'
       - '--platform=managed'
       - '--min-instances=1'
@@ -127,22 +147,13 @@ steps:
       - '--no-cpu-throttling'
       - '--command=npx'
       - '--args=tsx,server/temporal/llm/worker.ts'
-      - '--set-secrets=DATABASE_URL=adjudiclaims-db-url:latest,ANTHROPIC_API_KEY=adjudiclaims-anthropic-key:latest,SENTRY_DSN=adjudiclaims-sentry-dsn:latest,TEMPORAL_API_KEY=adjudiclaims-temporal-api-key:latest'
-      - '--set-env-vars=NODE_ENV=production,TEMPORAL_ADDRESS=${_TEMPORAL_ADDRESS},TEMPORAL_NAMESPACE=adjudiclaims,SENTRY_ENVIRONMENT=production,SENTRY_RELEASE=${SHORT_SHA}'
+      - '--set-secrets=DATABASE_URL=${_DB_SECRET}:latest,ANTHROPIC_API_KEY=${_ANTHROPIC_SECRET}:latest,SENTRY_DSN=${_SENTRY_SECRET}:latest,TEMPORAL_API_KEY=${_TEMPORAL_SECRET}:latest'
+      - '--set-env-vars=NODE_ENV=${_ENVIRONMENT},TEMPORAL_ADDRESS=${_TEMPORAL_ADDRESS},TEMPORAL_NAMESPACE=adjudiclaims,SENTRY_ENVIRONMENT=${_ENVIRONMENT},SENTRY_RELEASE=${_IMAGE_TAG}'
     id: deploy-worker-llm
     waitFor: ['docker-push']
 
-  # ---- Step 11: Run database migrations ----
-  - name: 'gcr.io/cloud-builders/gcloud'
-    entrypoint: bash
-    args:
-      - '-c'
-      - |
-        gcloud run jobs execute adjudiclaims-migrate \
-          --region=${_REGION} \
-          --wait
-    id: migrate
-    waitFor: ['deploy-api']
+  # Note: Database migrations run via `npx prisma migrate deploy` manually
+  # or via a dedicated Cloud Run job (adjudiclaims-migrate) when created.
 
 timeout: 1200s
 options:

@@ -362,6 +362,219 @@ Please review the factual record and advise on the legal issues identified in th
 *This summary contains factual information only. No legal analysis or conclusions have been made by the examiner. All legal determinations are deferred to licensed counsel.*`,
 };
 
+const MEDICAL_AUTHORIZATION: GenerationTemplate = {
+  id: 'medical_authorization',
+  title: 'Pre-Authorization Request for Medical Treatment (LC 4600)',
+  description:
+    'Pre-authorization request to the utilization review organization for medical ' +
+    'treatment requested by the treating physician. Documents the clinical rationale ' +
+    'and statutory authority for the treatment request.',
+  requiredFields: [
+    'claimNumber',
+    'claimantName',
+    'dateOfInjury',
+    'insurer',
+    'treatingPhysician',
+    'requestedTreatment',
+    'diagnosisCode',
+    'clinicalRationale',
+    'requestedStartDate',
+    'examinerName',
+  ],
+  statutoryAuthority: 'LC 4600; 8 CCR 9792.6 et seq.',
+  template: `# Pre-Authorization Request for Medical Treatment
+
+**Date:** {{currentDate}}
+**Claim Number:** {{claimNumber}}
+**Authorization Request No.:** {{claimNumber}}-AUTH-{{currentDate}}
+
+**To:** Utilization Review Organization
+**From:** {{insurer}} — Claims Examiner: {{examinerName}}
+
+## Patient Information
+
+| Field | Value |
+|-------|-------|
+| Claimant | {{claimantName}} |
+| Date of Injury | {{dateOfInjury}} |
+| Claim Number | {{claimNumber}} |
+
+## Treating Physician
+
+**Physician/Provider:** {{treatingPhysician}}
+
+## Requested Treatment
+
+**Treatment Requested:** {{requestedTreatment}}
+**ICD Diagnosis Code(s):** {{diagnosisCode}}
+**Requested Start Date:** {{requestedStartDate}}
+
+## Clinical Rationale
+
+{{clinicalRationale}}
+
+## Statutory Authority
+
+This authorization request is submitted pursuant to **California Labor Code Section 4600**, which requires the employer to provide all medical treatment reasonably required to cure or relieve the injured worker from the effects of the industrial injury.
+
+Utilization review of this request is governed by **8 CCR 9792.6 et seq.** A decision is required within the applicable timeframes:
+- **Prospective/Concurrent:** Decision within **5 business days** (or 3 days for urgent requests) per 8 CCR 9792.9(b).
+- **Retrospective:** Decision within **30 days** per 8 CCR 9792.9(c).
+
+## Contact
+
+**Examiner:** {{examinerName}}
+**Claim Number:** {{claimNumber}}
+
+---
+*This is a factual pre-authorization request. It does not constitute a coverage determination or legal advice.*`,
+};
+
+const DENIAL_LETTER: GenerationTemplate = {
+  id: 'denial_letter',
+  title: 'Coverage Denial Letter with Appeal Rights (LC 5402)',
+  description:
+    'Written denial of workers\' compensation coverage following investigation, ' +
+    'stating the basis for denial and the claimant\'s rights to appeal before ' +
+    'the Workers\' Compensation Appeals Board (WCAB). Required within 90 days ' +
+    'per LC 5402(b) to avoid presumption of compensability.',
+  requiredFields: [
+    'claimNumber',
+    'claimantName',
+    'dateOfInjury',
+    'employer',
+    'insurer',
+    'denialBasis',
+    'investigationSummary',
+    'examinerName',
+  ],
+  statutoryAuthority: 'LC 5402(b); 10 CCR 2695.7(c)',
+  template: `# Notice of Denial of Workers' Compensation Benefits
+
+**Date:** {{currentDate}}
+**Claim Number:** {{claimNumber}}
+
+**To:** {{claimantName}}
+**From:** {{insurer}}
+**Re:** Workers' Compensation Claim — {{employer}} — Injury Date {{dateOfInjury}}
+
+## Notice of Denial
+
+After a complete investigation, **{{insurer}}** has determined that the above-referenced workers' compensation claim is **DENIED**.
+
+## Basis for Denial
+
+{{denialBasis}}
+
+## Summary of Investigation
+
+{{investigationSummary}}
+
+## Your Appeal Rights
+
+You have the right to dispute this denial. The following options are available to you:
+
+1. **File a Workers' Compensation Claim Form (DWC 1)** — If you have not already done so, you may file a DWC 1 claim form.
+
+2. **File an Application for Adjudication of Claim** — You may file an Application for Adjudication of Claim (DWC-ADJ-1) with the **Workers' Compensation Appeals Board (WCAB)** in your district.
+
+3. **Request an Expedited Hearing** — If you require immediate medical treatment, you may request an expedited hearing before the WCAB.
+
+4. **Consult an Attorney** — You have the right to consult with an attorney of your choice at any time. Many workers' compensation attorneys work on a contingency basis.
+
+**Time Limit:** Workers' compensation claims are subject to a **statute of limitations**. You should act promptly to protect your rights.
+
+## WCAB Contact Information
+
+You may locate your local WCAB district office through the California Department of Industrial Relations website at **www.dir.ca.gov/dwc**.
+
+## Statutory Authority
+
+This denial is issued pursuant to **California Labor Code Section 5402(b)**, which requires a coverage determination within 90 days of receipt of the claim form. This denial is final unless appealed to the WCAB.
+
+## Contact
+
+**Examiner:** {{examinerName}}
+**Claim Number:** {{claimNumber}}
+
+---
+*This is a factual notice of the coverage determination. This letter does not constitute legal advice. You have the right to consult an attorney.*`,
+};
+
+const LIEN_NOTICE: GenerationTemplate = {
+  id: 'lien_notice',
+  title: 'Lien Filing Notification (LC 4903.1)',
+  description:
+    'Written notification to the claimant and parties of record that a lien ' +
+    'claim has been filed against the workers\' compensation claim by a lien ' +
+    'claimant. Documents the lien amount, basis, and procedural requirements ' +
+    'per LC 4903.1.',
+  requiredFields: [
+    'claimNumber',
+    'claimantName',
+    'dateOfInjury',
+    'insurer',
+    'lienClaimant',
+    'lienAmount',
+    'lienBasis',
+    'servicesRenderedDates',
+    'examinerName',
+  ],
+  statutoryAuthority: 'LC 4903.1; LC 4903.05; 8 CCR 10770',
+  template: `# Notice of Lien Claim Filing
+
+**Date:** {{currentDate}}
+**Claim Number:** {{claimNumber}}
+
+**To:** {{claimantName}}
+**From:** {{insurer}} — Claims Examiner: {{examinerName}}
+**Re:** Lien Claim Filed Against Workers' Compensation Claim
+
+## Notice
+
+You are hereby notified that a **lien claim** has been filed against your workers' compensation claim (Claim No. {{claimNumber}}, injury date {{dateOfInjury}}).
+
+## Lien Claimant Information
+
+| Field | Value |
+|-------|-------|
+| Lien Claimant | {{lienClaimant}} |
+| Lien Amount Claimed | {{lienAmount}} |
+| Services Rendered | {{servicesRenderedDates}} |
+
+## Basis for Lien
+
+{{lienBasis}}
+
+## What This Means
+
+A lien claimant is asserting a right to be paid directly from any workers' compensation award or settlement in your case. This lien does not change your right to receive workers' compensation benefits — it affects how a portion of any benefits paid may be distributed.
+
+## Your Rights
+
+- You have the right to contest this lien before the Workers' Compensation Appeals Board (WCAB).
+- If you have an attorney, they should be notified of this lien immediately.
+- The lien claimant must satisfy filing and activation fee requirements per **LC 4903.05** or the lien may be subject to dismissal.
+
+## Procedural Requirements
+
+Under **LC 4903.1**, liens must be filed and activated in compliance with WCAB rules:
+- Lien activation fees apply per **8 CCR 10770**.
+- Lien conferences are scheduled by the WCAB to resolve disputed liens.
+
+## Statutory Authority
+
+This notice is provided pursuant to **California Labor Code Section 4903.1**, which governs lien claims in workers' compensation proceedings.
+
+## Contact
+
+**Examiner:** {{examinerName}}
+**Claim Number:** {{claimNumber}}
+
+---
+*This is a factual notification of a lien filing. It does not constitute legal advice. Please consult your attorney regarding the effect of this lien on your claim.*`,
+};
+
 // ---------------------------------------------------------------------------
 // Template registry
 // ---------------------------------------------------------------------------
@@ -372,6 +585,9 @@ const GENERATION_TEMPLATES: GenerationTemplate[] = [
   DELAY_NOTICE,
   BENEFIT_PAYMENT_SCHEDULE,
   COUNSEL_REFERRAL_SUMMARY,
+  MEDICAL_AUTHORIZATION,
+  DENIAL_LETTER,
+  LIEN_NOTICE,
 ];
 
 const TEMPLATES_BY_ID = new Map(GENERATION_TEMPLATES.map((t) => [t.id, t]));

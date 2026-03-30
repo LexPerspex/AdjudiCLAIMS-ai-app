@@ -18,6 +18,14 @@ const MOCK_USER = {
   role: 'CLAIMS_EXAMINER' as const,
   organizationId: 'org-1',
   isActive: true,
+  emailVerified: true,
+  passwordHash: '$argon2id$mock-hash',
+  failedLoginAttempts: 0,
+  lockedUntil: null,
+  mfaEnabled: false,
+  mfaSecret: null,
+  deletedAt: null,
+  deletedBy: null,
 };
 
 const MOCK_INACTIVE_USER = {
@@ -27,6 +35,14 @@ const MOCK_INACTIVE_USER = {
   role: 'CLAIMS_EXAMINER' as const,
   organizationId: 'org-1',
   isActive: false,
+  emailVerified: true,
+  passwordHash: '$argon2id$mock-hash',
+  failedLoginAttempts: 0,
+  lockedUntil: null,
+  mfaEnabled: false,
+  mfaSecret: null,
+  deletedAt: null,
+  deletedBy: null,
 };
 
 // ---------------------------------------------------------------------------
@@ -35,11 +51,28 @@ const MOCK_INACTIVE_USER = {
 
 const mockFindUnique = vi.fn();
 
+vi.mock('argon2', () => ({
+  default: { verify: vi.fn().mockResolvedValue(true), hash: vi.fn().mockResolvedValue('$argon2id$mock-hash'), argon2id: 2 },
+  verify: vi.fn().mockResolvedValue(true),
+  hash: vi.fn().mockResolvedValue('$argon2id$mock-hash'),
+  argon2id: 2,
+}));
+vi.mock('@otplib/preset-default', () => ({
+  authenticator: {
+    generateSecret: vi.fn().mockReturnValue('JBSWY3DPEHPK3PXP'),
+    keyuri: vi.fn().mockReturnValue('otpauth://totp/AdjudiCLAIMS:test@test.com?secret=JBSWY3DPEHPK3PXP'),
+    verify: vi.fn().mockReturnValue(true),
+  },
+}));
+
 vi.mock('../../server/db.js', () => ({
   prisma: {
     $queryRaw: vi.fn().mockResolvedValue([{ '?column?': 1 }]),
     user: {
       findUnique: (...args: unknown[]) => mockFindUnique(...args) as unknown,
+      update: vi.fn().mockResolvedValue({}),
+      findFirst: vi.fn().mockResolvedValue(null),
+      create: vi.fn().mockResolvedValue({}),
     },
     auditEvent: {
       create: vi.fn().mockResolvedValue({}),
@@ -97,7 +130,7 @@ describe('Auth routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/api/auth/login',
-        payload: { email: MOCK_USER.email },
+        payload: { email: MOCK_USER.email, password: 'TestPassword1!' },
       });
 
       expect(response.statusCode).toBe(200);
@@ -127,7 +160,7 @@ describe('Auth routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/api/auth/login',
-        payload: { email: 'unknown@nowhere.test' },
+        payload: { email: 'unknown@nowhere.test', password: 'TestPassword1!' },
       });
 
       expect(response.statusCode).toBe(401);
@@ -142,7 +175,7 @@ describe('Auth routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/api/auth/login',
-        payload: { email: MOCK_INACTIVE_USER.email },
+        payload: { email: MOCK_INACTIVE_USER.email, password: 'TestPassword1!' },
       });
 
       expect(response.statusCode).toBe(401);
@@ -152,7 +185,7 @@ describe('Auth routes', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/api/auth/login',
-        payload: { email: 'not-an-email' },
+        payload: { email: 'not-an-email', password: 'TestPassword1!' },
       });
 
       expect(response.statusCode).toBe(400);
@@ -170,7 +203,7 @@ describe('Auth routes', () => {
       const loginResponse = await server.inject({
         method: 'POST',
         url: '/api/auth/login',
-        payload: { email: MOCK_USER.email },
+        payload: { email: MOCK_USER.email, password: 'TestPassword1!' },
       });
 
       const cookie = getSessionCookie(loginResponse);
@@ -197,7 +230,7 @@ describe('Auth routes', () => {
       const loginResponse = await server.inject({
         method: 'POST',
         url: '/api/auth/login',
-        payload: { email: MOCK_USER.email },
+        payload: { email: MOCK_USER.email, password: 'TestPassword1!' },
       });
 
       const cookie = getSessionCookie(loginResponse);

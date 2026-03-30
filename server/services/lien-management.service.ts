@@ -38,6 +38,7 @@ export interface CreateLineItemInput {
   cptCode?: string;
   description: string;
   amountClaimed: number;
+  bodyPartId?: string;
 }
 
 export interface LienRecord {
@@ -69,6 +70,7 @@ export interface LienLineItemRecord {
   omfsRate: number | null;
   isOvercharge: boolean;
   overchargeAmount: number | null;
+  bodyPartId: string | null;
 }
 
 export interface LienWithLineItems extends LienRecord {
@@ -180,6 +182,7 @@ function toLineItemRecord(raw: {
   omfsRate: Prisma.Decimal | null;
   isOvercharge: boolean;
   overchargeAmount: Prisma.Decimal | null;
+  bodyPartId: string | null;
 }): LienLineItemRecord {
   return {
     ...raw,
@@ -312,6 +315,7 @@ export async function addLineItems(
         cptCode: item.cptCode ?? null,
         description: item.description,
         amountClaimed: item.amountClaimed,
+        bodyPartId: item.bodyPartId ?? null,
       },
     });
 

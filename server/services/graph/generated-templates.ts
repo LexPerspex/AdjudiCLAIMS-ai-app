@@ -41,7 +41,7 @@ export interface FieldToEdgeMapping {
   /** How to determine source node */
   sourceStrategy: 'document_author' | 'applicant' | 'employer' | 'field_ref';
   /** How to determine target node */
-  targetStrategy: 'field_value_node' | 'applicant' | 'claim' | 'body_part';
+  targetStrategy: 'field_value_node' | 'applicant' | 'claim' | 'body_part' | 'field_ref';
   /** Optional: field providing the target node name */
   targetFieldPattern?: string;
 }

@@ -85,9 +85,9 @@ describe('Environment Validation', () => {
   // -------------------------------------------------------------------------
 
   describe('validateEnv — failure', () => {
-    it('throws when DATABASE_URL is not a mysql:// string', () => {
+    it('throws when DATABASE_URL is not a valid database string', () => {
       process.env['NODE_ENV'] = 'development';
-      process.env['DATABASE_URL'] = 'postgres://wrong';
+      process.env['DATABASE_URL'] = 'http://not-a-database';
       expect(() => validateEnv()).toThrow('Environment validation failed');
     });
 

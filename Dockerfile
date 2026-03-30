@@ -56,6 +56,9 @@ COPY --from=build /app/server/data ./server/data
 COPY --from=build /app/server/prompts ./server/prompts
 COPY --from=build /app/server/middleware ./server/middleware
 COPY --from=build /app/server/db.ts ./server/db.ts
+COPY --from=build /app/server/index.ts ./server/index.ts
+COPY --from=build /app/server/production.ts ./server/production.ts
+COPY --from=build /app/server/routes ./server/routes
 
 # Non-root user
 RUN addgroup --system --gid 1001 appgroup && \

@@ -187,12 +187,12 @@ describe('executeTool — query_graph', () => {
   it('calls queryGraphForExaminer and filters by entity name', async () => {
     mockQueryGraph.mockResolvedValue({
       nodes: [
-        { id: 'n1', name: 'John Doe', nodeType: 'PERSON' } as never,
+        { id: 'n1', canonicalName: 'John Doe', nodeType: 'PERSON' } as never,
       ],
       edges: [],
       disclaimer: null,
-      nodeCount: 1,
-      edgeCount: 0,
+      wasFiltered: false,
+      filterStats: { nodesRemoved: 0, edgesRemoved: 0, propertiesStripped: 0 },
     });
     mockFormatGraph.mockReturnValue('Graph: John Doe (PERSON)');
 
@@ -208,12 +208,12 @@ describe('executeTool — query_graph', () => {
   it('returns "no entities" when no match', async () => {
     mockQueryGraph.mockResolvedValue({
       nodes: [
-        { id: 'n1', name: 'Jane Smith', nodeType: 'PERSON' } as never,
+        { id: 'n1', canonicalName: 'Jane Smith', nodeType: 'PERSON' } as never,
       ],
       edges: [],
       disclaimer: null,
-      nodeCount: 1,
-      edgeCount: 0,
+      wasFiltered: false,
+      filterStats: { nodesRemoved: 0, edgesRemoved: 0, propertiesStripped: 0 },
     });
 
     const result = await executeTool(

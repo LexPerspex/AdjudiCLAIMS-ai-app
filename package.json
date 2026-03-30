@@ -14,7 +14,8 @@
   "scripts": {
     "dev": "react-router dev",
     "build": "react-router build",
-    "start": "react-router-serve ./build/server/index.js",
+    "start": "node --import tsx/esm server/production.ts",
+    "start:rr": "react-router-serve ./build/server/index.js",
     "typecheck": "react-router typegen && tsc --noEmit",
     "lint": "eslint .",
     "format": "prettier --write .",
@@ -31,11 +32,13 @@
   "dependencies": {
     "@adjudica/document-classifier": "file:../Adjudica-classifier",
     "@anthropic-ai/sdk": "^0.80.0",
+    "@fastify/compress": "^8.3.1",
     "@fastify/cookie": "^11.0.1",
     "@fastify/cors": "^11.0.0",
     "@fastify/multipart": "^9.4.0",
     "@fastify/rate-limit": "^10.3.0",
     "@fastify/session": "^11.0.1",
+    "@fastify/static": "^9.0.0",
     "@fontsource/inter": "^5.2.8",
     "@google-cloud/aiplatform": "^6.5.0",
     "@google-cloud/documentai": "^9.6.0",
@@ -71,6 +74,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
+    "@playwright/test": "^1.58.2",
     "@react-router/dev": "^7.3.0",
     "@sentry/vite-plugin": "^5.1.1",
     "@types/node": "^25.5.0",

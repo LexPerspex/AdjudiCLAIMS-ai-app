@@ -88,15 +88,15 @@ export function levenshteinDistance(a: string, b: string): number {
     for (let i = 1; i <= m; i++) {
       const cost = a[i - 1] === b[j - 1] ? 0 : 1;
       curr[i] = Math.min(
-        prev[i] + 1,      // deletion
-        curr[i - 1] + 1,  // insertion
-        prev[i - 1] + cost // substitution
+        prev[i]! + 1,      // deletion
+        curr[i - 1]! + 1,  // insertion
+        prev[i - 1]! + cost // substitution
       );
     }
     [prev, curr] = [curr, prev];
   }
 
-  return prev[m];
+  return prev[m]!;
 }
 
 // ---------------------------------------------------------------------------

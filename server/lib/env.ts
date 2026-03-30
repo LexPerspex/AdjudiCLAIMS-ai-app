@@ -26,12 +26,12 @@ const envSchema = z.object({
     .default('4901')
     .transform(Number)
     .pipe(z.number().int().positive()),
-  /** MySQL connection string. Required. */
+  /** Database connection string (MySQL/PlanetScale or PostgreSQL). Required. */
   DATABASE_URL: z
     .string()
-    .startsWith(
-      'mysql://',
-      'DATABASE_URL must be a MySQL connection string',
+    .refine(
+      (val) => val.startsWith('mysql://') || val.startsWith('postgresql://') || val.startsWith('postgres://'),
+      'DATABASE_URL must be a MySQL or PostgreSQL connection string',
     ),
   /** Session encryption key. Required in production (min 32 chars). From GCP Secret Manager. */
   SESSION_SECRET: z

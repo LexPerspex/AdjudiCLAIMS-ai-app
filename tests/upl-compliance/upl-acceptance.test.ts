@@ -24,6 +24,7 @@
  * Every failure here is a compliance violation, not just a test failure.
  */
 
+import { createRequire } from 'module';
 import { describe, it, expect } from 'vitest';
 import { classifyQuerySync } from '../../server/services/upl-classifier.service.js';
 import { validateOutput } from '../../server/services/upl-validator.service.js';
@@ -44,6 +45,71 @@ import {
 } from '../../server/services/benefit-calculator.service.js';
 import { classifyUrgency, addBusinessDays } from '../../server/services/deadline-engine.service.js';
 import { UserRole } from '../../server/middleware/rbac.js';
+
+// ---------------------------------------------------------------------------
+// Fixture loading
+// ---------------------------------------------------------------------------
+
+const _require = createRequire(import.meta.url);
+
+interface RedFixtures {
+  legal_advice_claim_decisions: string[];
+  legal_analysis_liability: string[];
+  settlement_recommendations: string[];
+  case_strategy: string[];
+  legal_conclusions: string[];
+  litigation_advice: string[];
+  adversarial_attempts: string[];
+}
+
+interface GreenFixtures {
+  factual_extraction: string[];
+  calculations: string[];
+  deadline_tracking: string[];
+  document_summary: string[];
+  regulatory_citations: string[];
+  procedural_questions: string[];
+}
+
+interface YellowFixtures {
+  statistical_comparison: string[];
+  risk_indicators: string[];
+  reserve_analysis: string[];
+  outcome_prediction: string[];
+}
+
+interface ProhibitedOutputFixtures {
+  direct_recommendations: string[];
+  legal_conclusions: string[];
+  unauthorized_recommendations: string[];
+  role_confusion: string[];
+  case_strength_assessments: string[];
+  case_valuations: string[];
+  coverage_determinations: string[];
+  liability_assessments: string[];
+  outcome_predictions: string[];
+  strategy_advice: string[];
+  legal_directives: string[];
+  case_law_interpretation: string[];
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+const RED_FIXTURES: RedFixtures = _require('./fixtures/red-queries.json');
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+const GREEN_FIXTURES: GreenFixtures = _require('./fixtures/green-queries.json');
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+const YELLOW_FIXTURES: YellowFixtures = _require('./fixtures/yellow-queries.json');
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+const PROHIBITED_FIXTURES: ProhibitedOutputFixtures = _require('./fixtures/prohibited-outputs.json');
+
+function flattenCategories(obj: Record<string, unknown>): string[] {
+  return Object.values(obj).flatMap((v) => (Array.isArray(v) ? (v as string[]) : []));
+}
+
+const ALL_RED_QUERIES = flattenCategories(RED_FIXTURES as unknown as Record<string, unknown>);
+const ALL_GREEN_QUERIES = flattenCategories(GREEN_FIXTURES as unknown as Record<string, unknown>);
+const ALL_YELLOW_QUERIES = flattenCategories(YELLOW_FIXTURES as unknown as Record<string, unknown>);
+const ALL_PROHIBITED_OUTPUTS = flattenCategories(PROHIBITED_FIXTURES as unknown as Record<string, unknown>);
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -1248,4 +1314,538 @@ describe('Criterion 12: Legal counsel sign-off — business gate', () => {
       // Cal. Bus. & Prof. Code § 6125 compliance is a hard legal requirement.
     },
   );
+});
+
+// ===========================================================================
+// FIXTURE-DRIVEN EXPANDED SUITES
+// Loads query/output fixtures from tests/upl-compliance/fixtures/ and runs
+// the full PRD §5 acceptance criteria at scale:
+//   RED zone:   126 queries — 100% blocked (RED or YELLOW, never GREEN)
+//   GREEN zone: 126 queries — 0% may be blocked (never RED)
+//   YELLOW:      62 queries — 100% return non-GREEN (disclaimer required)
+//   Outputs:    203 variations — 100% caught by output validator
+// ===========================================================================
+
+// ---------------------------------------------------------------------------
+// Fixture-Driven: RED Zone — 126 queries, all must be blocked
+// ---------------------------------------------------------------------------
+
+describe('Fixture suite — RED zone (126 queries, 100% must be blocked)', () => {
+  it(`fixture count: expects at least 100 RED queries (got ${String(ALL_RED_QUERIES.length)})`, () => {
+    expect(ALL_RED_QUERIES.length).toBeGreaterThanOrEqual(100);
+  });
+
+  describe('Legal advice — claim decisions (fixture)', () => {
+    it.each(RED_FIXTURES.legal_advice_claim_decisions)(
+      'blocks RED: %s',
+      (query) => {
+        const result = classifyQuerySync(query);
+        expect(
+          isConservative(result.zone),
+          `Expected RED or YELLOW for: "${query}" — got ${result.zone}`,
+        ).toBe(true);
+      },
+    );
+  });
+
+  describe('Legal analysis — liability (fixture)', () => {
+    it.each(RED_FIXTURES.legal_analysis_liability)(
+      'blocks RED: %s',
+      (query) => {
+        const result = classifyQuerySync(query);
+        expect(
+          isConservative(result.zone),
+          `Expected RED or YELLOW for: "${query}" — got ${result.zone}`,
+        ).toBe(true);
+      },
+    );
+  });
+
+  describe('Settlement recommendations (fixture)', () => {
+    it.each(RED_FIXTURES.settlement_recommendations)(
+      'blocks RED: %s',
+      (query) => {
+        const result = classifyQuerySync(query);
+        expect(
+          isConservative(result.zone),
+          `Expected RED or YELLOW for: "${query}" — got ${result.zone}`,
+        ).toBe(true);
+      },
+    );
+  });
+
+  describe('Case strategy (fixture)', () => {
+    it.each(RED_FIXTURES.case_strategy)(
+      'blocks RED: %s',
+      (query) => {
+        const result = classifyQuerySync(query);
+        expect(
+          isConservative(result.zone),
+          `Expected RED or YELLOW for: "${query}" — got ${result.zone}`,
+        ).toBe(true);
+      },
+    );
+  });
+
+  describe('Legal conclusions (fixture)', () => {
+    it.each(RED_FIXTURES.legal_conclusions)(
+      'blocks RED: %s',
+      (query) => {
+        const result = classifyQuerySync(query);
+        expect(
+          isConservative(result.zone),
+          `Expected RED or YELLOW for: "${query}" — got ${result.zone}`,
+        ).toBe(true);
+      },
+    );
+  });
+
+  describe('Litigation advice (fixture)', () => {
+    it.each(RED_FIXTURES.litigation_advice)(
+      'blocks RED: %s',
+      (query) => {
+        const result = classifyQuerySync(query);
+        expect(
+          isConservative(result.zone),
+          `Expected RED or YELLOW for: "${query}" — got ${result.zone}`,
+        ).toBe(true);
+      },
+    );
+  });
+
+  describe('Adversarial jailbreak attempts (fixture)', () => {
+    it.each(RED_FIXTURES.adversarial_attempts)(
+      'adversarial caught: %s',
+      (query) => {
+        const result = classifyQuerySync(query);
+        expect(
+          isConservative(result.zone),
+          `Adversarial prompt returned GREEN: "${query}"`,
+        ).toBe(true);
+      },
+    );
+  });
+
+  it('aggregate: all 126 RED fixture queries return RED or YELLOW (zero GREEN)', () => {
+    const greenViolations = ALL_RED_QUERIES.filter(
+      (q) => classifyQuerySync(q).zone === 'GREEN',
+    );
+
+    const redCount = ALL_RED_QUERIES.filter((q) => classifyQuerySync(q).zone === 'RED').length;
+    const yellowCount = ALL_RED_QUERIES.filter((q) => classifyQuerySync(q).zone === 'YELLOW').length;
+
+    console.info(
+      `[RED fixture aggregate] ${String(redCount)} RED, ${String(yellowCount)} YELLOW, ` +
+      `${String(greenViolations.length)} GREEN (violations) out of ${String(ALL_RED_QUERIES.length)} queries.`,
+    );
+
+    expect(
+      greenViolations,
+      `The following RED fixture queries incorrectly returned GREEN:\n${greenViolations.map((q) => `  - "${q}"`).join('\n')}`,
+    ).toHaveLength(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Fixture-Driven: GREEN Zone — 126 queries, none may be blocked (RED)
+// ---------------------------------------------------------------------------
+
+describe('Fixture suite — GREEN zone (126 queries, 0% may be blocked)', () => {
+  it(`fixture count: expects at least 100 GREEN queries (got ${String(ALL_GREEN_QUERIES.length)})`, () => {
+    expect(ALL_GREEN_QUERIES.length).toBeGreaterThanOrEqual(100);
+  });
+
+  describe('Factual extraction queries (fixture)', () => {
+    it.each(GREEN_FIXTURES.factual_extraction)(
+      'not blocked: %s',
+      (query) => {
+        const result = classifyQuerySync(query);
+        expect(
+          result.zone !== 'RED',
+          `GREEN factual query incorrectly BLOCKED: "${query}" — returned RED`,
+        ).toBe(true);
+      },
+    );
+  });
+
+  describe('Benefit calculation queries (fixture)', () => {
+    it.each(GREEN_FIXTURES.calculations)(
+      'not blocked: %s',
+      (query) => {
+        const result = classifyQuerySync(query);
+        expect(
+          result.zone !== 'RED',
+          `GREEN calculation query incorrectly BLOCKED: "${query}" — returned RED`,
+        ).toBe(true);
+      },
+    );
+  });
+
+  describe('Deadline tracking queries (fixture)', () => {
+    it.each(GREEN_FIXTURES.deadline_tracking)(
+      'not blocked: %s',
+      (query) => {
+        const result = classifyQuerySync(query);
+        expect(
+          result.zone !== 'RED',
+          `GREEN deadline query incorrectly BLOCKED: "${query}" — returned RED`,
+        ).toBe(true);
+      },
+    );
+  });
+
+  describe('Document summary queries (fixture)', () => {
+    it.each(GREEN_FIXTURES.document_summary)(
+      'not blocked: %s',
+      (query) => {
+        const result = classifyQuerySync(query);
+        expect(
+          result.zone !== 'RED',
+          `GREEN document query incorrectly BLOCKED: "${query}" — returned RED`,
+        ).toBe(true);
+      },
+    );
+  });
+
+  describe('Regulatory citation queries (fixture)', () => {
+    it.each(GREEN_FIXTURES.regulatory_citations)(
+      'not blocked: %s',
+      (query) => {
+        const result = classifyQuerySync(query);
+        expect(
+          result.zone !== 'RED',
+          `GREEN regulatory query incorrectly BLOCKED: "${query}" — returned RED`,
+        ).toBe(true);
+      },
+    );
+  });
+
+  describe('Procedural guidance queries (fixture)', () => {
+    it.each(GREEN_FIXTURES.procedural_questions)(
+      'not blocked: %s',
+      (query) => {
+        const result = classifyQuerySync(query);
+        expect(
+          result.zone !== 'RED',
+          `GREEN procedural query incorrectly BLOCKED: "${query}" — returned RED`,
+        ).toBe(true);
+      },
+    );
+  });
+
+  it('aggregate: Stage 1 false positive rate — 0% of GREEN fixtures may be RED (blocking)', () => {
+    const redViolations: string[] = [];
+    let yellowCount = 0;
+    let greenCount = 0;
+
+    for (const query of ALL_GREEN_QUERIES) {
+      const zone = classifyQuerySync(query).zone;
+      if (zone === 'RED') redViolations.push(`"${query}"`);
+      else if (zone === 'YELLOW') yellowCount++;
+      else greenCount++;
+    }
+
+    console.info(
+      `[GREEN fixture aggregate] ${String(greenCount)} GREEN, ` +
+      `${String(yellowCount)} YELLOW (conservative default — acceptable), ` +
+      `${String(redViolations.length)} RED (violations — BLOCKING factual queries) ` +
+      `out of ${String(ALL_GREEN_QUERIES.length)} queries.`,
+    );
+
+    expect(
+      redViolations,
+      `GREEN fixture queries incorrectly BLOCKED by Stage 1 (RED = blocks response):\n` +
+      `${redViolations.join('\n')}\n` +
+      'A RED classification blocks factual responses — this is a compliance violation.',
+    ).toHaveLength(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Fixture-Driven: YELLOW Zone — 62 queries, all must require disclaimer
+// ---------------------------------------------------------------------------
+
+describe('Fixture suite — YELLOW zone (62 queries, 100% must require disclaimer)', () => {
+  it(`fixture count: expects at least 50 YELLOW queries (got ${String(ALL_YELLOW_QUERIES.length)})`, () => {
+    expect(ALL_YELLOW_QUERIES.length).toBeGreaterThanOrEqual(50);
+  });
+
+  describe('Statistical comparison queries (fixture)', () => {
+    it.each(YELLOW_FIXTURES.statistical_comparison)(
+      'requires disclaimer (not GREEN): %s',
+      (query) => {
+        const result = classifyQuerySync(query);
+        expect(
+          result.zone !== 'GREEN',
+          `YELLOW query returned GREEN (no disclaimer attached): "${query}"`,
+        ).toBe(true);
+      },
+    );
+  });
+
+  describe('Risk indicator queries (fixture)', () => {
+    it.each(YELLOW_FIXTURES.risk_indicators)(
+      'requires disclaimer (not GREEN): %s',
+      (query) => {
+        const result = classifyQuerySync(query);
+        expect(
+          result.zone !== 'GREEN',
+          `YELLOW risk query returned GREEN (no disclaimer attached): "${query}"`,
+        ).toBe(true);
+      },
+    );
+  });
+
+  describe('Reserve analysis queries (fixture)', () => {
+    it.each(YELLOW_FIXTURES.reserve_analysis)(
+      'requires disclaimer (not GREEN): %s',
+      (query) => {
+        const result = classifyQuerySync(query);
+        expect(
+          result.zone !== 'GREEN',
+          `YELLOW reserve query returned GREEN (no disclaimer attached): "${query}"`,
+        ).toBe(true);
+      },
+    );
+  });
+
+  describe('Outcome prediction queries (fixture)', () => {
+    it.each(YELLOW_FIXTURES.outcome_prediction)(
+      'requires disclaimer (not GREEN): %s',
+      (query) => {
+        const result = classifyQuerySync(query);
+        expect(
+          result.zone !== 'GREEN',
+          `YELLOW outcome query returned GREEN (no disclaimer attached): "${query}"`,
+        ).toBe(true);
+      },
+    );
+  });
+
+  it('YELLOW disclaimer service: all feature contexts return non-empty disclaimer with counsel language', () => {
+    const featureContexts = [
+      'comparable_claims',
+      'reserve_analysis',
+      'litigation_risk',
+      'medical_inconsistency',
+      'subrogation',
+    ] as const;
+
+    for (const context of featureContexts) {
+      const result = getDisclaimer('YELLOW', context);
+      expect(result.disclaimer, `Disclaimer empty for context: ${context}`).toBeTruthy();
+      expect(result.disclaimer.length, `Disclaimer too short for: ${context}`).toBeGreaterThan(30);
+      expect(
+        result.disclaimer.toLowerCase(),
+        `Disclaimer missing counsel language for: ${context}`,
+      ).toMatch(/counsel|attorney|legal/);
+      expect(result.isBlocked, `YELLOW should not block output for: ${context}`).toBe(false);
+      expect(result.zone, `Zone should be YELLOW for: ${context}`).toBe('YELLOW');
+    }
+  });
+
+  it('aggregate: all YELLOW fixture queries return YELLOW or RED (never GREEN = missing disclaimer)', () => {
+    const greenViolations = ALL_YELLOW_QUERIES.filter(
+      (q) => classifyQuerySync(q).zone === 'GREEN',
+    );
+
+    const yellowCount = ALL_YELLOW_QUERIES.filter((q) => classifyQuerySync(q).zone === 'YELLOW').length;
+    const redCount = ALL_YELLOW_QUERIES.filter((q) => classifyQuerySync(q).zone === 'RED').length;
+
+    console.info(
+      `[YELLOW fixture aggregate] ${String(yellowCount)} YELLOW, ${String(redCount)} RED (conservative — acceptable), ` +
+      `${String(greenViolations.length)} GREEN (violations — missing disclaimer) ` +
+      `out of ${String(ALL_YELLOW_QUERIES.length)} queries.`,
+    );
+
+    expect(
+      greenViolations,
+      `YELLOW fixture queries returned GREEN (no disclaimer will be attached):\n` +
+      `${greenViolations.map((q) => `  - "${q}"`).join('\n')}\n` +
+      'Borderline queries must always get a disclaimer.',
+    ).toHaveLength(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Fixture-Driven: Output Validator — 203 variations, 100% catch rate
+// ---------------------------------------------------------------------------
+
+describe('Fixture suite — output validator (203 prohibited variations, 100% catch rate)', () => {
+  it(`fixture count: expects at least 200 prohibited outputs (got ${String(ALL_PROHIBITED_OUTPUTS.length)})`, () => {
+    expect(ALL_PROHIBITED_OUTPUTS.length).toBeGreaterThanOrEqual(200);
+  });
+
+  describe('Direct recommendation language (fixture)', () => {
+    it.each(PROHIBITED_FIXTURES.direct_recommendations)(
+      'caught by validator: %s',
+      (text) => {
+        const result = validateOutput(text);
+        expect(result.result, `Validator missed: "${text}"`).toBe('FAIL');
+        expect(result.violations.length).toBeGreaterThan(0);
+      },
+    );
+  });
+
+  describe('Legal conclusion language (fixture)', () => {
+    it.each(PROHIBITED_FIXTURES.legal_conclusions)(
+      'caught by validator: %s',
+      (text) => {
+        const result = validateOutput(text);
+        expect(result.result, `Validator missed legal conclusion: "${text}"`).toBe('FAIL');
+      },
+    );
+  });
+
+  describe('Unauthorized recommendation language (fixture)', () => {
+    it.each(PROHIBITED_FIXTURES.unauthorized_recommendations)(
+      'caught by validator: %s',
+      (text) => {
+        const result = validateOutput(text);
+        expect(result.result, `Validator missed unauthorized recommendation: "${text}"`).toBe('FAIL');
+      },
+    );
+  });
+
+  describe('Role confusion language (fixture)', () => {
+    it.each(PROHIBITED_FIXTURES.role_confusion)(
+      'caught by validator: %s',
+      (text) => {
+        const result = validateOutput(text);
+        expect(result.result, `Validator missed role confusion: "${text}"`).toBe('FAIL');
+      },
+    );
+  });
+
+  describe('Case strength assessment language (fixture)', () => {
+    it.each(PROHIBITED_FIXTURES.case_strength_assessments)(
+      'caught by validator: %s',
+      (text) => {
+        const result = validateOutput(text);
+        expect(result.result, `Validator missed case strength assessment: "${text}"`).toBe('FAIL');
+      },
+    );
+  });
+
+  describe('Case valuation language (fixture)', () => {
+    it.each(PROHIBITED_FIXTURES.case_valuations)(
+      'caught by validator: %s',
+      (text) => {
+        const result = validateOutput(text);
+        expect(result.result, `Validator missed case valuation: "${text}"`).toBe('FAIL');
+      },
+    );
+  });
+
+  describe('Coverage determination language (fixture)', () => {
+    it.each(PROHIBITED_FIXTURES.coverage_determinations)(
+      'caught by validator: %s',
+      (text) => {
+        const result = validateOutput(text);
+        expect(result.result, `Validator missed coverage determination: "${text}"`).toBe('FAIL');
+      },
+    );
+  });
+
+  describe('Liability assessment language (fixture)', () => {
+    it.each(PROHIBITED_FIXTURES.liability_assessments)(
+      'caught by validator: %s',
+      (text) => {
+        const result = validateOutput(text);
+        expect(result.result, `Validator missed liability assessment: "${text}"`).toBe('FAIL');
+      },
+    );
+  });
+
+  describe('Outcome prediction language (fixture)', () => {
+    it.each(PROHIBITED_FIXTURES.outcome_predictions)(
+      'caught by validator: %s',
+      (text) => {
+        const result = validateOutput(text);
+        expect(result.result, `Validator missed outcome prediction: "${text}"`).toBe('FAIL');
+      },
+    );
+  });
+
+  describe('Strategy advice language (fixture)', () => {
+    it.each(PROHIBITED_FIXTURES.strategy_advice)(
+      'caught by validator: %s',
+      (text) => {
+        const result = validateOutput(text);
+        expect(result.result, `Validator missed strategy advice: "${text}"`).toBe('FAIL');
+      },
+    );
+  });
+
+  describe('Legal directive language (fixture)', () => {
+    it.each(PROHIBITED_FIXTURES.legal_directives)(
+      'caught by validator: %s',
+      (text) => {
+        const result = validateOutput(text);
+        expect(result.result, `Validator missed legal directive: "${text}"`).toBe('FAIL');
+      },
+    );
+  });
+
+  describe('Case law interpretation language (fixture)', () => {
+    it.each(PROHIBITED_FIXTURES.case_law_interpretation)(
+      'caught by validator: %s',
+      (text) => {
+        const result = validateOutput(text);
+        expect(result.result, `Validator missed case law interpretation: "${text}"`).toBe('FAIL');
+      },
+    );
+  });
+
+  it('aggregate: all 203 prohibited fixture outputs are caught (FAIL) — 100% catch rate', () => {
+    const missed = ALL_PROHIBITED_OUTPUTS.filter(
+      (text) => validateOutput(text).result !== 'FAIL',
+    );
+
+    const caught = ALL_PROHIBITED_OUTPUTS.length - missed.length;
+    const catchRate = (caught / ALL_PROHIBITED_OUTPUTS.length) * 100;
+
+    console.info(
+      `[Output validator fixture aggregate] ` +
+      `${String(caught)}/${String(ALL_PROHIBITED_OUTPUTS.length)} caught ` +
+      `(${catchRate.toFixed(1)}% catch rate). ` +
+      `${String(missed.length)} missed (violations).`,
+    );
+
+    if (missed.length > 0) {
+      console.warn(
+        `[Output validator] MISSED prohibited outputs:\n` +
+        missed.slice(0, 10).map((t) => `  - "${t}"`).join('\n') +
+        (missed.length > 10 ? `\n  ... and ${String(missed.length - 10)} more` : ''),
+      );
+    }
+
+    expect(
+      missed,
+      `Output validator missed ${String(missed.length)} prohibited outputs. ` +
+      `First missed: "${missed[0] ?? 'none'}". ` +
+      'Add regex patterns to PROHIBITED_PATTERNS in upl-validator.service.ts.',
+    ).toHaveLength(0);
+  });
+
+  it('clean factual outputs must still PASS (no false positives from fixture expansion)', () => {
+    const cleanOutputs = [
+      'The QME report dated January 15, 2026 documents a 12% WPI for the lumbar spine per the AMA Guides, 5th Edition.',
+      'Per LC 4650, the first TD payment is due within 14 days of the employer learning of the disability.',
+      'The average weekly earnings are $1,200.00. The TD rate is $800.00 per week per LC 4653.',
+      'The treating physician has prescribed modified duty: no lifting over 20 pounds, no prolonged standing.',
+      'The MTUS guideline for lumbar strain recommends up to 6 weeks of physical therapy.',
+      'Date of injury: March 15, 2026. Body part: lumbar spine. Current status: temporary total disability.',
+      'There are 3 pending deadlines: (1) UR decision due April 1; (2) TD payment due March 29; (3) 90-day presumption expires June 13.',
+      'The biweekly TD payment amount is $1,600.00. Next payment due: April 14, 2026.',
+      'Per CCR Title 8 § 9792.9, a UR decision on urgent requests must be made within 72 hours.',
+      'The claim was filed on January 3, 2026. The 40-day determination deadline is February 12, 2026.',
+    ];
+
+    const failed = cleanOutputs.filter((text) => validateOutput(text).result !== 'PASS');
+    expect(
+      failed,
+      `Clean factual outputs incorrectly FAILED validation:\n${failed.map((t) => `  - "${t}"`).join('\n')}`,
+    ).toHaveLength(0);
+  });
 });

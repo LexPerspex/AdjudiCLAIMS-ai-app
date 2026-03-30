@@ -17,7 +17,7 @@
 
 import type { LienStatus, LienType, FilingFeeStatus, Prisma } from '@prisma/client';
 import { prisma } from '../db.js';
-import { compareBillToOmfs, type BillComparisonResult } from './omfs-comparison.service.js';
+import { compareBillToOmfsFromKb, type BillComparisonResult } from './omfs-comparison.service.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -359,7 +359,7 @@ export async function runOmfsComparison(lienId: string): Promise<BillComparisonR
       description: item.description,
     }));
 
-  const result = compareBillToOmfs(comparisonInput);
+  const result = await compareBillToOmfsFromKb(comparisonInput);
 
   // Update each line item with OMFS data
   for (const compared of result.lineItems) {

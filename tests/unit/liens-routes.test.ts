@@ -139,6 +139,9 @@ vi.mock('../../server/services/lien-management.service.js', () => ({
 // Mock omfs-comparison service
 vi.mock('../../server/services/omfs-comparison.service.js', () => ({
   lookupOmfsRate: vi.fn().mockReturnValue({ feeScheduleSection: '9789.12.1' }),
+  lookupOmfsRateFromKb: vi.fn().mockResolvedValue({ cptCode: '99213', omfsRate: 78.42, description: 'Office visit', feeScheduleSection: '9789.12.1' }),
+  compareBillToOmfs: vi.fn().mockReturnValue({ lineItems: [], totalClaimed: 0, totalOmfsAllowed: 0, totalDiscrepancy: 0, discrepancyPercent: 0, disclaimer: 'test', isStubData: true }),
+  compareBillToOmfsFromKb: vi.fn().mockResolvedValue({ lineItems: [], totalClaimed: 0, totalOmfsAllowed: 0, totalDiscrepancy: 0, discrepancyPercent: 0, disclaimer: 'test', isStubData: false }),
 }));
 
 // Dynamic import after mocks

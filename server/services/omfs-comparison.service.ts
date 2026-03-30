@@ -7,10 +7,14 @@
  *
  * Statutory authority: 8 CCR 9789.10 et seq.
  *
- * Stub mode: Since the Knowledge Base is external, this service uses a
- * realistic stub OMFS rate table for common CPT codes. When the KB
- * integration is live, lookupOmfsRate will query the KB instead.
+ * Rate lookup strategy (fastest-first):
+ *   1. Local stub table — 42 common CPT codes, instant
+ *   2. Process-lifetime cache — KB lookups cached to avoid repeat API calls
+ *   3. Live KB API — POST /api/knowledge/search/regulatory with source_type='omfs'
+ *   4. Null — rate not determinable, include in output with omfsRate=null
  */
+
+import { searchRegulatory } from '../lib/kb-client.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -166,6 +170,13 @@ const STUB_OMFS_RATES: Record<string, { rate: number; description: string; secti
 
 const STUB_EFFECTIVE_DATE = '2026-01-01';
 
+/**
+ * Process-lifetime cache for KB OMFS rate lookups.
+ * Avoids repeated API calls for the same CPT code within a process lifecycle.
+ * The cache is intentionally not bounded — OMFS has ~10k CPT codes maximum.
+ */
+const kbRateCache: Map<string, OmfsRateLookup> = new Map();
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -179,10 +190,15 @@ function roundCurrency(value: number): number {
 // ---------------------------------------------------------------------------
 
 /**
- * Look up the OMFS rate for a CPT code.
+ * Look up the OMFS rate for a CPT code from the local stub table only.
  *
- * In stub mode, returns data from the built-in rate table. Unknown CPT
- * codes return omfsRate = null with a descriptive message.
+ * Synchronous, no network call. Covers 42 common WC CPT codes.
+ * Unknown codes return omfsRate=null.
+ *
+ * For live KB augmentation, use lookupOmfsRateFromKb().
+ *
+ * @param cptCode - The CPT procedure code to look up.
+ * @returns Rate lookup result. omfsRate is null if the code is not in the stub table.
  */
 export function lookupOmfsRate(cptCode: string): OmfsRateLookup {
   const entry = STUB_OMFS_RATES[cptCode];
@@ -206,25 +222,96 @@ export function lookupOmfsRate(cptCode: string): OmfsRateLookup {
 }
 
 /**
- * Compare a list of billed line items against OMFS rates.
+ * Look up the OMFS rate for a CPT code — stub table with live KB fallback.
  *
- * Each line item is looked up in the OMFS rate table. If the billed
- * amount exceeds the OMFS allowed rate, it is flagged as an overcharge.
- * Line items with unknown CPT codes are included in totals with
- * omfsAllowed = null and overchargeAmount = 0.
+ * Lookup order (fastest-first):
+ *   1. Local stub table (42 common codes) — synchronous, no network
+ *   2. Process-lifetime KB cache — avoids re-querying same code
+ *   3. Live KB API — searches OMFS sections for the CPT code
+ *   4. Null result — rate not determinable
  *
- * @param lineItems - Array of billed items with CPT code, amount, and description.
- * @returns Comparison result with per-item and aggregate discrepancy data.
+ * @param cptCode - The CPT procedure code to look up.
+ * @returns Rate lookup result. omfsRate is null if the code cannot be found.
  */
-export function compareBillToOmfs(
+export async function lookupOmfsRateFromKb(cptCode: string): Promise<OmfsRateLookup> {
+  // 1. Local stub table — fastest path, covers 42 common WC CPT codes
+  const stubResult = lookupOmfsRate(cptCode);
+  if (stubResult.omfsRate !== null) {
+    return stubResult;
+  }
+
+  // 2. Process-lifetime cache — avoid repeated KB calls for the same code
+  const cached = kbRateCache.get(cptCode);
+  if (cached !== undefined) {
+    return cached;
+  }
+
+  // 3. Live KB API
+  try {
+    const results = await searchRegulatory(
+      `CPT ${cptCode} OMFS physician services`,
+      ['omfs'],
+      5,
+    );
+
+    if (results.length > 0) {
+      // Extract a dollar amount from the fullText of the best result.
+      // OMFS sections typically contain rates like "$123.45" or "123.45 per service".
+      const bestResult = results[0]!;
+      const dollarMatch = bestResult.fullText.match(/\$\s*([\d,]+(?:\.\d{1,2})?)/);
+      const rate = dollarMatch ? parseFloat(dollarMatch[1]!.replace(',', '')) : null;
+
+      const lookup: OmfsRateLookup = {
+        cptCode,
+        omfsRate: rate,
+        description: bestResult.title ?? `OMFS rate for CPT ${cptCode}`,
+        feeScheduleSection: bestResult.sectionNumber ?? 'OMFS',
+        effectiveDate: bestResult.effectiveDate ?? undefined,
+      };
+
+      kbRateCache.set(cptCode, lookup);
+      return lookup;
+    }
+  } catch (err) {
+    // KB unavailable — fall through to null result
+    console.warn(
+      `[omfs-comparison] KB lookup failed for CPT ${cptCode}:`,
+      err instanceof Error ? err.message : String(err),
+    );
+  }
+
+  // 4. Null result — code not found anywhere
+  const notFound: OmfsRateLookup = {
+    cptCode,
+    omfsRate: null,
+    description: 'CPT code not found in OMFS rate table',
+    feeScheduleSection: 'UNKNOWN',
+  };
+  // Cache the null result too to avoid hammering the KB for unknown codes
+  kbRateCache.set(cptCode, notFound);
+  return notFound;
+}
+
+/**
+ * Core bill comparison logic shared by both the sync and async variants.
+ */
+function buildBillComparison(
   lineItems: { cptCode: string; amount: number; description: string }[],
+  rateMap: Map<string, OmfsRateLookup>,
+  anyKbData: boolean,
 ): BillComparisonResult {
   const comparedItems: BillComparisonLineItem[] = [];
   let totalClaimed = 0;
   let totalOmfsAllowed = 0;
 
   for (const item of lineItems) {
-    const lookup = lookupOmfsRate(item.cptCode);
+    const lookup = rateMap.get(item.cptCode) ?? {
+      cptCode: item.cptCode,
+      omfsRate: null,
+      description: 'CPT code not found in OMFS rate table',
+      feeScheduleSection: 'UNKNOWN',
+    };
+
     const amountClaimed = roundCurrency(item.amount);
     totalClaimed += amountClaimed;
 
@@ -243,7 +330,6 @@ export function compareBillToOmfs(
         overchargeAmount,
       });
     } else {
-      // Unknown CPT code -- include but cannot compare
       comparedItems.push({
         cptCode: item.cptCode,
         description: item.description,
@@ -268,6 +354,54 @@ export function compareBillToOmfs(
     totalDiscrepancy,
     discrepancyPercent,
     disclaimer: OMFS_DISCLAIMER,
-    isStubData: true,
+    isStubData: !anyKbData,
   };
+}
+
+/**
+ * Compare a list of billed line items against OMFS rates (stub table only).
+ *
+ * Each line item is looked up in the local stub table. Unknown CPT codes
+ * are included in output with omfsAllowed=null and overchargeAmount=0.
+ *
+ * For live KB augmentation on unknown CPT codes, use compareBillToOmfsFromKb().
+ *
+ * @param lineItems - Array of billed items with CPT code, amount, and description.
+ * @returns Comparison result with per-item and aggregate discrepancy data.
+ */
+export function compareBillToOmfs(
+  lineItems: { cptCode: string; amount: number; description: string }[],
+): BillComparisonResult {
+  const rateMap = new Map<string, OmfsRateLookup>();
+  for (const item of lineItems) {
+    rateMap.set(item.cptCode, lookupOmfsRate(item.cptCode));
+  }
+  return buildBillComparison(lineItems, rateMap, false);
+}
+
+/**
+ * Compare a list of billed line items against OMFS rates — stub table with live KB fallback.
+ *
+ * For CPT codes not in the local stub table, queries the live KB API.
+ * KB results are cached for the process lifetime to avoid repeat API calls.
+ *
+ * @param lineItems - Array of billed items with CPT code, amount, and description.
+ * @returns Comparison result with per-item and aggregate discrepancy data.
+ */
+export async function compareBillToOmfsFromKb(
+  lineItems: { cptCode: string; amount: number; description: string }[],
+): Promise<BillComparisonResult> {
+  const rateMap = new Map<string, OmfsRateLookup>();
+  let anyKbData = false;
+
+  for (const item of lineItems) {
+    const lookup = await lookupOmfsRateFromKb(item.cptCode);
+    rateMap.set(item.cptCode, lookup);
+    // If the code is not in the stub table and has a rate, it came from the KB
+    if (!STUB_OMFS_RATES[item.cptCode] && lookup.omfsRate !== null) {
+      anyKbData = true;
+    }
+  }
+
+  return buildBillComparison(lineItems, rateMap, anyKbData);
 }

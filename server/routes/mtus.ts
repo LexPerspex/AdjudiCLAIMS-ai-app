@@ -12,7 +12,7 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/rbac.js';
 import { logAuditEvent } from '../middleware/audit.js';
-import { matchMtusGuidelines, getGuidelineDetail } from '../services/mtus-matcher.service.js';
+import { matchMtusGuidelinesFromKb, getGuidelineDetail } from '../services/mtus-matcher.service.js';
 
 // ---------------------------------------------------------------------------
 // Zod schemas
@@ -75,7 +75,7 @@ export async function mtusRoutes(server: FastifyInstance): Promise<void> {
         request,
       });
 
-      const result = matchMtusGuidelines(matchRequest);
+      const result = await matchMtusGuidelinesFromKb(matchRequest);
 
       return result;
     },

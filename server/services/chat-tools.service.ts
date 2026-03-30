@@ -16,6 +16,8 @@ import { hybridSearch } from './hybrid-search.service.js';
 import { queryGraphForExaminer, formatGraphContext } from './graph/examiner-graph-access.service.js';
 import { calculateTdRate } from './benefit-calculator.service.js';
 import { getClaimDeadlines } from './deadline-engine.service.js';
+import { lookupRegulation } from '../data/regulatory-kb.js';
+import { searchRegulatory } from '../lib/kb-client.js';
 
 // ---------------------------------------------------------------------------
 // Tool definitions — JSON Schema for each examiner-safe tool
@@ -145,7 +147,7 @@ export async function executeTool(
         return await executeCheckDeadlines(toolCall.input, claimId);
 
       case 'lookup_regulation':
-        return executeLookupRegulation(toolCall.input);
+        return await executeLookupRegulation(toolCall.input);
 
       default:
         return `Unknown tool: "${toolCall.name}". Available tools: ${EXAMINER_TOOLS.map((t) => t.name).join(', ')}`;
@@ -290,9 +292,67 @@ async function executeCheckDeadlines(
     .join('\n');
 }
 
-function executeLookupRegulation(input: Record<string, unknown>): string {
+async function executeLookupRegulation(input: Record<string, unknown>): Promise<string> {
   const citation = String(input['citation'] ?? '');
   if (!citation) return 'Error: "citation" parameter is required.';
 
-  return `Regulation lookup not yet implemented. Requested citation: "${citation}". Please refer to the California Labor Code or Title 8 CCR directly.`;
+  // 1. Try in-repo regulatory KB first (34 entries, instant, no network)
+  const localResults = lookupRegulation(citation);
+
+  if (localResults.length > 0) {
+    return localResults
+      .map(
+        (r) =>
+          `[${r.citation}] ${r.title}\n` +
+          `${r.fullText}\n` +
+          (r.keyRequirements.length > 0
+            ? `Key Requirements:\n${r.keyRequirements.map((req) => `  • ${req}`).join('\n')}\n`
+            : '') +
+          (r.penalties.length > 0
+            ? `Penalties:\n${r.penalties.map((p) => `  • ${p}`).join('\n')}\n`
+            : '') +
+          `Authority: ${r.citation} (effective ${r.effectiveDate})`,
+      )
+      .join('\n\n---\n\n');
+  }
+
+  // 2. Fall back to live KB for citations not in the local KB
+  try {
+    const kbResults = await searchRegulatory(citation, [
+      'labor_code',
+      'ccr_title_8',
+      'mtus',
+      'omfs',
+    ], 5);
+
+    if (kbResults.length > 0) {
+      // Deduplicate by sectionNumber
+      const seen = new Set<string>();
+      const unique = kbResults.filter((r) => {
+        if (seen.has(r.sectionNumber)) return false;
+        seen.add(r.sectionNumber);
+        return true;
+      });
+
+      return unique
+        .map(
+          (r) =>
+            `[${r.sectionNumber}] ${r.title ?? r.sectionNumber}\n` +
+            `${r.fullText}` +
+            (r.effectiveDate ? `\nEffective: ${r.effectiveDate}` : '') +
+            (r.tags.length > 0 ? `\nTags: ${r.tags.join(', ')}` : ''),
+        )
+        .join('\n\n---\n\n');
+    }
+  } catch (err) {
+    console.warn(
+      '[chat-tools] KB regulation lookup failed:',
+      err instanceof Error ? err.message : String(err),
+    );
+  }
+
+  return (
+    `No regulation found matching "${citation}" in the local KB or live Knowledge Base. ` +
+    `Please refer to the California Labor Code or Title 8 CCR directly.`
+  );
 }

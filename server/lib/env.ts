@@ -65,6 +65,14 @@ const envSchema = z.object({
   /** Deployed index identifier within the Vector Search index endpoint. */
   VECTOR_SEARCH_DEPLOYED_INDEX_ID: z.string().optional(),
 
+  // Knowledge Base
+  /**
+   * Base URL for the wc-knowledge-base API.
+   * Default: production Cloud Run URL.
+   * Override in local dev to point at a local KB instance.
+   */
+  KB_API_BASE: z.string().url().optional(),
+
   // Sentry
   /** Sentry DSN URL. When absent, Sentry is completely disabled (no-op). */
   SENTRY_DSN: z.string().refine((val) => { try { new URL(val); return true; } catch { return false; } }, { message: 'Invalid URL' }).optional(),

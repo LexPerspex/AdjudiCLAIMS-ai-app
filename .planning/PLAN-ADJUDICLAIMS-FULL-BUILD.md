@@ -22,25 +22,30 @@ The product reuses 40-100% of the existing Adjudica attorney platform's services
 
 ## Build Status Overview (as of 2026-03-30)
 
-> **Sprint 1 (2026-03-27 through 2026-03-30):** 30 commits on `feat/document-workflow-engine`.
-> Built the full backend service layer, RAG pipeline, Graph RAG (G1-G4), frontend scaffold,
-> CI/CD, and Cloud Run deployment. Test coverage: 76 files, 2,927 tests, 92% statements.
+> **Sprint 1 (2026-03-27 — 2026-03-30):** 30 commits. Built the full backend service layer,
+> RAG pipeline, Graph RAG G1-G4, frontend scaffold, CI/CD, Cloud Run deployment.
+>
+> **Sprints 2-6 (2026-03-30):** 96 files changed, merged as PR #3. Full password auth
+> (argon2id, MFA/TOTP, lockout), SOC 2 controls, 8 frontend tab implementations, regulatory KB
+> (34 entries), UPL acceptance suite (314 queries, 100% catch rate), AOE/COE per-body-part
+> coverage tracking, medical billing overview, comparable claims, Graph RAG G6 maintenance.
+> Test coverage: 87 files, 3,068 tests.
 
 ### Phase Status Table
 
 | Phase | Name | Status | Completion | Notes |
 |-------|------|--------|------------|-------|
-| **0** | Infrastructure & Scaffold | ✅ COMPLETE | 100% | Cloud Run, PlanetScale/PostgreSQL, CI/CD, Dockerfile, Sentry |
-| **1** | RBAC & Authentication | 🟡 PARTIAL | ~30% | Middleware stubs + API routes exist; NO production auth (email-only dev mode) |
+| **0** | Infrastructure & Scaffold | ✅ COMPLETE | 100% | Cloud Run, PostgreSQL, CI/CD, Dockerfile, Sentry |
+| **1** | RBAC & Authentication | ✅ COMPLETE | ~100% | Full argon2id auth, MFA/TOTP, account lockout, register, idle timeout, rate limiting, DSAR, right to deletion |
 | **2** | Document Pipeline | ✅ COMPLETE | 95% | OCR, classify, extract, 6-upgrade chunking, embeddings, hybrid search, graph enrichment |
-| **3** | Core Claims Services | ✅ COMPLETE | 90% | Benefit calculator, deadline engine, investigation checklist, workflow engine |
-| **4** | UPL Compliance Engine | ✅ COMPLETE | 95% | Classifier, validator, disclaimer, adversarial detection; 2,927 tests cover UPL |
-| **5** | Claims Chat System | ✅ COMPLETE | 90% | Examiner chat + RAG, 5-tool agentic loop, draft generation, counsel referral |
-| **6** | Education & Training | 🟡 PARTIAL | ~25% | Structural framework only — services + middleware exist, no substantive content |
-| **7** | Compliance Dashboard | 🟡 PARTIAL | ~35% | Backend services exist; frontend is stub tabs |
-| **8** | Data Boundaries & KB | 🟡 PARTIAL | ~40% | Access services exist; KB lookup_regulation is placeholder |
-| **9** | MVP Integration Testing | 🟡 PARTIAL | ~40% | 35 E2E tests, 92% coverage; blocked by auth + deployment gaps |
-| **10** | Tier 2 Features | 🟡 PARTIAL | ~15% | Some services built early (MTUS, letters, liens, doc generation) |
+| **3** | Core Claims Services | ✅ COMPLETE | 95% | Benefit calculator, deadline engine, investigation, workflow engine, coverage determination, medical billing overview |
+| **4** | UPL Compliance Engine | ✅ COMPLETE | 98% | Classifier, validator (24+ patterns), disclaimer, adversarial detection; 3,068 tests |
+| **5** | Claims Chat System | ✅ COMPLETE | 95% | Examiner chat + RAG, 5-tool agentic loop, draft generation, counsel referral, regulatory KB wired |
+| **6** | Education & Training | ✅ COMPLETE | ~90% | 86 Tier 1 terms, 57 Tier 2 entries, 4 training modules, 20 workflows, Q1-Q4 refreshers |
+| **7** | Compliance Dashboard | 🟡 NEAR COMPLETE | ~80% | Real compliance dashboard (role-aware), all 12 claim tabs implemented (including Coverage + Medicals) |
+| **8** | Data Boundaries & KB | 🟡 NEAR COMPLETE | ~85% | 34-entry regulatory KB, lookup_regulation wired, per-body-part access via ClaimBodyPart |
+| **9** | MVP Integration Testing | 🟡 NEAR COMPLETE | ~80% | 3,068 tests (87 files), 4 E2E Playwright specs, UPL acceptance (314 queries), SOC 2 suite (69 tests), legal review package created |
+| **10** | Tier 2 Features | 🟡 PARTIAL | ~60% | Comparable claims, graph maintenance G6, email service, 8 doc templates, counsel referral email |
 | **11** | Tier 3 Features | ❌ NOT STARTED | 0% | Future — gated by carrier advisory board + pilot feedback |
 
 ### What Was Built (Sprint 1: 2026-03-27 — 2026-03-30)
@@ -79,58 +84,57 @@ The product reuses 40-100% of the existing Adjudica attorney platform's services
 - Stitch 2.0 frontend generation prompt
 - Platform evolution research digest
 
-### Critical Gaps (MVP Blockers)
+### Critical Gaps (Updated 2026-03-30 Post-Sprint 2-6)
 
-| # | Gap | Blocks | Severity |
+| # | Gap | Status | Severity |
 |---|-----|--------|----------|
-| 1 | **Production authentication** — email-only dev mode, no BetterAuth | Phase 1, Phase 9 | **CRITICAL** |
-| 2 | **Unified server not deployed** — Fastify + React Router committed but Cloud Run not updated | Phase 9 | **HIGH** |
-| 3 | **KB integration** — `lookup_regulation` is a placeholder, no real KB data | Phase 5 chat quality, Phase 8 | **HIGH** |
-| 4 | **Education content substance** — structural framework only, 0 of 57 entries populated | Phase 6 | **MEDIUM** |
-| 5 | **8 frontend tab stubs** — need real UI (documents, deadlines, investigation, workflows, letters, liens, timeline, referrals) | Phase 9 UX | **MEDIUM** |
-| 6 | **Legal counsel review** — not submitted | Phase 9 launch gate | **HIGH** |
-| 7 | **Graph RAG G5 (Trust UX)** — not started | Phase 10 | LOW |
-| 8 | **Graph RAG G6 (Neuro-plasticity)** — not started | Phase 10 | LOW |
-| 9 | **SOC 2 controls** — plan exists (1,017 lines), zero implementation code | Phase 9 security | **MEDIUM** |
-| 10 | **Production database credentials** — may need fixing after PlanetScale/PostgreSQL reconciliation | Phase 9 | **MEDIUM** |
+| 1 | ~~Production authentication~~ | ✅ **RESOLVED** — full argon2id + MFA + lockout + register | ~~CRITICAL~~ |
+| 2 | **Unified server not deployed** — Fastify + React Router committed but Cloud Run not updated | **OPEN** | **HIGH** |
+| 3 | ~~KB integration~~ | ✅ **RESOLVED** — 34-entry regulatory KB, lookup_regulation wired | ~~HIGH~~ |
+| 4 | ~~Education content~~ | ✅ **RESOLVED** — 86 Tier 1, 57 Tier 2, 4 modules, 20 workflows populated | ~~MEDIUM~~ |
+| 5 | ~~Frontend tab stubs~~ | ✅ **RESOLVED** — all 8 tabs + 4 pages fully implemented | ~~MEDIUM~~ |
+| 6 | **Legal counsel review** — package created at docs/legal/UPL_REVIEW_PACKAGE.md, **NOT SUBMITTED** | **OPEN** | **HIGH** |
+| 7 | Graph RAG G5 (Trust UX) — confidence badges, entity panel | **OPEN** | LOW |
+| 8 | Graph RAG G6 (Neuro-plasticity) — ✅ Hebbian decay service built | **PARTIALLY RESOLVED** | LOW |
+| 9 | **SOC 2 controls** — 69 compliance tests + security middleware built, remaining controls needed | **PARTIALLY RESOLVED** | **MEDIUM** |
+| 10 | **Production database migration** — schema changes need to be applied to staging/production | **OPEN** | **HIGH** |
 
 ### Dependency Graph (Updated 2026-03-30)
 
 ```
 Phase 0: Infrastructure ─────────────── ✅ COMPLETE (2026-03-28/29)
     │
-Phase 1: RBAC & Auth ────────────────── 🟡 PARTIAL (stubs only, no prod auth)
-    │                                        ⚠ BLOCKER: BetterAuth not integrated
+Phase 1: RBAC & Auth ────────────────── ✅ COMPLETE (argon2id + MFA + lockout)
     │
 Phase 2: Document Pipeline ──────────── ✅ COMPLETE (2026-03-27/28)
     │                        │               + Graph RAG G1-G4 enrichment
     │                        │
 Phase 3: Core Claims         │
-  Services ──────────────────┤────────── ✅ COMPLETE (2026-03-28)
+  Services ──────────────────┤────────── ✅ COMPLETE (2026-03-28/30)
     │                        │
-Phase 4: UPL Engine ─────────┤────────── ✅ COMPLETE (2026-03-27)
-    │                        │               2,927 tests, 92% coverage
+Phase 4: UPL Engine ─────────┤────────── ✅ COMPLETE (3,068 tests)
+    │                        │               314-query acceptance suite
     │                        │
-Phase 5: Claims Chat ────────┤────────── ✅ COMPLETE (2026-03-28)
-    │                        │               Agentic loop + tool-use
+Phase 5: Claims Chat ────────┤────────── ✅ COMPLETE (2026-03-28/30)
+    │                        │               Agentic loop + KB wired
     │                        │
 Phase 6: Education &         │
-  Training ──────────────────┤────────── 🟡 PARTIAL (~25% — structural only)
-    │                        │               ⚠ No substantive content
+  Training ──────────────────┤────────── ✅ COMPLETE (~90%)
+    │                        │               86 Tier 1, 57 Tier 2, 4 modules
     │                        │
 Phase 7: Compliance          │
-  Dashboard & Audit ─────────┤────────── 🟡 PARTIAL (~35% — backend only)
-    │                        │               ⚠ Frontend stubs
+  Dashboard & Audit ─────────┤────────── 🟡 NEAR COMPLETE (~80%)
+    │                        │               All 12 tabs implemented
     │                        │
 Phase 8: Data Boundaries     │
-  & KB Access ───────────────┘────────── 🟡 PARTIAL (~40% — services exist)
-    │                                        ⚠ KB placeholder
+  & KB Access ───────────────┘────────── 🟡 NEAR COMPLETE (~85%)
+    │                                        34-entry KB, per-body-part access
     │
-Phase 9: MVP Integration ─────────────── 🟡 PARTIAL (~40%)
-    │                                        ⚠ Blocked by Phase 1 auth
-    │                                        ⚠ Blocked by deployment gap
+Phase 9: MVP Integration ─────────────── 🟡 NEAR COMPLETE (~80%)
+    │                                        ⚠ Deployment gap remains
+    │                                        ⚠ Legal review not submitted
     │
-Phase 10: Tier 2 Features ────────────── 🟡 PARTIAL (~15% — some early builds)
+Phase 10: Tier 2 Features ────────────── 🟡 PARTIAL (~60%)
     │
 Phase 11: Tier 3 Features ────────────── ❌ NOT STARTED
 ```

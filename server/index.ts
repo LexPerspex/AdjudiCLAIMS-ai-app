@@ -29,6 +29,9 @@ import { letterRoutes } from './routes/letters.js';
 import { referralRoutes } from './routes/referrals.js';
 import { mtusRoutes } from './routes/mtus.js';
 import { lienRoutes } from './routes/liens.js';
+import { coverageRoutes } from './routes/coverage.js';
+import { medicalBillingRoutes } from './routes/medical-billing.js';
+import { dataManagementRoutes } from './routes/data-management.js';
 
 export async function buildServer() {
   const env = validateEnv();
@@ -102,6 +105,9 @@ export async function buildServer() {
   await server.register(referralRoutes, { prefix: '/api' });
   await server.register(mtusRoutes, { prefix: '/api' });
   await server.register(lienRoutes, { prefix: '/api' });
+  await server.register(coverageRoutes, { prefix: '/api' });
+  await server.register(medicalBillingRoutes, { prefix: '/api' });
+  await server.register(dataManagementRoutes, { prefix: '/api' });
 
   // WI-2: Global error handler — registered after all routes
   registerErrorHandler(server);

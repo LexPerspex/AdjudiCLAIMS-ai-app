@@ -205,6 +205,25 @@ enum AuditEventType {
   REGULATORY_CHANGE_ACKNOWLEDGED
   MONTHLY_REVIEW_COMPLETED
   QUARTERLY_REFRESHER_COMPLETED
+  // Sprint 2: Auth + Security
+  USER_LOGIN_FAILED
+  USER_ACCOUNT_LOCKED
+  USER_MFA_ENROLLED
+  USER_MFA_VERIFIED
+  USER_PASSWORD_CHANGED
+  USER_CREATED
+  USER_DEACTIVATED
+  USER_ROLE_CHANGED
+  SESSION_EXPIRED
+  EXPORT_DATA_REQUESTED
+  DATA_DELETION_REQUESTED
+  DATA_DELETION_COMPLETED
+  SYSTEM_CONFIG_CHANGED
+  DEPLOYMENT_COMPLETED
+  ANOMALY_DETECTED
+  // AOE/COE + Medical Billing
+  BODY_PART_STATUS_CHANGED
+  MEDICAL_PAYMENT_RECORDED
 
   @@map("audit_event_type")
 }
@@ -263,6 +282,25 @@ enum FilingFeeStatus {
   UNKNOWN
 
   @@map("filing_fee_status")
+}
+
+enum BodyPartStatus {
+  PENDING
+  ADMITTED
+  DENIED
+  UNDER_INVESTIGATION
+
+  @@map("body_part_status")
+}
+
+enum MedicalPaymentType {
+  DIRECT_PAYMENT
+  LIEN_PAYMENT
+  PHARMACY
+  DME
+  DIAGNOSTICS
+
+  @@map("medical_payment_type")
 }
 
 enum WorkflowStepStatus {
@@ -440,6 +478,22 @@ model User {
   role           UserRole @map("role")
   isActive       Boolean  @default(true) @map("is_active")
 
+  // Sprint 2: Auth fields
+  passwordHash              String?   @map("password_hash")
+  emailVerified             Boolean   @default(false) @map("email_verified")
+  emailVerificationToken    String?   @map("email_verification_token")
+  emailVerificationExpiry   DateTime? @map("email_verification_expiry")
+  mfaSecret                 String?   @map("mfa_secret")
+  mfaEnabled                Boolean   @default(false) @map("mfa_enabled")
+  failedLoginAttempts       Int       @default(0) @map("failed_login_attempts")
+  lockedUntil               DateTime? @map("locked_until")
+  lastLoginAt               DateTime? @map("last_login_at")
+  passwordChangedAt         DateTime? @map("password_changed_at")
+
+  // Soft-delete
+  deletedAt DateTime? @map("deleted_at")
+  deletedBy String?   @map("deleted_by")
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -458,6 +512,9 @@ model User {
   // Phase 10 relations
   generatedLetters  GeneratedLetter[]
   counselReferrals  CounselReferral[]
+
+  // AOE/COE relations
+  coverageDeterminations CoverageDetermination[] @relation("DeterminedBy")
 
   @@index([organizationId], map: "idx_users_organization_id")
   @@index([email], map: "idx_users_email")
@@ -501,6 +558,10 @@ model Claim {
   hasApplicantAttorney Boolean @default(false) @map("has_applicant_attorney")
   isCumulativeTrauma   Boolean @default(false) @map("is_cumulative_trauma")
 
+  // Soft-delete
+  deletedAt DateTime? @map("deleted_at")
+  deletedBy String?   @map("deleted_by")
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -520,6 +581,11 @@ model Claim {
   generatedLetters  GeneratedLetter[]
   counselReferrals  CounselReferral[]
   liens             Lien[]
+
+  // AOE/COE + Medical Billing relations
+  bodyPartRecords        ClaimBodyPart[]
+  coverageDeterminations CoverageDetermination[]
+  medicalPayments        MedicalPayment[]
 
   // Graph RAG relations
   graphNodes          GraphNode[]
@@ -562,7 +628,11 @@ model Document {
 
   // OCR / text extraction processing
   ocrStatus     OcrStatus @default(PENDING) @map("ocr_status")
-  extractedText String?   @map("extracted_text") 
+  extractedText String?   @map("extracted_text")
+
+  // Soft-delete
+  deletedAt DateTime? @map("deleted_at")
+  deletedBy String?   @map("deleted_by")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -935,8 +1005,9 @@ model CounselReferral {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  claim Claim @relation(fields: [claimId], references: [id])
-  user  User  @relation(fields: [userId], references: [id])
+  claim                  Claim                   @relation(fields: [claimId], references: [id])
+  user                   User                    @relation(fields: [userId], references: [id])
+  coverageDeterminations CoverageDetermination[]
 
   @@index([claimId, status], map: "idx_counsel_referrals_claim_status")
   @@index([userId], map: "idx_counsel_referrals_user_id")
@@ -964,8 +1035,9 @@ model Lien {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  claim     Claim          @relation(fields: [claimId], references: [id])
-  lineItems LienLineItem[]
+  claim           Claim            @relation(fields: [claimId], references: [id])
+  lineItems       LienLineItem[]
+  medicalPayments MedicalPayment[]
 
   @@index([claimId, status], map: "idx_liens_claim_status")
   @@index([lienType], map: "idx_liens_lien_type")
@@ -975,22 +1047,110 @@ model Lien {
 
 /// Individual line item on a lien — with OMFS fee schedule comparison.
 model LienLineItem {
-  id              String   @id @default(cuid()) @map("id")
-  lienId          String   @map("lien_id")
-  serviceDate     DateTime @map("service_date") @db.Date
-  cptCode         String?  @map("cpt_code")
-  description     String   @map("description")
-  amountClaimed   Decimal  @map("amount_claimed") @db.Decimal(10, 2)
-  omfsRate        Decimal? @map("omfs_rate") @db.Decimal(10, 2)
-  isOvercharge    Boolean  @default(false) @map("is_overcharge")
+  id               String   @id @default(cuid()) @map("id")
+  lienId           String   @map("lien_id")
+  serviceDate      DateTime @map("service_date") @db.Date
+  cptCode          String?  @map("cpt_code")
+  description      String   @map("description")
+  amountClaimed    Decimal  @map("amount_claimed") @db.Decimal(10, 2)
+  omfsRate         Decimal? @map("omfs_rate") @db.Decimal(10, 2)
+  isOvercharge     Boolean  @default(false) @map("is_overcharge")
   overchargeAmount Decimal? @map("overcharge_amount") @db.Decimal(10, 2)
+  bodyPartId       String?  @map("body_part_id")
 
   // Relations
-  lien Lien @relation(fields: [lienId], references: [id], onDelete: Cascade)
+  lien     Lien           @relation(fields: [lienId], references: [id], onDelete: Cascade)
+  bodyPart ClaimBodyPart? @relation("LineItemBodyPart", fields: [bodyPartId], references: [id])
 
   @@index([lienId], map: "idx_lien_line_items_lien_id")
   @@index([cptCode], map: "idx_lien_line_items_cpt_code")
+  @@index([bodyPartId], map: "idx_lien_line_items_body_part_id")
   @@map("lien_line_items")
+}
+
+// =============================================================================
+// AOE/COE + Medical Billing Models
+// =============================================================================
+
+/// Per-body-part coverage tracking — replaces JSON bodyParts as authoritative source.
+model ClaimBodyPart {
+  id              String         @id @default(cuid()) @map("id")
+  claimId         String         @map("claim_id")
+  bodyPartName    String         @map("body_part_name")
+  icdCode         String?        @map("icd_code")
+  status          BodyPartStatus @default(PENDING) @map("status")
+  statusChangedAt DateTime?      @map("status_changed_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  claim                  Claim                   @relation(fields: [claimId], references: [id])
+  coverageDeterminations CoverageDetermination[]
+  lienLineItems          LienLineItem[]          @relation("LineItemBodyPart")
+  medicalPayments        MedicalPayment[]
+
+  @@index([claimId], map: "idx_claim_body_parts_claim_id")
+  @@index([claimId, status], map: "idx_claim_body_parts_claim_status")
+  @@map("claim_body_parts")
+}
+
+/// Append-only audit log of coverage determinations per body part.
+model CoverageDetermination {
+  id                String          @id @default(cuid()) @map("id")
+  claimId           String          @map("claim_id")
+  bodyPartId        String          @map("body_part_id")
+  previousStatus    BodyPartStatus? @map("previous_status")
+  newStatus         BodyPartStatus  @map("new_status")
+  determinationDate DateTime        @map("determination_date") @db.Date
+  determinedById    String          @map("determined_by_id")
+  basis             String          @map("basis")
+  counselReferralId String?         @map("counsel_referral_id")
+  notes             String?         @map("notes")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  claim           Claim            @relation(fields: [claimId], references: [id])
+  bodyPart        ClaimBodyPart    @relation(fields: [bodyPartId], references: [id])
+  determinedBy    User             @relation("DeterminedBy", fields: [determinedById], references: [id])
+  counselReferral CounselReferral? @relation(fields: [counselReferralId], references: [id])
+
+  @@index([claimId], map: "idx_coverage_determinations_claim_id")
+  @@index([bodyPartId], map: "idx_coverage_determinations_body_part_id")
+  @@index([claimId, determinationDate], map: "idx_coverage_determinations_claim_date")
+  @@map("coverage_determinations")
+}
+
+/// Medical payment record — both direct payments and lien-based payments.
+model MedicalPayment {
+  id           String             @id @default(cuid()) @map("id")
+  claimId      String             @map("claim_id")
+  bodyPartId   String?            @map("body_part_id")
+  lienId       String?            @map("lien_id")
+  providerName String             @map("provider_name")
+  paymentType  MedicalPaymentType @map("payment_type")
+  amount       Decimal            @map("amount") @db.Decimal(12, 2)
+  paymentDate  DateTime           @map("payment_date") @db.Date
+  serviceDate  DateTime?          @map("service_date") @db.Date
+  cptCode      String?            @map("cpt_code")
+  description  String             @map("description")
+  checkNumber  String?            @map("check_number")
+  notes        String?            @map("notes")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  claim    Claim          @relation(fields: [claimId], references: [id])
+  bodyPart ClaimBodyPart? @relation(fields: [bodyPartId], references: [id])
+  lien     Lien?          @relation(fields: [lienId], references: [id])
+
+  @@index([claimId], map: "idx_medical_payments_claim_id")
+  @@index([claimId, paymentDate], map: "idx_medical_payments_claim_date")
+  @@index([bodyPartId], map: "idx_medical_payments_body_part_id")
+  @@index([lienId], map: "idx_medical_payments_lien_id")
+  @@index([providerName], map: "idx_medical_payments_provider")
+  @@map("medical_payments")
 }
 
 // =============================================================================

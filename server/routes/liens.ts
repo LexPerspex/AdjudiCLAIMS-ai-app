@@ -81,6 +81,7 @@ const LineItemSchema = z.object({
   cptCode: z.string().optional(),
   description: z.string().min(1, 'description is required'),
   amountClaimed: z.number().positive('amountClaimed must be positive'),
+  bodyPartId: z.string().optional(),
 });
 
 const AddLineItemsBodySchema = z.object({

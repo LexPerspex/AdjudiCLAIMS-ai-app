@@ -47,6 +47,7 @@ function statusColor(status: string) {
 
 const tabs = [
   { label: 'Overview', to: '.' },
+  { label: 'Coverage', to: 'coverage' },
   { label: 'Documents', to: 'documents' },
   { label: 'Deadlines', to: 'deadlines' },
   { label: 'Investigation', to: 'investigation' },
@@ -54,6 +55,7 @@ const tabs = [
   { label: 'Chat', to: 'chat' },
   { label: 'Letters', to: 'letters' },
   { label: 'Liens', to: 'liens' },
+  { label: 'Medicals', to: 'medicals' },
   { label: 'Timeline', to: 'timeline' },
   { label: 'Referrals', to: 'referrals' },
 ] as const;

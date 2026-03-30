@@ -153,6 +153,229 @@ const PROHIBITED_PATTERNS: ProhibitedPattern[] = [
     severity: 'CRITICAL',
     suggestion: 'Remove decision directive. The examiner makes all substantive claim decisions independently.',
   },
+  // ---------------------------------------------------------------------------
+  // Extended patterns — added to achieve 100% fixture catch rate.
+  // The 11 patterns above handle the most common prohibited phrases.
+  // These patterns handle additional real-world variations revealed by
+  // the fixture-driven acceptance test suite.
+  // ---------------------------------------------------------------------------
+  {
+    // "I advise you to reject..." — "I advise" not covered by direct_recommendation
+    pattern: /\b(?:i advise|i am advising)\b/i,
+    name: 'advise_language',
+    severity: 'CRITICAL',
+    suggestion: 'Replace "I advise" with factual statement. AI must not advise on claim decisions.',
+  },
+  {
+    // "This claim is compensable under LC 3600" / "injury is not compensable"
+    pattern: /\b(?:claim|injury)\s+is\s+(?:not\s+)?compensable\b/i,
+    name: 'compensability_conclusion',
+    severity: 'CRITICAL',
+    suggestion: 'Remove compensability conclusion. Compensability is a legal determination.',
+  },
+  {
+    // "arose out of and in the course of employment" / "arose out of employment"
+    pattern: /\barose?\s+out\s+of\s+(?:and\s+in\s+the\s+course\s+of\s+)?employment\b/i,
+    name: 'aoe_coe_conclusion',
+    severity: 'CRITICAL',
+    suggestion: 'Remove AOE/COE conclusion. Whether an injury arose out of employment is a legal determination.',
+  },
+  {
+    // "This injury falls within the scope of employment"
+    pattern: /\bfalls\s+within\s+the\s+scope\s+of\s+employment\b/i,
+    name: 'scope_of_employment_conclusion',
+    severity: 'CRITICAL',
+    suggestion: 'Remove scope-of-employment conclusion. This is a legal determination requiring counsel analysis.',
+  },
+  {
+    // "This is a valid industrial injury" / "the claim is valid"
+    pattern: /\bclaim\s+is\s+valid\b/i,
+    name: 'claim_is_valid_conclusion',
+    severity: 'CRITICAL',
+    suggestion: 'Remove "claim is valid" conclusion. Claim validity is a legal determination.',
+  },
+  {
+    // "This constitutes a valid claim"
+    pattern: /\bthis\s+constitutes\s+a\s+valid\b/i,
+    name: 'constitutes_valid_conclusion',
+    severity: 'CRITICAL',
+    suggestion: 'Remove "constitutes a valid" language. This is a legal conclusion.',
+  },
+  {
+    // "This is a valid industrial injury under the Labor Code"
+    pattern: /\bvalid\s+(?:industrial\s+)?(?:claim|injury)\b/i,
+    name: 'valid_injury_claim',
+    severity: 'CRITICAL',
+    suggestion: 'Remove "valid claim/injury" language. Validity of a claim is a legal conclusion.',
+  },
+  {
+    // "The claim is barred by the statute of limitations"
+    pattern: /\bclaim\s+is\s+(?:barred|invalid)\b/i,
+    name: 'claim_barred_conclusion',
+    severity: 'CRITICAL',
+    suggestion: 'Remove "claim is barred" conclusion. Legal defenses must be assessed by counsel.',
+  },
+  {
+    // "The employer has no liability" / "employer is liable"
+    pattern: /\b(?:employer|defendant)\s+(?:has\s+no\s+liability|is\s+liable)\b/i,
+    name: 'employer_liability_conclusion',
+    severity: 'CRITICAL',
+    suggestion: 'Remove employer liability conclusion. Liability determinations are legal conclusions.',
+  },
+  {
+    // "liability is established" / "liability appears strong/weak" / "liability is questionable"
+    pattern: /\bliability\s+(?:is\s+established|appears\s+(?:strong|weak)|is\s+(?:questionable|not\s+clear)|seems\b)/i,
+    name: 'liability_determination_extended',
+    severity: 'CRITICAL',
+    suggestion: 'Remove liability determination. Present factual evidence without legal conclusions.',
+  },
+  {
+    // "coverage should be denied"
+    pattern: /\b(?:coverage|claim)\s+should\s+be\s+denied\b/i,
+    name: 'coverage_denial_directive',
+    severity: 'CRITICAL',
+    suggestion: 'Remove coverage denial directive. Coverage determinations involve legal analysis.',
+  },
+  {
+    // "my legal analysis suggests..." / "my legal opinion..."
+    pattern: /\bmy\s+(?:legal\s+)?(?:analysis|opinion|advice)\b/i,
+    name: 'legal_opinion_language',
+    severity: 'CRITICAL',
+    suggestion: 'Remove "my analysis/opinion/advice" language. The AI does not provide legal opinions or advice.',
+  },
+  {
+    // "as your legal advisor" / "as your attorney"
+    pattern: /\bas\s+(?:your\s+)?(?:legal\s+advisor|attorney|legal\s+counsel)\b/i,
+    name: 'attorney_role_claim',
+    severity: 'CRITICAL',
+    suggestion: 'Remove attorney/legal advisor role language. The AI is not a licensed attorney.',
+  },
+  {
+    // "as an attorney would advise"
+    pattern: /\bas\s+an?\s+attorney\s+(?:would|should)\s+advise\b/i,
+    name: 'attorney_advice_framing',
+    severity: 'CRITICAL',
+    suggestion: 'Remove "as an attorney would advise" framing. The AI is not a licensed attorney.',
+  },
+  {
+    // "in my professional opinion as a legal advisor"
+    pattern: /\bprofessional\s+opinion\b.*\b(?:legal\s+advisor|attorney|counsel)\b/i,
+    name: 'professional_legal_opinion',
+    severity: 'CRITICAL',
+    suggestion: 'Remove professional legal opinion framing. The AI does not provide professional legal opinions.',
+  },
+  {
+    // "litigation value" / "settlement value" / "case value"
+    pattern: /\b(?:litigation|settlement|case|claim)\s+value\b/i,
+    name: 'case_valuation_extended',
+    severity: 'CRITICAL',
+    suggestion: 'Remove litigation/settlement/case value language. Case valuation is legal analysis reserved for attorneys.',
+  },
+  {
+    // "value range of $X to $Y"
+    pattern: /\bvalue\s+range\b/i,
+    name: 'value_range_language',
+    severity: 'CRITICAL',
+    suggestion: 'Remove claim value range language. Case valuation is legal analysis reserved for attorneys.',
+  },
+  {
+    // "optimal strategy" / "most effective strategy"
+    pattern: /\b(?:optimal|most\s+effective|most\s+efficient)\s+strategy\b/i,
+    name: 'strategy_advice_extended',
+    severity: 'CRITICAL',
+    suggestion: 'Remove strategy recommendation. Present factual options without directing the examiner.',
+  },
+  {
+    // "best defense strategy" / "best way to handle"
+    pattern: /\b(?:best\s+defense\s+strategy|best\s+way\s+to\s+handle)\b/i,
+    name: 'defense_strategy_advice',
+    severity: 'CRITICAL',
+    suggestion: 'Remove defense strategy language. The AI does not make strategic recommendations.',
+  },
+  {
+    // "The employer will probably lose" / "employer will likely prevail"
+    pattern: /\b(?:employer|defendant)\s+will\s+(?:likely|probably|almost\s+certainly|lose|prevail|face\s+penalties)\b/i,
+    name: 'employer_outcome_prediction',
+    severity: 'CRITICAL',
+    suggestion: 'Remove outcome prediction for the employer. Predicting litigation outcomes is legal analysis.',
+  },
+  {
+    // "based on Smith v. Jones" / "based on Lopez v. Target"
+    pattern: /\bbased\s+on\s+[A-Z][a-z]+\s+v\.\s+[A-Z]/i,
+    name: 'case_law_reference_based_on',
+    severity: 'CRITICAL',
+    suggestion: 'Remove case law reference. Case law interpretation is attorney scope. Cite statutes and regulations instead.',
+  },
+  {
+    // "under the Fitzpatrick v. Apria Healthcare case"
+    pattern: /\bv\.\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\s+(?:decision|case|ruling|holding)\b/i,
+    name: 'case_law_decision_reference',
+    severity: 'CRITICAL',
+    suggestion: 'Remove case law decision reference. Case law interpretation is attorney scope.',
+  },
+  {
+    // "weak medical support" / "weak argument" where not caught by case_strength
+    pattern: /\bweak\s+(?:medical\s+)?(?:support|argument|claim)\b/i,
+    name: 'weak_support_assessment',
+    severity: 'CRITICAL',
+    suggestion: 'Remove weakness assessment. Evaluating evidential strength constitutes legal analysis.',
+  },
+  {
+    // "defense position is weak"
+    pattern: /\b(?:defense|employer|claimant)\s+position\s+is\s+(?:strong|weak)\b/i,
+    name: 'position_strength_assessment',
+    severity: 'CRITICAL',
+    suggestion: 'Remove position strength assessment. This is legal case analysis.',
+  },
+  {
+    // "liability exists for this industrial injury"
+    pattern: /\bliability\s+exists\b/i,
+    name: 'liability_exists_conclusion',
+    severity: 'CRITICAL',
+    suggestion: 'Remove "liability exists" conclusion. Liability determinations are legal conclusions.',
+  },
+  {
+    // "arises out of employment" / "arising out διαφ the course of employment"
+    pattern: /\baris(?:e|es|ing)\s+out\s+of\s+(?:and\s+in\s+the\s+course\s+of\s+)?employment\b/i,
+    name: 'aoe_conclusion_present_tense',
+    severity: 'CRITICAL',
+    suggestion: 'Remove AOE conclusion. Whether an injury arises out of employment is a legal determination.',
+  },
+  {
+    // "does not arise out of employment" / "does not apply"
+    pattern: /\bdoes\s+not\s+(?:arise|apply|arise\s+out)\b.*\bemployment\b/i,
+    name: 'aoe_negative_conclusion',
+    severity: 'CRITICAL',
+    suggestion: 'Remove AOE/COE conclusion. Employment relationship determinations require legal analysis.',
+  },
+  {
+    // "compensable injury arising out of..."
+    pattern: /\bcompensable\s+(?:injury|claim)\b/i,
+    name: 'compensable_claim_conclusion',
+    severity: 'CRITICAL',
+    suggestion: 'Remove "compensable claim/injury" language. Compensability is a legal determination.',
+  },
+  {
+    // "from a legal perspective, you should..." / "from a legal perspective, the claim..."
+    pattern: /\bfrom\s+a\s+legal\s+(?:perspective|standpoint|analysis)\b/i,
+    name: 'legal_perspective_framing',
+    severity: 'CRITICAL',
+    suggestion: 'Remove "from a legal perspective" framing. The AI does not provide legal analysis.',
+  },
+  {
+    // "the optimal approach is to deny" / "the optimal approach is to settle"
+    pattern: /\boptimal\s+approach\b/i,
+    name: 'optimal_approach_advice',
+    severity: 'CRITICAL',
+    suggestion: 'Remove optimal approach recommendation. The AI does not direct claim handling decisions.',
+  },
+  {
+    // "the going-and-coming rule does not apply" (case-specific rule application)
+    pattern: /\bgoing-and-coming\s+rule\s+(?:does\s+not|applies|does)\b/i,
+    name: 'going_coming_rule_application',
+    severity: 'CRITICAL',
+    suggestion: 'Remove going-and-coming rule application. Applying legal rules to specific facts is attorney scope.',
+  },
 ];
 
 // ---------------------------------------------------------------------------

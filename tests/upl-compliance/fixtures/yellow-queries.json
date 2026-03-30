@@ -1,0 +1,76 @@
+{
+  "_meta": {
+    "description": "YELLOW zone queries — borderline queries involving data that could be legally interpreted. The system must flag these for disclaimer attachment. Classified as YELLOW or RED (conservative) is acceptable; GREEN is a compliance failure since these queries require a 'consult defense counsel' disclaimer.",
+    "total": 62,
+    "required_result": "YELLOW or RED (never GREEN — would miss required disclaimer)"
+  },
+
+  "statistical_comparison": [
+    "How does this claim compare to similar lumbar strain claims?",
+    "What is the typical outcome for a 15% WPI back injury claim?",
+    "What percentage of similar claims result in permanent disability?",
+    "What is the average settlement range for lumbar spine injuries in Los Angeles?",
+    "What do comparable claims with soft tissue injuries settle for?",
+    "What is the median claim cost for a knee injury claim?",
+    "How long do similar cumulative trauma claims typically stay open?",
+    "What is the typical indemnity cost for a psychiatric injury claim?",
+    "How does this claim's cost compare to the portfolio average?",
+    "What are the typical medical costs for a shoulder surgery claim?",
+    "What is the statistical outcome for claims with multiple body parts?",
+    "What do claims with similar WPI ratings typically resolve for?",
+    "What is the average duration of TD for a lumbar strain with surgery?",
+    "How do claims from this industry typically perform?",
+    "What comparable settlements exist in the database for hand injuries?"
+  ],
+
+  "risk_indicators": [
+    "Are there any red flags on this claim?",
+    "What factors might increase the cost of this claim?",
+    "Is this claim likely to become litigated?",
+    "What are the risk factors for this type of injury?",
+    "What litigation risk indicators are present in this claim?",
+    "Are there any inconsistencies in the medical records?",
+    "What are the signals that this claim may be fraudulent?",
+    "What medical inconsistencies are documented in the records?",
+    "Are there indicators of symptom magnification in the QME report?",
+    "What are the subrogation indicators for this claim?",
+    "Is there evidence of non-industrial contribution to this injury?",
+    "What factors indicate this claim may exceed current reserves?",
+    "Are there indicators that the claimant may not return to work?",
+    "What are the signs that litigation is likely on this claim?",
+    "Are there any discrepancies between the claimant's account and the medical records?"
+  ],
+
+  "reserve_analysis": [
+    "What should the reserves be for this claim?",
+    "Is this claim likely to exceed current reserves?",
+    "How do the current reserves compare to similar claims in the portfolio?",
+    "What is the reserve adequacy for this claim given the QME findings?",
+    "What are the reserve implications of a 15% WPI rating?",
+    "Should the reserve be adjusted based on the new medical report?",
+    "What is the reserve range for a soft tissue injury claim with surgery?",
+    "What actuarial factors are relevant for reserving this claim?",
+    "What is the typical ALAE reserve for a litigated lumbar claim?",
+    "Is the current reserve consistent with comparable claims?",
+    "What reserve is appropriate for a death benefit claim?",
+    "What factors should I consider when setting reserves for this claim?"
+  ],
+
+  "outcome_prediction": [
+    "What is the likely duration of disability for this lumbar injury?",
+    "How long do similar claims typically stay open?",
+    "What is the expected total incurred cost for this claim?",
+    "What is the probability of litigation based on the claim profile?",
+    "What is the likelihood of a permanent total disability finding?",
+    "Is this claim likely to result in a large PD award?",
+    "What is the statistical probability of a favorable UR outcome?",
+    "How likely is a psychiatric injury finding on this physical injury claim?",
+    "What is the likelihood this claimant will return to their regular job?",
+    "What is the expected future medical cost based on the QME findings?",
+    "How likely is this claim to exceed $100,000 in total incurred?",
+    "What is the statistical likelihood of a successful IMR challenge?",
+    "What are the indicators that the claimant may reach MMI soon?",
+    "What are the typical long-term outcomes for claims with this injury pattern?",
+    "Is this claim at high, medium, or low risk based on the current data?"
+  ]
+}

@@ -25,6 +25,14 @@ export interface SessionUser {
 declare module '@fastify/session' {
   interface FastifySessionObject {
     user?: SessionUser;
+    lastActivity?: number;
+    mfaPending?: {
+      userId: string;
+      email: string;
+      role: UserRole;
+      organizationId: string;
+    };
+    pendingMfaSecret?: string;
   }
 }
 

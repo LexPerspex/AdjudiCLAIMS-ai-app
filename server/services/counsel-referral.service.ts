@@ -18,6 +18,7 @@ import { COUNSEL_REFERRAL_PROMPT } from '../prompts/adjudiclaims-chat.prompts.js
 import { validateOutput, type ValidationResult } from './upl-validator.service.js';
 import { logAuditEvent } from '../middleware/audit.js';
 import { parseJsonStringArray } from '../lib/json-array.js';
+import { sendCounselReferralNotification } from './email.service.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -480,6 +481,23 @@ export async function updateReferralStatus(
     data: updateData,
   });
 
+  // When transitioning to SENT, notify defense counsel via email if an
+  // email address is available. Fire-and-forget — email failure does not
+  // block the status update.
+  if (status === 'SENT' && updated.counselEmail) {
+    void sendCounselReferralNotification(
+      updated.counselEmail,
+      updated.summary,
+      existing.claimId,
+    ).catch((err: unknown) => {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error(
+        `[counsel-referral] Failed to send email notification for referral ` +
+        `${referralId}: ${message}`,
+      );
+    });
+  }
+
   const user = request.session.user;
 
   void logAuditEvent({
@@ -490,6 +508,7 @@ export async function updateReferralStatus(
       referralId,
       previousStatus: existing.status,
       newStatus: status,
+      emailNotificationSent: status === 'SENT' && !!updated.counselEmail,
     },
     request,
   });

@@ -24,6 +24,7 @@ export default [
     /* Claim detail — nested layout with tab routes */
     route('claims/:claimId', 'routes/_app.claims.$claimId.tsx', [
       index('routes/_app.claims.$claimId.overview.tsx'),
+      route('coverage', 'routes/_app.claims.$claimId.coverage.tsx'),
       route('documents', 'routes/_app.claims.$claimId.documents.tsx'),
       route('deadlines', 'routes/_app.claims.$claimId.deadlines.tsx'),
       route('investigation', 'routes/_app.claims.$claimId.investigation.tsx'),
@@ -31,6 +32,7 @@ export default [
       route('chat', 'routes/_app.claims.$claimId.chat.tsx'),
       route('letters', 'routes/_app.claims.$claimId.letters.tsx'),
       route('liens', 'routes/_app.claims.$claimId.liens.tsx'),
+      route('medicals', 'routes/_app.claims.$claimId.medicals.tsx'),
       route('timeline', 'routes/_app.claims.$claimId.timeline.tsx'),
       route('referrals', 'routes/_app.claims.$claimId.referrals.tsx'),
     ]),

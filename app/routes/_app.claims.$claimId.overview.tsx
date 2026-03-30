@@ -2,6 +2,7 @@ import { useParams } from 'react-router';
 import { MoreHorizontal, PenSquare, Accessibility } from 'lucide-react';
 import { cn } from '~/lib/utils';
 import { useClaim, type ClaimEntity } from '~/hooks/api/use-claims';
+import { ConfidenceBadge } from '~/components/graph/confidence-badge';
 
 /* ------------------------------------------------------------------ */
 /*  Entity card icon/color mapping                                     */
@@ -152,13 +153,21 @@ function EntityCard({ entity }: { entity: ClaimEntity }) {
       >
         <span className="material-symbols-outlined text-2xl">{entity.icon}</span>
       </div>
-      <div className="flex flex-col">
+      <div className="flex flex-col flex-1 min-w-0">
         <span className={cn('text-xs font-bold uppercase tracking-tighter', colors.text)}>
           {entity.role}
         </span>
         <span className="text-sm font-bold">{entity.name}</span>
         {entity.detail && (
           <span className="text-[10px] text-slate-500">{entity.detail}</span>
+        )}
+        {'confidence' in entity && typeof (entity as ClaimEntity & { confidence?: number }).confidence === 'number' && (
+          <div className="mt-1.5">
+            <ConfidenceBadge
+              confidence={(entity as ClaimEntity & { confidence: number }).confidence}
+              size="sm"
+            />
+          </div>
         )}
       </div>
     </div>

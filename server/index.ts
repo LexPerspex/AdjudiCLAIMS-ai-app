@@ -32,6 +32,7 @@ import { lienRoutes } from './routes/liens.js';
 import { coverageRoutes } from './routes/coverage.js';
 import { medicalBillingRoutes } from './routes/medical-billing.js';
 import { dataManagementRoutes } from './routes/data-management.js';
+import { sandboxRoutes } from './routes/sandbox.js';
 
 export async function buildServer() {
   const env = validateEnv();
@@ -108,6 +109,7 @@ export async function buildServer() {
   await server.register(coverageRoutes, { prefix: '/api' });
   await server.register(medicalBillingRoutes, { prefix: '/api' });
   await server.register(dataManagementRoutes, { prefix: '/api' });
+  await server.register(sandboxRoutes, { prefix: '/api' });
 
   // WI-2: Global error handler — registered after all routes
   registerErrorHandler(server);

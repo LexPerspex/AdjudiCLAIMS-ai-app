@@ -31,7 +31,7 @@ import {
   calculateLienExposure,
   getLienSummary,
 } from '../services/lien-management.service.js';
-import { lookupOmfsRate } from '../services/omfs-comparison.service.js';
+import { lookupOmfsRateFromKb } from '../services/omfs-comparison.service.js';
 
 // ---------------------------------------------------------------------------
 // Zod schemas
@@ -354,8 +354,9 @@ export async function lienRoutes(server: FastifyInstance): Promise<void> {
       }
 
       // Build report from stored line item data + lookup descriptions
-      const lineItems = lien.lineItems.map((li) => {
-          const lookup = li.cptCode ? lookupOmfsRate(li.cptCode) : null;
+      const lineItems = await Promise.all(
+        lien.lineItems.map(async (li) => {
+          const lookup = li.cptCode ? await lookupOmfsRateFromKb(li.cptCode) : null;
           return {
             cptCode: li.cptCode ?? 'N/A',
             description: li.description,
@@ -365,7 +366,8 @@ export async function lienRoutes(server: FastifyInstance): Promise<void> {
             overchargeAmount: li.overchargeAmount ?? 0,
             feeScheduleSection: lookup?.feeScheduleSection ?? 'N/A',
           };
-        });
+        }),
+      );
 
       return {
         lienId: lien.id,

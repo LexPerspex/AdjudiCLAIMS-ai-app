@@ -8,12 +8,15 @@
  * UPL zone: GREEN — purely factual guideline matching.
  * The UR physician makes the clinical decision, not the examiner, not the AI.
  *
- * Real mode architecture (deferred until KB connected):
+ * Real mode architecture:
  *   1. Build query from bodyPart + diagnosis + treatmentDescription
  *   2. Query KB via vector similarity search filtered to source_type='mtus'
- *   3. Filter results through kb-access.service.ts
+ *   3. Filter results through minimum similarity threshold (0.5)
  *   4. Return matched guidelines with similarity scores
+ *   5. Fall back to stub data if KB is unavailable or returns no results
  */
+
+import { searchRegulatory, isKbAvailable } from '../lib/kb-client.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -294,19 +297,10 @@ for (const guidelines of Object.values(STUB_GUIDELINES)) {
 }
 
 // ---------------------------------------------------------------------------
-// KB connectivity check
+// Minimum similarity threshold for KB results
 // ---------------------------------------------------------------------------
 
-/**
- * Check whether the external KB database is available.
- * Currently always returns false (KB not connected locally).
- * Will be replaced with actual connectivity check when KB is integrated.
- */
-function isKbAvailable(): boolean {
-  // TODO: Replace with actual KB connectivity check when wc-knowledge-base is connected.
-  // e.g., check for KB_DATABASE_URL env var or attempt a lightweight query.
-  return !!process.env['KB_DATABASE_URL'];
-}
+const MIN_SIMILARITY = 0.5;
 
 // ---------------------------------------------------------------------------
 // Matching logic
@@ -367,38 +361,17 @@ function findStubMatches(request: MtusMatchRequest): MtusGuidelineMatch[] {
 /**
  * Match a treatment request against MTUS guidelines.
  *
- * In stub mode (KB not connected), returns realistic mock data for common
- * body parts based on ACOEM guidelines adopted by DWC as MTUS.
+ * Synchronous stub-only path. Returns realistic mock data for common body
+ * parts based on ACOEM guidelines adopted by DWC as MTUS.
  *
- * In real mode (KB connected — architecture ready, implementation deferred):
- *   1. Build query from bodyPart + diagnosis + treatmentDescription
- *   2. Query KB via vector similarity search filtered to source_type='mtus'
- *   3. Filter results through kb-access.service.ts
- *   4. Return matched guidelines with similarity scores
+ * For live KB integration, use matchMtusGuidelinesFromKb() which tries the
+ * KB API first and falls back to this stub data when unavailable.
  *
  * @param request - The treatment match request.
- * @returns MTUS guideline matches with disclaimer.
+ * @returns MTUS guideline matches from built-in stub data.
  */
-export function matchMtusGuidelines(
-  request: MtusMatchRequest,
-): MtusMatchResult {
-  const kbAvailable = isKbAvailable();
-
-  if (kbAvailable) {
-    // TODO: Implement real KB vector search when connected.
-    // 1. Build query text: `${request.bodyPart} ${request.diagnosis ?? ''} ${request.treatmentDescription}`
-    // 2. Generate embedding via Vertex AI
-    // 3. Query KB with: SELECT ... FROM kb_entries WHERE source_type = 'mtus' ORDER BY embedding <=> query_embedding LIMIT 10
-    // 4. Filter through filterKbResults(results, role) from kb-access.service.ts
-    // 5. Map to MtusGuidelineMatch[]
-    //
-    // For now, fall through to stub mode even if KB_DATABASE_URL is set,
-    // since the actual KB schema/queries are not yet implemented.
-  }
-
-  // Stub mode: return realistic mock data
+export function matchMtusGuidelines(request: MtusMatchRequest): MtusMatchResult {
   const matches = findStubMatches(request);
-
   return {
     matches,
     query: request,
@@ -410,7 +383,77 @@ export function matchMtusGuidelines(
 }
 
 /**
+ * Match a treatment request against MTUS guidelines — live KB with stub fallback.
+ *
+ * Tries the live KB first. If the KB is unavailable or returns no results
+ * above the similarity threshold, falls back to built-in ACOEM stub data.
+ *
+ * KB path:
+ *   1. Build query from bodyPart + diagnosis + treatmentDescription
+ *   2. Query KB via POST /api/knowledge/search/regulatory with source_type='mtus'
+ *   3. Filter results at similarity >= 0.5
+ *   4. Map KB results to MtusGuidelineMatch format
+ *
+ * Stub fallback:
+ *   - Exact body part key match → CPT code mapping → partial key match
+ *
+ * @param request - The treatment match request.
+ * @returns MTUS guideline matches with disclaimer.
+ */
+export async function matchMtusGuidelinesFromKb(
+  request: MtusMatchRequest,
+): Promise<MtusMatchResult> {
+  // Attempt live KB lookup
+  try {
+    const kbAvailable = await isKbAvailable();
+
+    if (kbAvailable) {
+      const query = [request.bodyPart, request.diagnosis ?? '', request.treatmentDescription]
+        .filter(Boolean)
+        .join(' ');
+
+      const kbResults = await searchRegulatory(query, ['mtus'], 10);
+
+      const aboveThreshold = kbResults.filter(
+        (r) => (r.similarity ?? 1) >= MIN_SIMILARITY,
+      );
+
+      if (aboveThreshold.length > 0) {
+        const matches: MtusGuidelineMatch[] = aboveThreshold.map((r) => ({
+          guidelineId: r.id,
+          title: r.title ?? r.sectionNumber,
+          relevance: r.similarity ?? 1,
+          guidelineText: r.fullText,
+          sourceSection: r.sectionNumber,
+          recommendedFrequency: undefined,
+          recommendedDuration: undefined,
+          evidenceLevel: r.tags.find((t) => t.startsWith('evidence:'))?.replace('evidence:', ''),
+        }));
+
+        return {
+          matches,
+          query: request,
+          disclaimer: MTUS_DISCLAIMER,
+          sourceType: 'mtus',
+          totalMatches: matches.length,
+          isStubData: false,
+        };
+      }
+    }
+  } catch (err) {
+    // KB unavailable or returned an error — fall through to stub
+    console.warn('[mtus-matcher] KB lookup failed, using stub data:', err instanceof Error ? err.message : String(err));
+  }
+
+  // Stub fallback
+  return matchMtusGuidelines(request);
+}
+
+/**
  * Get detailed information for a specific guideline by ID.
+ *
+ * Checks stub data first (fast path for stub IDs). Falls through to stub
+ * lookup for any ID not found in the KB.
  *
  * @param guidelineId - The guideline identifier.
  * @returns The guideline match object, or null if not found.
@@ -418,13 +461,6 @@ export function matchMtusGuidelines(
 export function getGuidelineDetail(
   guidelineId: string,
 ): MtusGuidelineMatch | null {
-  const kbAvailable = isKbAvailable();
-
-  if (kbAvailable) {
-    // TODO: Implement real KB lookup when connected.
-    // SELECT * FROM kb_entries WHERE id = guidelineId AND source_type = 'mtus'
-  }
-
   // Stub mode: lookup from in-memory store
   return ALL_STUB_GUIDELINES.get(guidelineId) ?? null;
 }

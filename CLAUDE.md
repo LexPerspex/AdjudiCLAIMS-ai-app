@@ -91,42 +91,66 @@ npm run format                 # Prettier
 
 ```
 adjudiclaims-ai-app/
-├── app/                          # React Router 7 frontend
-│   ├── routes/                   # Route modules
+├── app/                              # React Router 7 frontend (25 routes)
+│   ├── routes/                       # Route modules
+│   │   ├── _auth.login.tsx           # Login (wired to auth API)
+│   │   ├── _auth.register.tsx        # Registration
+│   │   ├── _auth.mfa.tsx             # MFA verification
+│   │   ├── _app.dashboard.tsx        # Claims portfolio dashboard
+│   │   ├── _app.claims.$claimId.tsx  # Claim detail layout (12 tabs)
+│   │   ├── _app.claims.$claimId.coverage.tsx   # AOE/COE per-body-part tracking
+│   │   ├── _app.claims.$claimId.medicals.tsx   # Medical billing overview
+│   │   ├── _app.calculator.tsx       # TD rate calculator
+│   │   ├── _app.compliance.tsx       # Compliance dashboard (role-aware)
+│   │   ├── _app.education.tsx        # Education hub (glossary + regulatory + training)
+│   │   └── _app.mtus.tsx             # MTUS guideline lookup
+│   ├── hooks/api/ (13 files)         # TanStack Query hooks
 │   ├── components/
-│   │   ├── education/            # Tier 1/Tier 2 education components
-│   │   ├── workflows/            # Decision workflow UI
-│   │   └── compliance/           # Compliance dashboard
-│   └── services/                 # Frontend services
-├── server/                       # Fastify backend
-│   ├── routes/                   # API routes
-│   ├── services/
-│   │   ├── upl-classifier.service.ts      # Query zone classification (GREEN/YELLOW/RED)
-│   │   ├── upl-validator.service.ts       # Output validation — prohibited language detection
-│   │   ├── benefit-calculator.service.ts  # TD/PD statutory calculations
-│   │   ├── deadline-engine.service.ts     # Regulatory deadline tracking
-│   │   ├── investigation-checklist.service.ts
-│   │   ├── education-profile.service.ts   # User education state (Tier 1 dismissals, training)
-│   │   ├── case-chat.service.ts           # RAG-powered Q&A (reused from Adjudica)
-│   │   ├── document-classifier.service.ts # Document classification (reused)
-│   │   ├── document-field-extraction.service.ts  # Field extraction (reused)
-│   │   └── event-generation.service.ts    # Timeline generation (reused)
+│   │   ├── layout/                   # App shell, sidebar, page header
+│   │   └── chat/                     # Chat panel with UPL zone badges
+│   └── services/                     # API fetch, utilities
+├── server/                           # Fastify 5 backend
+│   ├── routes/ (23 files)            # API routes
+│   │   ├── auth.ts                   # Register, login, MFA/TOTP, password change, lockout
+│   │   ├── claims.ts                 # Claim CRUD
+│   │   ├── coverage.ts              # AOE/COE body part tracking + determinations
+│   │   ├── medical-billing.ts       # Medical billing overview + payments
+│   │   ├── data-management.ts       # DSAR export, right to deletion
+│   │   └── ...                       # chat, documents, deadlines, liens, etc.
+│   ├── services/ (47 files)
+│   │   ├── upl-classifier.service.ts          # Query zone classification (GREEN/YELLOW/RED)
+│   │   ├── upl-validator.service.ts           # Output validation — 24+ prohibited patterns
+│   │   ├── coverage-determination.service.ts  # AOE/COE per-body-part tracking
+│   │   ├── medical-billing-overview.service.ts # Aggregate medical financials
+│   │   ├── benefit-calculator.service.ts      # TD/PD statutory calculations
+│   │   ├── comparable-claims.service.ts       # Statistical claim comparison (YELLOW zone)
+│   │   ├── graph-maintenance.service.ts       # Graph RAG G6 Hebbian decay + consolidation
+│   │   ├── email.service.ts                   # Configurable email provider
+│   │   ├── data-retention.service.ts          # 7-year retention enforcement
+│   │   └── ...                                # 38 more services
+│   ├── data/ (8 files)               # Regulatory KB (34 entries), education, workflows
 │   ├── prompts/
-│   │   └── adjudiclaims-chat.prompts.ts   # UPL-filtered system prompts
-│   └── middleware/               # Auth, RBAC, audit logging
+│   │   └── adjudiclaims-chat.prompts.ts       # UPL-filtered system prompts
+│   ├── middleware/ (5 files)          # Auth, RBAC, audit, training gate, anomaly detection
+│   └── lib/                           # Env, instrumentation, security alerts
 ├── prisma/
-│   ├── schema.prisma             # Dual-tenant schema (InsuranceOrg → Claims)
+│   ├── schema.prisma                  # 30+ models, 20+ enums (Graph RAG + AOE/COE + Medical Billing)
 │   └── migrations/
 ├── tests/
-│   ├── unit/
-│   ├── integration/
-│   └── upl-compliance/           # 100+ RED, 100+ GREEN, 50+ YELLOW test cases
-├── docs/                         # Design documentation (from adjudica-documentation)
-│   ├── product/                  # PRD, user guide, education spec, workflows, provisioning
-│   ├── foundations/              # Examiner duties, attorney duties
-│   ├── standards/                # UPL disclaimers, HIPAA, AI transparency
-│   └── reference/                # Adjudica architecture reference
-├── CLAUDE.md                     # This file
+│   ├── unit/ (71 files)              # Service + route unit tests
+│   ├── soc2-compliance/ (7 files)    # SOC 2 CC6/CC7/CC8 compliance tests (69 tests)
+│   ├── upl-compliance/               # UPL acceptance suite
+│   │   ├── fixtures/ (4 files)       # 126 RED, 126 GREEN, 62 YELLOW, 203 prohibited outputs
+│   │   └── upl-acceptance.test.ts    # Parameterized acceptance tests
+│   ├── e2e/ (4 specs)               # Playwright: user flow, auth security, UPL visibility
+│   └── performance/                  # Load test baselines
+├── docs/
+│   ├── product/                      # PRD, user guide, education spec, workflows, provisioning
+│   ├── foundations/                   # Examiner duties, attorney duties
+│   ├── standards/                    # UPL disclaimers, HIPAA, AI transparency
+│   ├── legal/                        # UPL review package for counsel
+│   └── reference/                    # Adjudica architecture reference
+├── CLAUDE.md                         # This file
 ├── package.json
 ├── tsconfig.json
 └── Dockerfile
@@ -149,11 +173,11 @@ Every feature in this product operates under the **Unauthorized Practice of Law*
 2. **System prompt** — Role-specific prompt enforcing zone boundaries
 3. **Output validator** — Post-generation prohibited language detection
 
-**Test requirements before any release:**
-- 100+ RED zone queries → 100% must be blocked
-- 100+ GREEN zone queries → ≤2% false positive block rate
-- 50+ YELLOW zone queries → 100% must include disclaimer
-- 200+ response variations → 100% caught by output validator
+**Test requirements before any release (current status: ALL MET):**
+- 126 RED zone queries → 100% blocked ✅
+- 126 GREEN zone queries → 0% false positive block rate ✅
+- 62 YELLOW zone queries → 100% include disclaimer ✅
+- 203 response variations → 100% caught by output validator (24+ patterns) ✅
 
 **Full specification:** `docs/product/ADJUDICLAIMS_CHAT_SYSTEM_PROMPTS.md`
 
@@ -179,9 +203,11 @@ AdjudiCLAIMS is not just a tool — it is the training program. Two-tier progres
 
 | Role | Permissions | System Prompt |
 |------|------------|---------------|
-| `CLAIMS_EXAMINER` | Claim access, factual AI, benefit calc, deadlines | UPL-filtered examiner prompts |
-| `CLAIMS_SUPERVISOR` | Examiner + team oversight, compliance review | UPL-filtered examiner prompts + compliance tools |
-| `CLAIMS_ADMIN` | Team management, portfolio analytics | UPL-filtered + admin tools |
+| `CLAIMS_EXAMINER` | Claim access, factual AI, benefit calc, deadlines, coverage tracking, medical billing, lien management | UPL-filtered examiner prompts |
+| `CLAIMS_SUPERVISOR` | Examiner + team oversight, compliance review, org-wide compliance dashboard | UPL-filtered examiner prompts + compliance tools |
+| `CLAIMS_ADMIN` | Team management, portfolio analytics, DSAR export, right to deletion | UPL-filtered + admin tools |
+
+All roles can: record AOE/COE determinations (factual — GREEN zone), view medical billing overview, manage liens.
 
 Examiner roles **CANNOT** access: case law research, legal document drafting, PD calculator, attorney work product, attorney chat sessions.
 
@@ -223,6 +249,9 @@ Examiner roles **CANNOT** access: case law research, legal document drafting, PD
 | `docs/foundations/WC_CLAIMS_EXAMINER_ROLES_AND_DUTIES.md` | Comprehensive examiner duty catalog |
 | `docs/foundations/WC_DEFENSE_ATTORNEY_ROLES_AND_DUTIES.md` | Attorney duties (boundary reference) |
 | `docs/standards/ADJUDICLAIMS_UPL_DISCLAIMER_TEMPLATE.md` | Disclaimer templates + prohibited patterns |
+| `docs/legal/UPL_REVIEW_PACKAGE.md` | Legal counsel review package — prompts, zones, disclaimers, adversarial rules |
+| `.planning/PLAN-ADJUDICLAIMS-FULL-BUILD.md` | Master build plan — all 11 phases with status tracking |
+| `.planning/STATE.md` | Current state checkpoint — blockers, next actions, quality metrics |
 
 ---
 

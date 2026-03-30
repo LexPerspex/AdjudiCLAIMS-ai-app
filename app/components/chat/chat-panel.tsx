@@ -8,6 +8,7 @@ import {
   type ChatSession,
   type Citation,
 } from '~/hooks/api/use-chat';
+import { ProvenanceCard } from '~/components/graph/provenance-card';
 
 /* ------------------------------------------------------------------ */
 /*  UPL Zone badge colors                                              */
@@ -199,6 +200,11 @@ function AssistantMessage({ message }: { message: ChatMessage }) {
         {message.citations && message.citations.length > 0 && (
           <CitationsList citations={message.citations} />
         )}
+
+        {/* Provenance — source document cards extracted from citations */}
+        {message.citations && message.citations.length > 0 && (
+          <ProvenanceSection citations={message.citations} />
+        )}
       </div>
       <div className="flex justify-end">
         <span className="text-[10px] text-slate-400">
@@ -245,6 +251,50 @@ function CitationsList({ citations }: { citations: Citation[] }) {
               <p className="text-slate-500">{c.source}</p>
               <p className="mt-1 italic">{c.excerpt}</p>
             </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Provenance section — renders ProvenanceCards for each citation     */
+/* ------------------------------------------------------------------ */
+
+function ProvenanceSection({ citations }: { citations: Citation[] }) {
+  const [expanded, setExpanded] = useState(false);
+
+  // Deduplicate sources by document name (citations from the same source)
+  const uniqueSources = citations
+    .filter((c) => c.source)
+    .reduce<Citation[]>((acc, c) => {
+      if (!acc.some((a) => a.source === c.source)) acc.push(c);
+      return acc;
+    }, []);
+
+  if (uniqueSources.length === 0) return null;
+
+  return (
+    <div className="mt-3 pt-3 border-t border-primary/5">
+      <button
+        className="text-[9px] font-bold text-primary flex items-center gap-1"
+        onClick={() => setExpanded((v) => !v)}
+      >
+        Source documents ({uniqueSources.length})
+        {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+      </button>
+      {expanded && (
+        <div className="mt-2 space-y-2">
+          {uniqueSources.map((c) => (
+            <ProvenanceCard
+              key={c.id}
+              source={{
+                documentName: c.source,
+                confidence: 1,  // Citations from AI responses default to full confidence
+                extractedAt: new Date().toISOString(),
+              }}
+            />
           ))}
         </div>
       )}

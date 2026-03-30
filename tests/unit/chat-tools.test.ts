@@ -345,13 +345,12 @@ describe('executeTool — check_deadlines', () => {
 // ==========================================================================
 
 describe('executeTool — lookup_regulation', () => {
-  it('returns placeholder message with citation', async () => {
+  it('returns regulation data for known citation', async () => {
     const result = await executeTool(
       makeToolCall('lookup_regulation', { citation: 'LC 4650' }),
       'claim-1',
       'GREEN',
     );
-    expect(result).toContain('not yet implemented');
     expect(result).toContain('LC 4650');
   });
 

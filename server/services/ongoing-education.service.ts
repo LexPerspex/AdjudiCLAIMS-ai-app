@@ -525,17 +525,33 @@ export async function getRefresherStatus(userId: string): Promise<RefresherStatu
 // ---------------------------------------------------------------------------
 
 /**
+ * A training requirement triggered by an audit-detected behavior pattern.
+ *
+ * Extended with pattern-detection metadata for display and triage.
+ */
+export interface AuditTriggeredTraining extends AuditTrainingRequirement {
+  /** What pattern triggered this requirement. */
+  triggerReason: string;
+  /** When this training requirement was generated. */
+  triggeredAt: string;
+}
+
+/**
  * Get any required audit-triggered training for the user.
  *
- * Reads from EducationProfile.auditTrainingCompleted and cross-references
- * with any outstanding audit findings that require remediation training.
+ * Checks three behavioral patterns that indicate a need for remediation:
+ *   1. >3 missed deadlines in the past 30 days → deadline management refresher
+ *   2. >2 UPL output blocks in the past 7 days → UPL boundary refresher
+ *   3. Investigation items stale >14 days (from INVESTIGATION_ACTIVITY events)
+ *      → investigation practices refresher
  *
- * For MVP, returns an empty array (no audit integration yet).
- * The data structure is ready for when audit findings are integrated.
+ * Cross-references with EducationProfile.auditTrainingCompleted to avoid
+ * re-assigning training the user has already completed for the same trigger
+ * period. Returns only outstanding (not yet completed) requirements.
  */
 export async function getRequiredAuditTraining(
   userId: string,
-): Promise<AuditTrainingRequirement[]> {
+): Promise<AuditTriggeredTraining[]> {
   // Ensure profile exists
   await prisma.educationProfile.upsert({
     where: { userId },
@@ -543,8 +559,144 @@ export async function getRequiredAuditTraining(
     update: {},
   });
 
-  // MVP: No audit finding integration yet — return empty array.
-  // When audit system is integrated, this will query audit findings
-  // assigned to the user and cross-reference with completed training.
-  return [];
+  const profile = await prisma.educationProfile.findUniqueOrThrow({
+    where: { userId },
+    select: { auditTrainingCompleted: true },
+  });
+
+  const completedTraining = (profile.auditTrainingCompleted ?? {}) as Record<string, { completedAt: string }>;
+
+  const now = new Date();
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+
+  const required: AuditTriggeredTraining[] = [];
+
+  // -------------------------------------------------------------------------
+  // Pattern 1: >3 missed deadlines in the past 30 days
+  // -------------------------------------------------------------------------
+  try {
+    const missedDeadlineCount = await prisma.auditEvent.count({
+      where: {
+        userId,
+        eventType: 'DEADLINE_MISSED',
+        createdAt: { gte: thirtyDaysAgo },
+      },
+    });
+
+    const moduleId = 'deadline_management_refresher';
+    const alreadyCompleted = completedTraining[moduleId];
+    const completedRecently =
+      alreadyCompleted &&
+      new Date(alreadyCompleted.completedAt) >= thirtyDaysAgo;
+
+    if (missedDeadlineCount > 3 && !completedRecently) {
+      required.push({
+        findingId: `audit-deadline-${userId}-${now.toISOString().slice(0, 10)}`,
+        moduleId,
+        title: 'Deadline Management Refresher',
+        description:
+          `You have missed ${String(missedDeadlineCount)} regulatory deadlines in the past 30 days. ` +
+          'This refresher covers deadline tracking obligations under LC 4650, LC 5402(b), ' +
+          'and 10 CCR 2695.7(c).',
+        requiredBy: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        isCompleted: false,
+        triggerReason: `${String(missedDeadlineCount)} missed deadlines in the past 30 days (threshold: 3)`,
+        triggeredAt: now.toISOString(),
+      });
+    }
+  } catch {
+    // Audit table may not exist in test/dev — skip gracefully
+  }
+
+  // -------------------------------------------------------------------------
+  // Pattern 2: >2 UPL output blocks in the past 7 days
+  // -------------------------------------------------------------------------
+  try {
+    const uplBlockCount = await prisma.auditEvent.count({
+      where: {
+        userId,
+        eventType: 'UPL_OUTPUT_BLOCKED',
+        createdAt: { gte: sevenDaysAgo },
+      },
+    });
+
+    const moduleId = 'upl_boundary_refresher';
+    const alreadyCompleted = completedTraining[moduleId];
+    const completedRecently =
+      alreadyCompleted &&
+      new Date(alreadyCompleted.completedAt) >= sevenDaysAgo;
+
+    if (uplBlockCount > 2 && !completedRecently) {
+      required.push({
+        findingId: `audit-upl-${userId}-${now.toISOString().slice(0, 10)}`,
+        moduleId,
+        title: 'UPL Boundary Refresher',
+        description:
+          `Your queries have been blocked ${String(uplBlockCount)} times in the past 7 days due to ` +
+          'Unauthorized Practice of Law (UPL) concerns. This refresher explains the ' +
+          'Green/Yellow/Red zone framework and which questions require attorney referral.',
+        requiredBy: new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+        isCompleted: false,
+        triggerReason: `${String(uplBlockCount)} UPL blocks in the past 7 days (threshold: 2)`,
+        triggeredAt: now.toISOString(),
+      });
+    }
+  } catch {
+    // Audit table may not exist in test/dev — skip gracefully
+  }
+
+  // -------------------------------------------------------------------------
+  // Pattern 3: Investigation items stale >14 days (via INVESTIGATION_ACTIVITY events)
+  // No INVESTIGATION_ACTIVITY events in the past 14 days indicates stale investigation.
+  // -------------------------------------------------------------------------
+  try {
+    const recentInvestigationActivity = await prisma.auditEvent.count({
+      where: {
+        userId,
+        eventType: 'INVESTIGATION_ACTIVITY',
+        createdAt: { gte: fourteenDaysAgo },
+      },
+    });
+
+    // Only flag if the user has NO recent investigation activity at all,
+    // suggesting active open claims are being neglected.
+    const moduleId = 'investigation_practices_refresher';
+    const alreadyCompleted = completedTraining[moduleId];
+    const completedRecently =
+      alreadyCompleted &&
+      new Date(alreadyCompleted.completedAt) >= fourteenDaysAgo;
+
+    if (recentInvestigationActivity === 0 && !completedRecently) {
+      // Only assign if there are open claims (avoid false positives for new users)
+      const openClaimCount = await prisma.claim.count({
+        where: {
+          assignedExaminerId: userId,
+          status: { in: ['OPEN', 'UNDER_INVESTIGATION'] },
+        },
+      });
+
+      if (openClaimCount > 0) {
+        required.push({
+          findingId: `audit-investigation-${userId}-${now.toISOString().slice(0, 10)}`,
+          moduleId,
+          title: 'Investigation Practices Refresher',
+          description:
+            `No investigation activity has been recorded on your ${String(openClaimCount)} open ` +
+            `claim${openClaimCount === 1 ? '' : 's'} in the past 14 days. ` +
+            'This refresher covers investigation best practices and timely documentation ' +
+            'obligations under 10 CCR 2695.7.',
+          requiredBy: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+          isCompleted: false,
+          triggerReason: 'No investigation activity recorded in past 14 days with open claims',
+          triggeredAt: now.toISOString(),
+        });
+      }
+    }
+  } catch {
+    // Audit table or claim table may not exist in test/dev — skip gracefully
+  }
+
+  return required;
 }

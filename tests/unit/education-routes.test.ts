@@ -108,6 +108,7 @@ vi.mock('../../server/db.js', () => ({
     },
     auditEvent: {
       create: vi.fn().mockResolvedValue({}),
+      count: vi.fn().mockResolvedValue(0),
     },
     document: {
       findMany: vi.fn().mockResolvedValue([]),
@@ -821,11 +822,12 @@ describe('Education Routes — Layer 3 Ongoing Education', () => {
       expect(response.statusCode).toBe(401);
     });
 
-    it('returns empty requirements array for MVP', async () => {
+    it('returns empty requirements array when no audit triggers', async () => {
       const cookie = await loginAs(server, MOCK_USER);
 
-      // getRequiredAuditTraining calls upsert
+      // getRequiredAuditTraining calls: upsert, findUniqueOrThrow, then auditEvent.count (3x)
       mockEducationProfileUpsert.mockResolvedValueOnce({ ...MOCK_PROFILE_BASE });
+      mockEducationProfileFindUniqueOrThrow.mockResolvedValueOnce({ auditTrainingCompleted: {} });
 
       const response = await server.inject({
         method: 'GET',

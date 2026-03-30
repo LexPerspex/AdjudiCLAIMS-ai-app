@@ -31,6 +31,9 @@ import {
   refineDraft,
   getDraftHistory,
 } from '../services/draft-generation.service.js';
+import {
+  generateLetterHtml,
+} from '../services/document-generation.service.js';
 
 // ---------------------------------------------------------------------------
 // Zod schemas
@@ -231,6 +234,54 @@ export async function letterRoutes(server: FastifyInstance): Promise<void> {
       }
 
       return { letter };
+    },
+  );
+
+  /**
+   * GET /api/letters/:letterId/html
+   *
+   * Return the generated letter as a printable HTML document.
+   *
+   * The HTML includes Glass Box Solutions letterhead, letter metadata,
+   * the letter body (Markdown converted to HTML), and a mandatory UPL
+   * disclaimer footer. The browser's native Print → Save as PDF function
+   * can be used to produce a PDF without server-side dependencies.
+   *
+   * Content-Type: text/html
+   */
+  server.get(
+    '/letters/:letterId/html',
+    { preHandler: [requireAuth()] },
+    async (request, reply) => {
+      const user = request.session.user;
+
+      if (!user) {
+        return reply.code(401).send({ error: 'Authentication required' });
+      }
+
+      const { letterId } = request.params as { letterId: string };
+
+      const letter = await getLetter(letterId);
+
+      if (!letter) {
+        return reply.code(404).send({ error: 'Letter not found' });
+      }
+
+      // Extract claim number from populatedData (set during generation)
+      const claimNumber =
+        (letter.populatedData as Record<string, string>)?.claimNumber ?? 'N/A';
+
+      const html = generateLetterHtml(letter.content, {
+        claimNumber,
+        letterType: letter.letterType,
+        generatedAt: new Date(letter.createdAt),
+        generatedBy: user.email ?? user.id,
+      });
+
+      return reply
+        .code(200)
+        .header('Content-Type', 'text/html; charset=utf-8')
+        .send(html);
     },
   );
 

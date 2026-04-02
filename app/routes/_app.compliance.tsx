@@ -1,4 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Shield,
   TrendingUp,
@@ -7,6 +8,7 @@ import {
   CheckCircle,
   BookOpen,
   RefreshCw,
+  Clock,
 } from 'lucide-react';
 import { cn } from '~/lib/utils';
 import { PageHeader } from '~/components/layout/page-header';
@@ -48,6 +50,7 @@ function useTeamCompliance() {
   return useQuery<TeamComplianceMetrics>({
     queryKey: ['compliance', 'team'],
     queryFn: () => apiFetch<TeamComplianceMetrics>('/compliance/team'),
+    refetchInterval: 60_000, // Auto-refresh every 60 seconds
   });
 }
 
@@ -388,8 +391,16 @@ function TeamComplianceView() {
 
 export default function CompliancePage() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const isSupervisorOrAdmin =
     user?.role === 'CLAIMS_SUPERVISOR' || user?.role === 'CLAIMS_ADMIN';
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await queryClient.invalidateQueries({ queryKey: ['compliance'] });
+    setIsRefreshing(false);
+  };
 
   return (
     <>
@@ -398,6 +409,21 @@ export default function CompliancePage() {
         subtitle="UPL compliance tracking, training status, and deadline adherence"
         breadcrumbs={[{ label: 'Home', href: '/' }, { label: 'Compliance' }]}
       />
+
+      <div className="flex items-center justify-end gap-3 mb-4 text-xs text-slate-400">
+        <span className="flex items-center gap-1">
+          <Clock className="w-3 h-3" />
+          Auto-refreshes every 60s
+        </span>
+        <button
+          onClick={() => void handleRefresh()}
+          disabled={isRefreshing}
+          className="flex items-center gap-1 text-primary hover:underline disabled:opacity-50"
+        >
+          <RefreshCw className={cn('w-3 h-3', isRefreshing && 'animate-spin')} />
+          {isRefreshing ? 'Refreshing...' : 'Refresh now'}
+        </button>
+      </div>
 
       {isSupervisorOrAdmin ? <TeamComplianceView /> : <ExaminerComplianceView />}
     </>

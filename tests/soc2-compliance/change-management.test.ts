@@ -1,6 +1,10 @@
 import { describe, it, expect, vi, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const PROJECT_ROOT = resolve(__dirname, '../..');
 
 /**
  * SOC 2 CC8.1 — Change Management
@@ -22,7 +26,7 @@ describe('SOC 2 CC8.1 — Change Management (static checks)', () => {
 
   // TypeScript strict mode enforced
   it('tsconfig.json has "strict": true in compilerOptions', () => {
-    const tsconfigPath = resolve('/home/vncuser/AdjudiCLAIMS-ai-app-1/tsconfig.json');
+    const tsconfigPath = resolve(PROJECT_ROOT, 'tsconfig.json');
     const raw = readFileSync(tsconfigPath, 'utf-8');
     const tsconfig = JSON.parse(raw) as {
       compilerOptions?: { strict?: boolean; noUncheckedIndexedAccess?: boolean };
@@ -184,7 +188,7 @@ describe('SOC 2 CC8.1 — Change Management (server checks)', () => {
     // CORS_ORIGINS is not set, corsOrigins defaults to [] (empty = block all).
     // The server/index.ts code: env.NODE_ENV === 'production' ? [] : [true]
     // We verify this logic by reading the source directly.
-    const indexPath = resolve('/home/vncuser/AdjudiCLAIMS-ai-app-1/server/index.ts');
+    const indexPath = resolve(PROJECT_ROOT, 'server/index.ts');
     const source = readFileSync(indexPath, 'utf-8');
 
     // The production fallback must NOT be wildcard (true or '*')

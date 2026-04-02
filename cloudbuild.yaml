@@ -21,6 +21,7 @@ substitutions:
   _SESSION_SECRET: adjudiclaims-session-secret
   _SENTRY_SECRET: adjudiclaims-sentry-dsn
   _TEMPORAL_SECRET: adjudiclaims-temporal-api-key
+  _TEMPORAL_ADDRESS: temporal.adjudiclaims.internal:7233
 
 steps:
   # ---- Step 1: Install dependencies ----
@@ -130,8 +131,11 @@ steps:
       - '--set-env-vars=NODE_ENV=${_ENVIRONMENT},TEMPORAL_ADDRESS=${_TEMPORAL_ADDRESS},TEMPORAL_NAMESPACE=adjudiclaims,SENTRY_ENVIRONMENT=${_ENVIRONMENT},SENTRY_RELEASE=${_IMAGE_TAG}'
     id: deploy-worker-document
     waitFor: ['docker-push']
+    allowFailure: true
 
   # ---- Step 10: Deploy LLM worker to Cloud Run ----
+  # Note: Workers require a running Temporal instance. Allowed to fail when
+  # Temporal is not configured (e.g., initial staging deploys).
   - name: 'gcr.io/cloud-builders/gcloud'
     args:
       - 'run'
@@ -151,6 +155,7 @@ steps:
       - '--set-env-vars=NODE_ENV=${_ENVIRONMENT},TEMPORAL_ADDRESS=${_TEMPORAL_ADDRESS},TEMPORAL_NAMESPACE=adjudiclaims,SENTRY_ENVIRONMENT=${_ENVIRONMENT},SENTRY_RELEASE=${_IMAGE_TAG}'
     id: deploy-worker-llm
     waitFor: ['docker-push']
+    allowFailure: true
 
   # Note: Database migrations run via `npx prisma migrate deploy` manually
   # or via a dedicated Cloud Run job (adjudiclaims-migrate) when created.

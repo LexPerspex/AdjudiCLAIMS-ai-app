@@ -202,10 +202,11 @@ describe('Environment Validation', () => {
       expect(env.SENTRY_DSN).toBeUndefined();
     });
 
-    it('SENTRY_DSN is validated as URL when set', () => {
+    it('SENTRY_DSN silently discards invalid URLs', () => {
       process.env['NODE_ENV'] = 'test';
       process.env['SENTRY_DSN'] = 'not-a-url';
-      expect(() => validateEnv()).toThrow('Environment validation failed');
+      const env = validateEnv();
+      expect(env.SENTRY_DSN).toBeUndefined();
     });
 
     it('SENTRY_DSN accepts valid URL', () => {

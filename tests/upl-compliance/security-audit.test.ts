@@ -235,6 +235,8 @@ describe('Security: Input validation via Zod schemas on all routes', () => {
       'server/routes/health.js',
       'server/routes/organizations.ts',
       'server/routes/organizations.js',
+      'server/routes/sandbox.ts',  // No user body input — admin-only seed/clear/status
+      'server/routes/sandbox.js',
     ]);
 
     for (const filePath of routeFiles) {

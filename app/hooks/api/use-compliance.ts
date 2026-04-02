@@ -22,5 +22,6 @@ export function useComplianceMetrics() {
   return useQuery<ComplianceMetrics>({
     queryKey: ['compliance', 'examiner'],
     queryFn: () => apiFetch<ComplianceMetrics>('/compliance/examiner'),
+    refetchInterval: 60_000, // Auto-refresh every 60 seconds
   });
 }

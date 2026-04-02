@@ -19,7 +19,7 @@ import { z } from 'zod';
  */
 const envSchema = z.object({
   /** Application environment. Controls logging, error detail, and SESSION_SECRET enforcement. */
-  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+  NODE_ENV: z.enum(['development', 'test', 'staging', 'production']).default('development'),
   /** HTTP server port. Default 4901 to avoid conflicts with other GBS services. */
   PORT: z
     .string()
@@ -75,7 +75,10 @@ const envSchema = z.object({
 
   // Sentry
   /** Sentry DSN URL. When absent, Sentry is completely disabled (no-op). */
-  SENTRY_DSN: z.string().refine((val) => { try { new URL(val); return true; } catch { return false; } }, { message: 'Invalid URL' }).optional(),
+  SENTRY_DSN: z.string().optional().transform((val) => {
+    if (!val || !val.trim()) return undefined;
+    try { new URL(val); return val; } catch { return undefined; }
+  }),
   /** Sentry environment tag (defaults to NODE_ENV-based value). */
   SENTRY_ENVIRONMENT: z.string().optional(),
   /** Sentry release identifier for error grouping and source maps. */
@@ -118,7 +121,7 @@ export function validateEnv(): Env {
   }
 
   // Enforce SESSION_SECRET in production
-  if (result.data.NODE_ENV === 'production' && !result.data.SESSION_SECRET) {
+  if ((result.data.NODE_ENV === 'production' || result.data.NODE_ENV === 'staging') && !result.data.SESSION_SECRET) {
     throw new Error(
       'SESSION_SECRET is required in production (minimum 32 characters)',
     );

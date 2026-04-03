@@ -53,9 +53,9 @@ const LEGAL_SEPARATORS = [
 
 /**
  * Voyage Large embedding model identifier.
- * Used via Voyage AI API. Dimensions TBD — defaults to 1024.
+ * Used via Voyage AI API. Dimensions: 1024.
  */
-const EMBEDDING_MODEL = 'voyage-large-2';
+const EMBEDDING_MODEL = 'voyage-large-4';
 
 /** Embedding dimensionality produced by Voyage Large. */
 const EMBEDDING_DIMENSIONS = 1024;

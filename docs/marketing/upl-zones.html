@@ -355,7 +355,7 @@
         <div class="layer-line"><div class="layer-num">1</div><div class="layer-connector"></div></div>
         <div class="layer-content">
           <h3>Pre-Chat Query Classifier</h3>
-          <p>Before the generation LLM is ever called, every query is classified using a two-substage pipeline: (1) regex pattern matching against 21 patterns (7 RED, 7 GREEN, 7 adversarial) resolves ~60% of queries in ~0ms; (2) Claude Haiku at temperature 0 classifies novel/borderline queries (~0.5–1s). Conservative default: uncertain = RED.</p>
+          <p>Before the generation LLM is ever called, every query is classified using a two-substage pipeline: (1) regex pattern matching against 21 patterns (7 RED, 7 GREEN, 7 adversarial) resolves ~60% of queries in ~0ms; (2) Gemini Flash at temperature 0 classifies novel/borderline queries (~0.5–1s). Conservative default: uncertain = RED.</p>
           <div class="layer-detail">If RED: generation is skipped entirely. Examiner receives referral message immediately.</div>
         </div>
       </div>

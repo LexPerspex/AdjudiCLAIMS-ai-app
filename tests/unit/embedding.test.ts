@@ -465,7 +465,7 @@ describe('chunkAndEmbed', () => {
       const fetchCall = mockFetch.mock.calls[0] as [string, RequestInit];
       expect(fetchCall[0]).toBe('https://api.voyageai.com/v1/embeddings');
       const fetchBody = JSON.parse(fetchCall[1]!.body as string) as Record<string, unknown>;
-      expect(fetchBody.model).toBe('voyage-large-2');
+      expect(fetchBody.model).toBe('voyage-large-4');
       expect(fetchBody.input_type).toBe('document');
 
       // Embeddings should be upserted to vector search

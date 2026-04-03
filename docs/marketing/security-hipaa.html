@@ -353,7 +353,7 @@
             </tr>
             <tr>
               <td>BAAs with Sub-Processors (§ 164.314)</td>
-              <td>Anthropic, Google Cloud, Voyage AI — all executed</td>
+              <td>Google Cloud (Gemini Flash, Document AI), Anthropic (Claude — premium tier), Voyage AI (Voyage Large 4) — all executed</td>
               <td><span class="badge badge-green">✓</span></td>
             </tr>
             <tr>
@@ -595,8 +595,15 @@
           <td><span class="badge badge-green">✓ Included</span></td>
         </tr>
         <tr>
-          <td><strong>Anthropic</strong><br><small style="color:var(--text-muted)">Claude API</small></td>
-          <td>AI chat, query classification, structured extraction</td>
+          <td><strong>Google — Gemini Flash</strong><br><small style="color:var(--text-muted)">Vertex AI — Gemini API (default tier)</small></td>
+          <td>Primary AI chat, query classification (UPL zone), structured extraction. Default model for all standard plan users.</td>
+          <td>Anonymized document chunks (no PHI identifiers)</td>
+          <td><span class="badge badge-green">✓ Executed</span></td>
+          <td><span class="badge badge-green">✓ Included</span></td>
+        </tr>
+        <tr>
+          <td><strong>Anthropic — Claude</strong><br><small style="color:var(--text-muted)">Claude API (premium tier)</small></td>
+          <td>Premium AI chat and response generation. Available as paid upgrade. Same three-layer UPL enforcement as default tier.</td>
           <td>Anonymized document chunks (no PHI identifiers)</td>
           <td><span class="badge badge-green">✓ Executed</span></td>
           <td><span class="badge badge-green">✓ Included</span></td>
@@ -609,7 +616,7 @@
           <td><span class="badge badge-green">✓ Included</span></td>
         </tr>
         <tr>
-          <td><strong>Voyage AI</strong><br><small style="color:var(--text-muted)">via Vertex AI</small></td>
+          <td><strong>Voyage AI — Voyage Large 4</strong><br><small style="color:var(--text-muted)">via Vertex AI</small></td>
           <td>Document embedding generation (1024-dim vectors)</td>
           <td>Text chunks (no PHI identifiers) during embedding job only</td>
           <td><span class="badge badge-green">✓ Executed</span></td>

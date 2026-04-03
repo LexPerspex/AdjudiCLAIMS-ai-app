@@ -8,7 +8,7 @@
  *
  * Two-stage classification pipeline:
  *   Stage 1: Keyword pre-filter (regex patterns, ~0ms)
- *   Stage 2: LLM classification via Anthropic Claude Haiku (~0.5-1s)
+ *   Stage 2: LLM classification via Gemini Flash (~0.5-1s)
  *
  * Conservative default: if uncertain, classify as RED.
  *
@@ -410,9 +410,9 @@ export function classifyQuerySync(query: string): UplClassification {
  * Two-stage classification:
  *   1. Keyword pre-filter (fast path): if a regex matches, return immediately.
  *   2. LLM classification (slow path): if no regex matched and API key is
- *      available, use Claude Haiku for classification.
+ *      available, use Gemini Flash for classification.
  *
- * Falls back to keyword-only mode if ANTHROPIC_API_KEY is not set.
+ * Falls back to keyword-only mode if VERTEX_AI_PROJECT is not set.
  *
  * @param query - The raw user input to classify.
  * @returns Classification result with zone, reasoning, confidence, and adversarial flag.

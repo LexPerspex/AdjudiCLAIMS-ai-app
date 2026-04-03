@@ -244,7 +244,7 @@
         <div class="pipeline-step">
           <div class="step-num">6</div>
           <div class="step-name">Embed</div>
-          <div class="step-tech">Voyage Large 2 (1024-dim)</div>
+          <div class="step-tech">Voyage Large 4 (1024-dim)</div>
           <div class="step-desc">Dense vector embeddings stored in pgvector for semantic similarity search</div>
         </div>
         <div class="pipeline-step">
@@ -270,7 +270,7 @@
         <div class="detail-card">
           <h4>Document Classification</h4>
           <p>12 primary types (medical report, legal, lien, correspondence, surveillance, form, IME, QME, PR-1/2/3/4, deposition, panel request) with 150+ subtypes for precise routing.</p>
-          <span class="tech-pill">Claude Haiku classifier</span>
+          <span class="tech-pill">Gemini Flash classifier</span>
         </div>
         <div class="detail-card">
           <h4>Hybrid RAG Retrieval</h4>
@@ -370,7 +370,7 @@
       <div class="pipe-stage blue">
         <div class="pipe-icon">💬</div>
         <div class="pipe-title">1. Query Classification</div>
-        <div class="pipe-desc">Lightweight Claude Haiku call + regex classifier assigns GREEN / YELLOW / RED zone before any response generation</div>
+        <div class="pipe-desc">Lightweight Gemini Flash call + regex classifier assigns GREEN / YELLOW / RED zone before any response generation</div>
       </div>
       <div class="pipe-arrow">→</div>
       <div class="pipe-stage blue">
@@ -388,7 +388,7 @@
       <div class="pipe-stage blue">
         <div class="pipe-icon">✍️</div>
         <div class="pipe-title">4. Response Generation</div>
-        <div class="pipe-desc">Claude Sonnet generates response with retrieved context, system prompt constraints, and zone-appropriate framing</div>
+        <div class="pipe-desc">Gemini Flash generates response (default tier). Claude Sonnet / Opus available as premium upgrade — same UPL enforcement applies regardless of model.</div>
       </div>
       <div class="pipe-arrow">→</div>
       <div class="pipe-stage blue">

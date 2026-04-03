@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How It Works — AdjudiCLAIMS by Glass Box</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #00288e;
+    --primary-mid: #1e40af;
+    --navy: #0F172A;
+    --surface: #faf8ff;
+    --white: #ffffff;
+    --text: #131b2e;
+    --text-muted: #444653;
+    --border: #c4c5d5;
+    --green: #059669;
+    --green-bg: #ecfdf5;
+    --yellow: #D97706;
+    --yellow-bg: #fffbeb;
+    --red: #DC2626;
+    --red-bg: #fef2f2;
+    --gradient: linear-gradient(135deg, #00288e 0%, #1e40af 100%);
+    --shadow: 0px 20px 40px rgba(15,23,42,0.06);
+    --shadow-sm: 0px 4px 12px rgba(15,23,42,0.08);
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; background: var(--surface); color: var(--text); line-height: 1.6; }
+
+  /* NAV */
+  nav { background: var(--navy); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 64px; position: sticky; top: 0; z-index: 100; }
+  .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .nav-logo { width: 32px; height: 32px; background: var(--gradient); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; font-size: 14px; }
+  .nav-name { color: white; font-weight: 700; font-size: 1rem; letter-spacing: -0.01em; }
+  .nav-links { display: flex; gap: 1.5rem; align-items: center; }
+  .nav-links a { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.85rem; font-weight: 500; transition: color 0.2s; }
+  .nav-links a:hover, .nav-links a.active { color: white; }
+  .nav-cta { background: var(--gradient); color: white; padding: 0.4rem 1rem; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 600; text-decoration: none; transition: opacity 0.2s; }
+  .nav-cta:hover { opacity: 0.85; }
+
+  /* HERO */
+  .hero { background: var(--gradient); padding: 5rem 2rem 4rem; text-align: center; color: white; }
+  .hero-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); border-radius: 999px; padding: 0.35rem 0.9rem; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 1.5rem; }
+  .hero h1 { font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; margin-bottom: 1.25rem; max-width: 700px; margin-left: auto; margin-right: auto; }
+  .hero p { font-size: 1.15rem; color: rgba(255,255,255,0.85); max-width: 580px; margin: 0 auto; }
+
+  /* SECTIONS */
+  section { padding: 5rem 2rem; }
+  .container { max-width: 1100px; margin: 0 auto; }
+  .section-label { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--primary); margin-bottom: 0.75rem; }
+  .section-title { font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 800; letter-spacing: -0.02em; margin-bottom: 1rem; }
+  .section-desc { color: var(--text-muted); font-size: 1.05rem; max-width: 620px; margin-bottom: 3rem; }
+
+  /* PIPELINE */
+  .pipeline { background: white; border-radius: var(--radius); padding: 3rem; box-shadow: var(--shadow); }
+  .pipeline-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin-top: 2rem; position: relative; }
+  .pipeline-steps::before { content: ''; position: absolute; top: 28px; left: 10%; right: 10%; height: 2px; background: linear-gradient(90deg, var(--green), var(--primary), var(--primary-mid)); z-index: 0; }
+  .pipeline-step { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 0 0.5rem; position: relative; z-index: 1; }
+  .step-num { width: 56px; height: 56px; border-radius: 50%; background: var(--gradient); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem; margin-bottom: 1rem; box-shadow: 0 0 0 4px white, 0 0 0 6px var(--primary); flex-shrink: 0; }
+  .step-name { font-weight: 700; font-size: 0.9rem; margin-bottom: 0.4rem; }
+  .step-tech { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+  .step-desc { font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; }
+
+  /* PIPELINE DETAIL */
+  .pipeline-detail { margin-top: 3rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  .detail-card { background: var(--surface); border-radius: var(--radius-sm); padding: 1.5rem; border-left: 3px solid var(--primary); }
+  .detail-card h4 { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.4rem; }
+  .detail-card p { font-size: 0.85rem; color: var(--text-muted); }
+  .detail-card .tech-pill { display: inline-block; background: rgba(0,40,142,0.08); color: var(--primary); border-radius: 999px; padding: 0.2rem 0.6rem; font-size: 0.72rem; font-weight: 600; margin-top: 0.6rem; }
+
+  /* CLAIM WORKSPACE */
+  .workspace-section { background: var(--navy); color: white; }
+  .tabs-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  .tab-card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-sm); padding: 1.25rem; transition: background 0.2s; }
+  .tab-card:hover { background: rgba(255,255,255,0.1); }
+  .tab-num { font-size: 0.7rem; font-weight: 700; color: rgba(255,255,255,0.4); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.4rem; }
+  .tab-name { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.4rem; }
+  .tab-desc { font-size: 0.82rem; color: rgba(255,255,255,0.65); }
+
+  /* AI CHAT PIPELINE */
+  .chat-pipeline { display: flex; align-items: stretch; gap: 0; margin: 2rem 0; }
+  .pipe-stage { flex: 1; background: white; border-radius: 0; padding: 2rem 1.5rem; border-top: 4px solid var(--border); text-align: center; position: relative; box-shadow: var(--shadow-sm); }
+  .pipe-stage:first-child { border-radius: var(--radius) 0 0 var(--radius); }
+  .pipe-stage:last-child { border-radius: 0 var(--radius) var(--radius) 0; }
+  .pipe-stage.green { border-top-color: var(--green); }
+  .pipe-stage.yellow { border-top-color: var(--yellow); }
+  .pipe-stage.red { border-top-color: var(--red); }
+  .pipe-stage.blue { border-top-color: var(--primary); }
+  .pipe-arrow { display: flex; align-items: center; color: var(--border); font-size: 1.4rem; padding: 0 0.25rem; background: var(--surface); }
+  .pipe-icon { font-size: 1.8rem; margin-bottom: 0.75rem; }
+  .pipe-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 0.4rem; }
+  .pipe-desc { font-size: 0.78rem; color: var(--text-muted); }
+
+  /* ZONE OUTCOMES */
+  .zone-outcomes { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-top: 1.5rem; }
+  .outcome { border-radius: var(--radius-sm); padding: 1.25rem; }
+  .outcome.green { background: var(--green-bg); border: 1px solid #a7f3d0; }
+  .outcome.yellow { background: var(--yellow-bg); border: 1px solid #fde68a; }
+  .outcome.red { background: var(--red-bg); border: 1px solid #fecaca; }
+  .outcome-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.5rem; }
+  .outcome.green .outcome-label { color: var(--green); }
+  .outcome.yellow .outcome-label { color: var(--yellow); }
+  .outcome.red .outcome-label { color: var(--red); }
+  .outcome h4 { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.3rem; }
+  .outcome p { font-size: 0.8rem; color: var(--text-muted); }
+
+  /* EDUCATION TIERS */
+  .tiers { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; }
+  .tier-card { background: white; border-radius: var(--radius); padding: 2rem; box-shadow: var(--shadow-sm); border-top: 4px solid var(--border); }
+  .tier-card.t1 { border-top-color: #60a5fa; }
+  .tier-card.t2 { border-top-color: var(--primary); }
+  .tier-card.t3 { border-top-color: var(--green); }
+  .tier-badge { display: inline-block; border-radius: 999px; padding: 0.25rem 0.7rem; font-size: 0.72rem; font-weight: 700; margin-bottom: 1rem; }
+  .t1 .tier-badge { background: #eff6ff; color: #2563eb; }
+  .t2 .tier-badge { background: rgba(0,40,142,0.08); color: var(--primary); }
+  .t3 .tier-badge { background: var(--green-bg); color: var(--green); }
+  .tier-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .tier-card p { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; }
+  .tier-stat { font-size: 1.5rem; font-weight: 800; color: var(--primary); }
+  .tier-stat-label { font-size: 0.75rem; color: var(--text-muted); }
+
+  /* KNOWLEDGE GRAPH */
+  .graph-section { background: white; }
+  .graph-concepts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: 2rem; }
+  .concept-card { border-radius: var(--radius-sm); padding: 1.5rem; background: var(--surface); border: 1px solid var(--border); }
+  .concept-icon { font-size: 1.6rem; margin-bottom: 0.75rem; }
+  .concept-card h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.4rem; }
+  .concept-card p { font-size: 0.82rem; color: var(--text-muted); }
+  .concept-detail { margin-top: 0.6rem; font-size: 0.78rem; background: rgba(0,40,142,0.05); border-radius: 6px; padding: 0.5rem 0.75rem; color: var(--primary); font-weight: 500; }
+
+  /* COMPLIANCE LOOP */
+  .compliance-section { background: var(--surface); }
+  .loop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem; }
+  .loop-card { background: white; border-radius: var(--radius); padding: 2rem; box-shadow: var(--shadow-sm); }
+  .loop-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+  .loop-card ul { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; }
+  .loop-card li { font-size: 0.85rem; color: var(--text-muted); padding-left: 1.25rem; position: relative; }
+  .loop-card li::before { content: '→'; position: absolute; left: 0; color: var(--primary); font-weight: 600; }
+
+  /* CTA */
+  .cta-section { background: var(--gradient); text-align: center; padding: 5rem 2rem; color: white; }
+  .cta-section h2 { font-size: 2rem; font-weight: 800; margin-bottom: 1rem; }
+  .cta-section p { color: rgba(255,255,255,0.8); font-size: 1.05rem; margin-bottom: 2.5rem; }
+  .cta-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+  .btn-white { background: white; color: var(--primary); padding: 0.8rem 2rem; border-radius: var(--radius-sm); font-weight: 700; text-decoration: none; font-size: 0.95rem; transition: opacity 0.2s; }
+  .btn-outline { background: transparent; color: white; border: 2px solid rgba(255,255,255,0.5); padding: 0.8rem 2rem; border-radius: var(--radius-sm); font-weight: 700; text-decoration: none; font-size: 0.95rem; transition: border-color 0.2s; }
+  .btn-white:hover { opacity: 0.9; }
+  .btn-outline:hover { border-color: white; }
+
+  /* FOOTER */
+  footer { background: var(--navy); color: rgba(255,255,255,0.6); padding: 3rem 2rem; }
+  .footer-inner { max-width: 1100px; margin: 0 auto; }
+  .footer-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .footer-links { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .footer-links a { color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.85rem; transition: color 0.2s; }
+  .footer-links a:hover { color: white; }
+  .footer-copy { font-size: 0.82rem; text-align: center; }
+
+  @media (max-width: 768px) {
+    .pipeline-steps { grid-template-columns: repeat(2, 1fr); }
+    .pipeline-steps::before { display: none; }
+    .tabs-grid { grid-template-columns: 1fr 1fr; }
+    .tiers { grid-template-columns: 1fr; }
+    .graph-concepts { grid-template-columns: 1fr; }
+    .zone-outcomes { grid-template-columns: 1fr; }
+    .loop-grid { grid-template-columns: 1fr; }
+    .pipeline-detail { grid-template-columns: 1fr; }
+    .chat-pipeline { flex-direction: column; }
+    .pipe-stage:first-child, .pipe-stage:last-child, .pipe-stage { border-radius: var(--radius-sm); }
+    .pipe-arrow { display: none; }
+    .nav-links { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-brand">
+    <div class="nav-logo">AC</div>
+    <span class="nav-name">AdjudiCLAIMS</span>
+  </a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="bluf.html">Executive Summary</a>
+    <a href="how-it-works.html" class="active">How It Works</a>
+    <a href="transparency.html">Transparency</a>
+    <a href="upl-zones.html">UPL Zones</a>
+    <a href="security-hipaa.html">Security</a>
+    <a href="roi-calculator.html">ROI Calculator</a>
+  </div>
+  <a href="#demo" class="nav-cta">Request Demo</a>
+</nav>
+
+<div class="hero">
+  <div class="hero-badge">⚙ Technical Walkthrough</div>
+  <h1>See exactly how AdjudiCLAIMS works — step by step</h1>
+  <p>From document upload to examiner action. Every stage transparent, every decision explained.</p>
+</div>
+
+<!-- DOCUMENT PIPELINE -->
+<section>
+  <div class="container">
+    <div class="section-label">Stage 1</div>
+    <h2 class="section-title">The 8-Stage Document Pipeline</h2>
+    <p class="section-desc">Every document uploaded to AdjudiCLAIMS passes through an automated processing pipeline before an examiner ever sees it — extracting every data point that matters for the claim.</p>
+
+    <div class="pipeline">
+      <div class="pipeline-steps">
+        <div class="pipeline-step">
+          <div class="step-num">1</div>
+          <div class="step-name">Upload</div>
+          <div class="step-tech">Google Cloud Storage</div>
+          <div class="step-desc">PDF, TIFF, JPEG or typed text securely transferred to encrypted GCS bucket</div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-num">2</div>
+          <div class="step-name">OCR</div>
+          <div class="step-tech">Google Document AI</div>
+          <div class="step-desc">Optical character recognition + layout analysis on scanned records and forms</div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-num">3</div>
+          <div class="step-name">Classify</div>
+          <div class="step-tech">Claude (Haiku)</div>
+          <div class="step-desc">Document type assignment: 12 types, 150+ subtypes. Medical reports, liens, legal, forms.</div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-num">4</div>
+          <div class="step-name">Extract</div>
+          <div class="step-tech">Structured LLM extraction</div>
+          <div class="step-desc">Named entity extraction: diagnoses, ICD codes, WPI%, dates, dollar amounts, restrictions</div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-num">5</div>
+          <div class="step-name">Chunk</div>
+          <div class="step-tech">512-token segments</div>
+          <div class="step-desc">Heading-aware, overlap-enabled chunking with parent-child hierarchy preserved</div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-num">6</div>
+          <div class="step-name">Embed</div>
+          <div class="step-tech">Voyage Large 2 (1024-dim)</div>
+          <div class="step-desc">Dense vector embeddings stored in pgvector for semantic similarity search</div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-num">7</div>
+          <div class="step-name">Graph</div>
+          <div class="step-tech">PostgreSQL + Hebbian decay</div>
+          <div class="step-desc">Knowledge graph enrichment: entities linked, edge weights updated, contradictions flagged</div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-num">8</div>
+          <div class="step-name">Workflow</div>
+          <div class="step-tech">Temporal orchestration</div>
+          <div class="step-desc">Triggers: deadline alerts, investigation task generation, coverage determination prompts</div>
+        </div>
+      </div>
+
+      <div class="pipeline-detail">
+        <div class="detail-card">
+          <h4>OCR + Layout Analysis</h4>
+          <p>Google Document AI extracts text and spatial layout from scanned documents, preserving table structure, form fields, and multi-column medical records.</p>
+          <span class="tech-pill">Document AI Form Parser</span>
+        </div>
+        <div class="detail-card">
+          <h4>Document Classification</h4>
+          <p>12 primary types (medical report, legal, lien, correspondence, surveillance, form, IME, QME, PR-1/2/3/4, deposition, panel request) with 150+ subtypes for precise routing.</p>
+          <span class="tech-pill">Claude Haiku classifier</span>
+        </div>
+        <div class="detail-card">
+          <h4>Hybrid RAG Retrieval</h4>
+          <p>Retrieval fuses vector similarity (60% weight) with PostgreSQL FULLTEXT keyword search (40% weight) using Reciprocal Rank Fusion. Neither alone is sufficient for medical records.</p>
+          <span class="tech-pill">pgvector + pg_trgm + RRF</span>
+        </div>
+        <div class="detail-card">
+          <h4>Knowledge Graph — Hebbian Learning</h4>
+          <p>Edge weights between entities decay 5% per 30-day cycle if not reinforced — the graph "forgets" stale connections and strengthens recent ones. Three-tier entity resolution: exact → fuzzy → semantic.</p>
+          <span class="tech-pill">Hebbian neuro-plasticity model</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CLAIM WORKSPACE -->
+<section class="workspace-section">
+  <div class="container">
+    <div class="section-label" style="color: rgba(255,255,255,0.5);">Stage 2</div>
+    <h2 class="section-title" style="color: white;">The Claims Workspace</h2>
+    <p class="section-desc" style="color: rgba(255,255,255,0.7);">Each claim opens into a 12-tab detail view. Every tab surfaces pre-processed, AI-extracted data alongside the examiner's own notes and actions.</p>
+
+    <div class="tabs-grid">
+      <div class="tab-card">
+        <div class="tab-num">Tab 01</div>
+        <div class="tab-name">Overview</div>
+        <div class="tab-desc">Claim summary, injured worker info, employer, insurer, injury date, body parts, and current status. Starting point for every interaction.</div>
+      </div>
+      <div class="tab-card">
+        <div class="tab-num">Tab 02</div>
+        <div class="tab-name">Documents</div>
+        <div class="tab-desc">All uploaded documents with classification, processing status, extracted fields, and full text. Click any document to view the parsed content.</div>
+      </div>
+      <div class="tab-card">
+        <div class="tab-num">Tab 03</div>
+        <div class="tab-name">Deadlines</div>
+        <div class="tab-desc">Statutory deadline tracker: TD payments (LC 4650, 14 days), benefit notices (LC 4061, 90 days), liens, UR decisions. Color-coded urgency.</div>
+      </div>
+      <div class="tab-card">
+        <div class="tab-num">Tab 04</div>
+        <div class="tab-name">Coverage</div>
+        <div class="tab-desc">AOE/COE determination per body part. Records industrial vs. non-industrial apportionment, accepted/denied status, and denial rationale.</div>
+      </div>
+      <div class="tab-card">
+        <div class="tab-num">Tab 05</div>
+        <div class="tab-name">Medical Billing</div>
+        <div class="tab-desc">Aggregate medical financials: bills received, paid, disputed, and pending. OMFS fee schedule comparison. UR/IMR history.</div>
+      </div>
+      <div class="tab-card">
+        <div class="tab-num">Tab 06</div>
+        <div class="tab-name">Benefits</div>
+        <div class="tab-desc">TD rate calculator (AWE × 2/3, statutory min/max), PD rating worksheet, wage loss tracking, and payment schedule with statutory citations.</div>
+      </div>
+      <div class="tab-card">
+        <div class="tab-num">Tab 07</div>
+        <div class="tab-name">Liens</div>
+        <div class="tab-desc">Lien tracking: claimant attorney, medical providers, EDD, WCAB. Status: asserted, resolved, waived. Priority ordering.</div>
+      </div>
+      <div class="tab-card">
+        <div class="tab-num">Tab 08</div>
+        <div class="tab-name">Investigation</div>
+        <div class="tab-desc">Automated checklist: 20 investigation tasks generated from document analysis. Tracks completion status and flags gaps that increase risk exposure.</div>
+      </div>
+      <div class="tab-card">
+        <div class="tab-num">Tab 09</div>
+        <div class="tab-name">Timeline</div>
+        <div class="tab-desc">Chronological event log: every document receipt, payment, communication, and determination with date, actor, and source document.</div>
+      </div>
+      <div class="tab-card">
+        <div class="tab-num">Tab 10</div>
+        <div class="tab-name">AI Chat</div>
+        <div class="tab-desc">UPL-filtered chat interface. Green zone: factual Q&amp;A. Yellow zone: statistical data + disclaimer. Red zone: blocked, attorney referral generated.</div>
+      </div>
+      <div class="tab-card">
+        <div class="tab-num">Tab 11</div>
+        <div class="tab-name">Audit Trail</div>
+        <div class="tab-desc">Append-only event log for this claim: 60+ event types, IP address, user agent, timestamps. Read-only. 7-year retention enforced.</div>
+      </div>
+      <div class="tab-card">
+        <div class="tab-num">Tab 12</div>
+        <div class="tab-name">Education</div>
+        <div class="tab-desc">Contextual regulatory education: Tier 1 dismissable basics, Tier 2 always-present statutory authority. Adapts to the current tab and claim state.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AI CHAT PIPELINE -->
+<section>
+  <div class="container">
+    <div class="section-label">Stage 3</div>
+    <h2 class="section-title">The AI Chat System</h2>
+    <p class="section-desc">Every examiner query passes through a three-stage pipeline before any AI response is generated — ensuring compliance with Cal. Bus. &amp; Prof. Code § 6125 (UPL prohibition).</p>
+
+    <div class="chat-pipeline">
+      <div class="pipe-stage blue">
+        <div class="pipe-icon">💬</div>
+        <div class="pipe-title">1. Query Classification</div>
+        <div class="pipe-desc">Lightweight Claude Haiku call + regex classifier assigns GREEN / YELLOW / RED zone before any response generation</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-stage blue">
+        <div class="pipe-icon">📋</div>
+        <div class="pipe-title">2. System Prompt Selection</div>
+        <div class="pipe-desc">Zone-specific system prompt loaded. RED queries never reach this stage — blocked at classification.</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-stage blue">
+        <div class="pipe-icon">🤖</div>
+        <div class="pipe-title">3. RAG Retrieval</div>
+        <div class="pipe-desc">Hybrid vector + keyword search surfaces relevant document chunks from the claim's knowledge base (RRF fusion)</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-stage blue">
+        <div class="pipe-icon">✍️</div>
+        <div class="pipe-title">4. Response Generation</div>
+        <div class="pipe-desc">Claude Sonnet generates response with retrieved context, system prompt constraints, and zone-appropriate framing</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-stage blue">
+        <div class="pipe-icon">🛡️</div>
+        <div class="pipe-title">5. Output Validation</div>
+        <div class="pipe-desc">Post-generation validator scans for 24+ prohibited patterns: legal conclusions, legal advice, case outcome predictions</div>
+      </div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-stage blue">
+        <div class="pipe-icon">📤</div>
+        <div class="pipe-title">6. Delivery</div>
+        <div class="pipe-desc">Validated response delivered with zone badge, mandatory disclaimer (if YELLOW), or blocked message with attorney referral (if RED)</div>
+      </div>
+    </div>
+
+    <div class="zone-outcomes">
+      <div class="outcome green">
+        <div class="outcome-label">🟢 Green Zone</div>
+        <h4>Factual Response</h4>
+        <p>Delivered with source citations. No disclaimer required. Includes: diagnosis summaries, WPI%, TD calculations, deadline dates, payment status, MTUS guidelines.</p>
+      </div>
+      <div class="outcome yellow">
+        <div class="outcome-label">🟡 Yellow Zone</div>
+        <h4>Statistical Data + Mandatory Disclaimer</h4>
+        <p>Comparative claim data delivered with mandatory: <em>"This is statistical information, not legal advice. Consult defense counsel for legal guidance."</em></p>
+      </div>
+      <div class="outcome red">
+        <div class="outcome-label">🔴 Red Zone</div>
+        <h4>Blocked — Attorney Referral</h4>
+        <p>Query blocked. Examiner sees: <em>"This question requires legal analysis. Please contact defense counsel."</em> A counsel referral record is auto-generated.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EDUCATION SYSTEM -->
+<section style="background: white;">
+  <div class="container">
+    <div class="section-label">Stage 4</div>
+    <h2 class="section-title">The Education System</h2>
+    <p class="section-desc">AdjudiCLAIMS isn't just a tool — it's the training program. Every interaction is an opportunity to build examiner competency. Two tiers of progressive disclosure.</p>
+
+    <div class="tiers">
+      <div class="tier-card t1">
+        <span class="tier-badge">Tier 1</span>
+        <h3>Dismissable Basics</h3>
+        <p>Term definitions and procedural basics shown to new examiners by default. Once an examiner clicks "I understand," the entry is permanently dismissed for their account.</p>
+        <div class="tier-stat">86</div>
+        <div class="tier-stat-label">dismissable education entries</div>
+        <div style="margin-top: 1rem; font-size: 0.8rem; color: var(--text-muted);">
+          Example: <em>"AWE = Average Weekly Earnings. Used to calculate your TD rate."</em>
+        </div>
+      </div>
+      <div class="tier-card t2">
+        <span class="tier-badge">Tier 2 — Always Present</span>
+        <h3>Regulatory Authority</h3>
+        <p>Statutory citations and legal consequences are NEVER hidden. These are the Glass Box foundation — examiners always know what law governs their action and why it matters.</p>
+        <div class="tier-stat">57</div>
+        <div class="tier-stat-label">always-present regulatory entries</div>
+        <div style="margin-top: 1rem; font-size: 0.8rem; color: var(--text-muted);">
+          Example: <em>"LC 4650 requires TD payment within 14 days of knowledge of disability. Late payment triggers 10% self-imposed increase per LC 4650(d)."</em>
+        </div>
+      </div>
+      <div class="tier-card t3">
+        <span class="tier-badge">Ongoing Training</span>
+        <h3>Structured Training Program</h3>
+        <p>4 mandatory training modules gate full system access. Monthly knowledge reviews and quarterly regulatory refreshers keep examiners current as CA law evolves.</p>
+        <div class="tier-stat">20</div>
+        <div class="tier-stat-label">decision workflow guides</div>
+        <div style="margin-top: 1rem; font-size: 0.8rem; color: var(--text-muted);">
+          Modules: CA WC Fundamentals, UPL Boundaries, HIPAA Obligations, Regulatory Deadlines
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPLIANCE LOOP -->
+<section class="compliance-section">
+  <div class="container">
+    <div class="section-label">Stage 5</div>
+    <h2 class="section-title">The Compliance Loop</h2>
+    <p class="section-desc">Supervisors and compliance officers close the loop. Every action is logged, every deviation from compliance is surfaced, and DOI audit readiness is maintained continuously.</p>
+
+    <div class="loop-grid">
+      <div class="loop-card">
+        <h3>📊 Compliance Dashboard</h3>
+        <ul>
+          <li>Real-time deadline adherence rate across all claims</li>
+          <li>Overdue deadline alerts with statutory citation</li>
+          <li>Examiner performance metrics and training completion</li>
+          <li>UPL zone query distribution and block rates</li>
+          <li>Lien resolution aging and pending amounts</li>
+        </ul>
+      </div>
+      <div class="loop-card">
+        <h3>📋 Audit Trail</h3>
+        <ul>
+          <li>60+ event types captured for every claim action</li>
+          <li>Append-only — no records can be modified or deleted</li>
+          <li>IP address and user agent captured for every event</li>
+          <li>7-year retention enforced automatically</li>
+          <li>Exportable in structured format for DOI audits</li>
+        </ul>
+      </div>
+      <div class="loop-card">
+        <h3>🔍 DOI Audit Readiness</h3>
+        <ul>
+          <li>Pre-built report templates for common DOI audit requests</li>
+          <li>Evidence packages: deadline history, payment records, communications</li>
+          <li>Complete chain of custody for every document</li>
+          <li>Statutory authority cited on every deadline and benefit decision</li>
+        </ul>
+      </div>
+      <div class="loop-card">
+        <h3>⚙️ Anomaly Detection</h3>
+        <ul>
+          <li>Sliding window rules detect unusual activity patterns</li>
+          <li>Rapid document access: &gt;50 docs in 5 minutes triggers review</li>
+          <li>Failed login threshold: 5 attempts → automatic lockout</li>
+          <li>Off-hours bulk exports flagged for security review</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- KNOWLEDGE GRAPH -->
+<section class="graph-section">
+  <div class="container">
+    <div class="section-label">Stage 6</div>
+    <h2 class="section-title">The Knowledge Graph</h2>
+    <p class="section-desc">AdjudiCLAIMS builds a graph of every entity in every document — injured workers, diagnoses, providers, employers, dates, amounts — and the connections between them. The graph gets smarter over time.</p>
+
+    <div class="graph-concepts">
+      <div class="concept-card">
+        <div class="concept-icon">🧩</div>
+        <h4>Entity Extraction</h4>
+        <p>Named entities extracted from every document chunk: people, organizations, medical diagnoses (ICD-10), dates, dollar amounts, body parts, and regulatory references.</p>
+        <div class="concept-detail">3-tier resolution: exact match → fuzzy match (Levenshtein) → semantic match (embedding similarity)</div>
+      </div>
+      <div class="concept-card">
+        <div class="concept-icon">🔗</div>
+        <h4>Edge Weight Learning</h4>
+        <p>Connections between entities are weighted by co-occurrence frequency and recency. The graph learns which relationships matter most for claims outcomes.</p>
+        <div class="concept-detail">Hebbian decay: edge weights decrease 5% per 30-day cycle unless reinforced by new evidence</div>
+      </div>
+      <div class="concept-card">
+        <div class="concept-icon">⚠️</div>
+        <h4>Contradiction Detection</h4>
+        <p>When a new document contradicts prior records — different WPI%, conflicting diagnosis, different injury date — the system flags the contradiction for examiner review.</p>
+        <div class="concept-detail">Contradiction tracking model: source A vs. source B with confidence scores for each</div>
+      </div>
+      <div class="concept-card">
+        <div class="concept-icon">🔍</div>
+        <h4>Graph-Enhanced Retrieval</h4>
+        <p>When an examiner asks a question, the graph expands the retrieval scope — surfacing related entities and documents that a pure vector search would miss.</p>
+        <div class="concept-detail">Graph traversal depth configurable per query type (default: 2-hop)</div>
+      </div>
+      <div class="concept-card">
+        <div class="concept-icon">🏗️</div>
+        <h4>Consolidation Runs</h4>
+        <p>Nightly consolidation merges duplicate entity nodes, decays stale edges, and recomputes community clusters across the full claim graph.</p>
+        <div class="concept-detail">Maintenance window: 02:00–04:00 UTC daily, zero downtime for read operations</div>
+      </div>
+      <div class="concept-card">
+        <div class="concept-icon">📈</div>
+        <h4>Gets Smarter Over Time</h4>
+        <p>The more documents processed, the richer the graph. Long-running claims develop dense entity networks that surface non-obvious connections between events and providers.</p>
+        <div class="concept-detail">G6 Trust system: entity trust scores updated with each reinforced connection</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="cta-section" id="demo">
+  <div class="container">
+    <h2>Ready to see it in action?</h2>
+    <p>Schedule a demo or read the full transparency documentation.</p>
+    <div class="cta-btns">
+      <a href="mailto:demo@adjudiclaims.com" class="btn-white">Request a Demo</a>
+      <a href="transparency.html" class="btn-outline">Platform Transparency</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="nav-brand" style="gap: 10px; display: flex; align-items: center;">
+        <div class="nav-logo">AC</div>
+        <span style="color: white; font-weight: 700;">AdjudiCLAIMS</span>
+      </div>
+      <div class="footer-links">
+        <a href="index.html">Home</a>
+        <a href="bluf.html">Executive Summary</a>
+        <a href="how-it-works.html">How It Works</a>
+        <a href="transparency.html">Transparency</a>
+        <a href="upl-zones.html">UPL Zones</a>
+        <a href="security-hipaa.html">Security</a>
+        <a href="roi-calculator.html">ROI Calculator</a>
+      </div>
+    </div>
+    <div class="footer-copy">
+      © 2026 Glass Box Solutions, Inc. · AdjudiCLAIMS is an information tool, not a legal advisor. · "From Black Box to Glass Box."
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Security &amp; HIPAA — AdjudiCLAIMS by Glass Box</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #00288e;
+    --primary-mid: #1e40af;
+    --navy: #0F172A;
+    --surface: #faf8ff;
+    --white: #ffffff;
+    --text: #131b2e;
+    --text-muted: #444653;
+    --border: #c4c5d5;
+    --green: #059669;
+    --green-bg: #ecfdf5;
+    --yellow: #D97706;
+    --yellow-bg: #fffbeb;
+    --red: #DC2626;
+    --red-bg: #fef2f2;
+    --gradient: linear-gradient(135deg, #00288e 0%, #1e40af 100%);
+    --shadow: 0px 20px 40px rgba(15,23,42,0.06);
+    --shadow-sm: 0px 4px 12px rgba(15,23,42,0.08);
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; background: var(--surface); color: var(--text); line-height: 1.6; }
+
+  /* NAV */
+  nav { background: var(--navy); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 64px; position: sticky; top: 0; z-index: 100; }
+  .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .nav-logo { width: 32px; height: 32px; background: var(--gradient); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; font-size: 14px; }
+  .nav-name { color: white; font-weight: 700; font-size: 1rem; }
+  .nav-links { display: flex; gap: 1.5rem; align-items: center; }
+  .nav-links a { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.85rem; font-weight: 500; transition: color 0.2s; }
+  .nav-links a:hover, .nav-links a.active { color: white; }
+  .nav-cta { background: var(--gradient); color: white; padding: 0.4rem 1rem; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 600; text-decoration: none; }
+
+  /* HERO */
+  .hero { background: var(--gradient); padding: 5rem 2rem 4rem; text-align: center; color: white; }
+  .hero-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); border-radius: 999px; padding: 0.35rem 0.9rem; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 1.5rem; }
+  .hero h1 { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; margin-bottom: 1.25rem; max-width: 750px; margin-left: auto; margin-right: auto; }
+  .hero p { font-size: 1.1rem; color: rgba(255,255,255,0.85); max-width: 580px; margin: 0 auto; }
+
+  /* STATS BAR */
+  .stats-bar { background: var(--navy); padding: 2rem; display: flex; justify-content: center; gap: 4rem; flex-wrap: wrap; }
+  .stat { text-align: center; }
+  .stat-num { font-size: 2rem; font-weight: 800; color: white; }
+  .stat-label { font-size: 0.78rem; color: rgba(255,255,255,0.55); margin-top: 0.2rem; }
+
+  /* LAYOUT */
+  section { padding: 4rem 2rem; }
+  .container { max-width: 1050px; margin: 0 auto; }
+  .section-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--primary); margin-bottom: 0.5rem; }
+  .section-title { font-size: clamp(1.4rem, 2.5vw, 1.9rem); font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.75rem; }
+  .section-desc { color: var(--text-muted); font-size: 1rem; max-width: 680px; margin-bottom: 2.5rem; }
+
+  /* TABLE */
+  .sec-table { width: 100%; border-collapse: collapse; background: white; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm); }
+  .sec-table th { background: var(--navy); color: white; padding: 0.85rem 1.25rem; text-align: left; font-size: 0.82rem; font-weight: 600; }
+  .sec-table td { padding: 0.85rem 1.25rem; font-size: 0.85rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .sec-table tr:last-child td { border-bottom: none; }
+  .sec-table tr:hover td { background: var(--surface); }
+  .badge { display: inline-block; border-radius: 999px; padding: 0.2rem 0.65rem; font-size: 0.72rem; font-weight: 700; }
+  .badge-green { background: var(--green-bg); color: var(--green); }
+  .badge-blue { background: rgba(0,40,142,0.08); color: var(--primary); }
+  .badge-yellow { background: var(--yellow-bg); color: var(--yellow); }
+
+  /* CARDS */
+  .card-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+  .card { background: white; border-radius: var(--radius); padding: 1.75rem; box-shadow: var(--shadow-sm); }
+  .card-icon { font-size: 1.6rem; margin-bottom: 0.75rem; }
+  .card h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .card p { font-size: 0.83rem; color: var(--text-muted); }
+  .card ul { list-style: none; font-size: 0.83rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 0.35rem; margin-top: 0.6rem; }
+  .card ul li { padding-left: 1rem; position: relative; }
+  .card ul li::before { content: '•'; position: absolute; left: 0; color: var(--primary); }
+
+  /* 2-COL */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start; }
+
+  /* HIPAA */
+  .hipaa-section { background: var(--surface); }
+  .phi-box { background: white; border-radius: var(--radius-sm); padding: 1.5rem; border: 1px solid var(--border); margin-bottom: 1.5rem; }
+  .phi-box h4 { font-weight: 700; margin-bottom: 0.75rem; font-size: 0.9rem; }
+  .phi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.4rem; }
+  .phi-item { font-size: 0.8rem; color: var(--text-muted); padding: 0.25rem 0; }
+
+  /* ANOMALY */
+  .anomaly-section { background: var(--navy); color: white; }
+  .anomaly-rules { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+  .anomaly-rule { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius); padding: 1.75rem; }
+  .rule-threshold { font-size: 1.5rem; font-weight: 800; color: #fbbf24; margin-bottom: 0.5rem; }
+  .rule-name { font-weight: 700; font-size: 0.9rem; margin-bottom: 0.5rem; }
+  .rule-desc { font-size: 0.82rem; color: rgba(255,255,255,0.6); margin-bottom: 0.75rem; }
+  .rule-action { font-size: 0.78rem; color: rgba(255,255,255,0.45); border-top: 1px solid rgba(255,255,255,0.1); padding-top: 0.75rem; }
+
+  /* SOC2 */
+  .soc2-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  .soc2-card { background: white; border-radius: var(--radius); padding: 1.75rem; box-shadow: var(--shadow-sm); }
+  .soc2-card h3 { font-size: 0.9rem; font-weight: 700; margin-bottom: 1rem; }
+  .control-list { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+  .control-list li { display: flex; align-items: flex-start; gap: 0.6rem; font-size: 0.83rem; }
+  .ctl-pass { color: var(--green); font-weight: 700; flex-shrink: 0; }
+  .ctl-pending { color: var(--yellow); font-weight: 700; flex-shrink: 0; }
+
+  /* RETENTION */
+  .retention-section { background: white; }
+  .retention-table { width: 100%; border-collapse: collapse; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm); }
+  .retention-table th { background: var(--primary); color: white; padding: 0.85rem 1.25rem; text-align: left; font-size: 0.82rem; font-weight: 600; }
+  .retention-table td { padding: 0.85rem 1.25rem; font-size: 0.84rem; border-bottom: 1px solid var(--border); background: white; }
+  .retention-table tr:last-child td { border-bottom: none; }
+
+  /* CONTACT */
+  .contact-section { background: var(--gradient); color: white; text-align: center; padding: 4rem 2rem; }
+  .contact-section h2 { font-size: 1.8rem; font-weight: 800; margin-bottom: 0.75rem; }
+  .contact-section p { color: rgba(255,255,255,0.8); margin-bottom: 2rem; font-size: 1rem; }
+  .contact-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+  .btn-white { background: white; color: var(--primary); padding: 0.75rem 1.75rem; border-radius: var(--radius-sm); font-weight: 700; text-decoration: none; }
+  .btn-outline { background: transparent; color: white; border: 2px solid rgba(255,255,255,0.5); padding: 0.75rem 1.75rem; border-radius: var(--radius-sm); font-weight: 700; text-decoration: none; }
+
+  /* FOOTER */
+  footer { background: var(--navy); color: rgba(255,255,255,0.6); padding: 3rem 2rem; }
+  .footer-inner { max-width: 1050px; margin: 0 auto; }
+  .footer-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid rgba(255,255,255,0.1); flex-wrap: wrap; gap: 1rem; }
+  .footer-links { display: flex; gap: 1.25rem; flex-wrap: wrap; }
+  .footer-links a { color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.82rem; }
+  .footer-links a:hover { color: white; }
+  .footer-copy { font-size: 0.8rem; text-align: center; }
+
+  @media (max-width: 768px) {
+    .card-grid { grid-template-columns: 1fr; }
+    .two-col { grid-template-columns: 1fr; }
+    .anomaly-rules { grid-template-columns: 1fr; }
+    .soc2-grid { grid-template-columns: 1fr; }
+    .phi-grid { grid-template-columns: 1fr 1fr; }
+    .stats-bar { gap: 2rem; }
+    .nav-links { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-brand">
+    <div class="nav-logo">AC</div>
+    <span class="nav-name">AdjudiCLAIMS</span>
+  </a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="bluf.html">Executive Summary</a>
+    <a href="how-it-works.html">How It Works</a>
+    <a href="transparency.html">Transparency</a>
+    <a href="upl-zones.html">UPL Zones</a>
+    <a href="security-hipaa.html" class="active">Security</a>
+    <a href="roi-calculator.html">ROI Calculator</a>
+  </div>
+  <a href="#contact" class="nav-cta">Contact</a>
+</nav>
+
+<div class="hero">
+  <div class="hero-badge">🔒 Security &amp; HIPAA</div>
+  <h1>Built for a regulated industry. Verified by tests, not just claims.</h1>
+  <p>AdjudiCLAIMS processes Protected Health Information in a California Workers' Compensation context. Here is every technical and organizational control in place.</p>
+</div>
+
+<div class="stats-bar">
+  <div class="stat"><div class="stat-num">69</div><div class="stat-label">SOC 2 compliance tests passing</div></div>
+  <div class="stat"><div class="stat-num">Argon2id</div><div class="stat-label">Password hashing algorithm</div></div>
+  <div class="stat"><div class="stat-num">7 years</div><div class="stat-label">Audit log retention</div></div>
+  <div class="stat"><div class="stat-num">5 BAAs</div><div class="stat-label">Sub-processor agreements executed</div></div>
+  <div class="stat"><div class="stat-num">AES-256</div><div class="stat-label">Encryption at rest</div></div>
+</div>
+
+<!-- AUTH & ACCESS -->
+<section>
+  <div class="container">
+    <div class="section-label">Authentication &amp; Access Control</div>
+    <h2 class="section-title">Authentication Controls</h2>
+    <p class="section-desc">AdjudiCLAIMS uses modern credential security with multi-factor authentication and role-based access enforcement at every API layer.</p>
+
+    <table class="sec-table">
+      <thead>
+        <tr>
+          <th>Control</th>
+          <th>Implementation</th>
+          <th>Standard</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Password Hashing</strong></td>
+          <td>Argon2id — memory-hard, timing-attack resistant. Configured: 64 MB memory, 3 iterations, 4 parallelism.</td>
+          <td>OWASP PHC Winner</td>
+          <td><span class="badge badge-green">Implemented</span></td>
+        </tr>
+        <tr>
+          <td><strong>Multi-Factor Authentication</strong></td>
+          <td>TOTP (Time-based One-Time Password) — RFC 6238 compliant. 30-second window. Backup codes provided on enrollment.</td>
+          <td>NIST SP 800-63B AAL2</td>
+          <td><span class="badge badge-green">Implemented</span></td>
+        </tr>
+        <tr>
+          <td><strong>Account Lockout</strong></td>
+          <td>5 failed login attempts → 15-minute lockout. Event logged to audit trail with IP address.</td>
+          <td>OWASP A07:2021</td>
+          <td><span class="badge badge-green">Implemented</span></td>
+        </tr>
+        <tr>
+          <td><strong>Session Security</strong></td>
+          <td>HttpOnly, Secure, SameSite=Strict cookies. Session tokens rotated on privilege change. Idle timeout: 30 minutes.</td>
+          <td>OWASP Session Management</td>
+          <td><span class="badge badge-green">Implemented</span></td>
+        </tr>
+        <tr>
+          <td><strong>Role-Based Access Control (RBAC)</strong></td>
+          <td>3 roles: CLAIMS_EXAMINER, CLAIMS_SUPERVISOR, CLAIMS_ADMIN. Enforced at API middleware layer — not just UI. Every route validates role before processing.</td>
+          <td>Principle of Least Privilege</td>
+          <td><span class="badge badge-green">Implemented</span></td>
+        </tr>
+        <tr>
+          <td><strong>Password Complexity</strong></td>
+          <td>Minimum 12 characters. Checked against zxcvbn strength estimator (score ≥ 3 required).</td>
+          <td>NIST SP 800-63B</td>
+          <td><span class="badge badge-green">Implemented</span></td>
+        </tr>
+        <tr>
+          <td><strong>Credential Storage</strong></td>
+          <td>All secrets (API keys, DB connection strings, session secrets) stored in GCP Secret Manager. Never in environment variables, config files, or git history.</td>
+          <td>CIS Controls v8 #4.7</td>
+          <td><span class="badge badge-green">Implemented</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- DATA ARCHITECTURE -->
+<section style="background: white;">
+  <div class="container">
+    <div class="section-label">Data Architecture</div>
+    <h2 class="section-title">Multi-Tenant Data Isolation</h2>
+    <p class="section-desc">AdjudiCLAIMS is multi-tenant. Carrier, TPA, and self-insured organizations are isolated at the database query level — not just the application layer.</p>
+
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon">🏢</div>
+        <h3>Organization Scoping</h3>
+        <p>Every database query includes an <code style="font-size: 0.8rem; background: var(--surface); padding: 0.1rem 0.3rem; border-radius: 4px;">organizationId</code> filter. A user from Carrier A cannot retrieve records from Carrier B — even with direct database query construction.</p>
+        <ul>
+          <li>Enforced at Prisma query layer</li>
+          <li>Tested in integration test suite</li>
+          <li>SOC 2 CC6.1 compliant</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon">📄</div>
+        <h3>Document Access Levels</h3>
+        <p>Documents have granular access levels: ALL_ROLES (shared), EXAMINER_AND_ABOVE (no admin-only access), SUPERVISOR_AND_ABOVE, and ATTORNEY_ONLY.</p>
+        <ul>
+          <li>Attorney work product excluded at query layer</li>
+          <li>ATTORNEY_ONLY documents never returned to examiner roles</li>
+          <li>Data boundary tested in E2E suite</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔐</div>
+        <h3>Encryption</h3>
+        <p>All data encrypted at rest (AES-256) and in transit (TLS 1.3). Database connections require SSL. GCS buckets use customer-managed encryption keys.</p>
+        <ul>
+          <li>TLS 1.3 enforced — TLS 1.0/1.1 disabled</li>
+          <li>HSTS headers on all responses</li>
+          <li>Certificate rotation automated via GCP</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HIPAA -->
+<section class="hipaa-section">
+  <div class="container">
+    <div class="section-label">HIPAA Compliance</div>
+    <h2 class="section-title">HIPAA Technical &amp; Organizational Safeguards</h2>
+    <p class="section-desc">AdjudiCLAIMS processes Protected Health Information (PHI) as a Business Associate under 45 CFR §§ 164.302–164.318.</p>
+
+    <div class="two-col">
+      <div>
+        <div class="phi-box">
+          <h4>PHI Inventory — What We Process</h4>
+          <div class="phi-grid">
+            <div class="phi-item">✓ Medical diagnoses</div>
+            <div class="phi-item">✓ Treatment records</div>
+            <div class="phi-item">✓ Prescription history</div>
+            <div class="phi-item">✓ WPI ratings</div>
+            <div class="phi-item">✓ Work restrictions</div>
+            <div class="phi-item">✓ Injury dates</div>
+            <div class="phi-item">✓ Provider information</div>
+            <div class="phi-item">✓ Disability status</div>
+            <div class="phi-item">✓ Lab results (if attached)</div>
+          </div>
+        </div>
+        <div class="phi-box">
+          <h4>Minimum Necessary Standard</h4>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">AI models receive anonymized document chunks with internal IDs — not named patient records. Claim numbers and examiner queries are never transmitted to AI sub-processors with PHI identifiers attached.</p>
+        </div>
+        <div class="phi-box">
+          <h4>Breach Notification</h4>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">Breach notification procedures implemented per 45 CFR § 164.410. Covered entity notified within 72 hours of confirmed breach. HHS notification within 60 days per regulatory timeline.</p>
+        </div>
+      </div>
+      <div>
+        <table class="sec-table">
+          <thead>
+            <tr>
+              <th>HIPAA Safeguard</th>
+              <th>Implementation</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Access Control (§ 164.312(a))</td>
+              <td>RBAC + TOTP MFA + account lockout</td>
+              <td><span class="badge badge-green">✓</span></td>
+            </tr>
+            <tr>
+              <td>Audit Controls (§ 164.312(b))</td>
+              <td>60+ event types, append-only, 7-year retention</td>
+              <td><span class="badge badge-green">✓</span></td>
+            </tr>
+            <tr>
+              <td>Integrity (§ 164.312(c))</td>
+              <td>DB constraints + audit trail + no-update audit model</td>
+              <td><span class="badge badge-green">✓</span></td>
+            </tr>
+            <tr>
+              <td>Transmission Security (§ 164.312(e))</td>
+              <td>TLS 1.3 + HSTS + certificate rotation</td>
+              <td><span class="badge badge-green">✓</span></td>
+            </tr>
+            <tr>
+              <td>Encryption at Rest (§ 164.312(a)(2)(iv))</td>
+              <td>AES-256 on Cloud SQL + GCS</td>
+              <td><span class="badge badge-green">✓</span></td>
+            </tr>
+            <tr>
+              <td>BAAs with Sub-Processors (§ 164.314)</td>
+              <td>Anthropic, Google Cloud, Voyage AI — all executed</td>
+              <td><span class="badge badge-green">✓</span></td>
+            </tr>
+            <tr>
+              <td>Breach Notification (§ 164.410)</td>
+              <td>72-hour covered entity / 60-day HHS procedure</td>
+              <td><span class="badge badge-green">✓</span></td>
+            </tr>
+            <tr>
+              <td>Workforce Training (§ 164.530(b))</td>
+              <td>HIPAA training module — mandatory gate for system access</td>
+              <td><span class="badge badge-green">✓</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SOC 2 -->
+<section>
+  <div class="container">
+    <div class="section-label">SOC 2 Controls</div>
+    <h2 class="section-title">SOC 2 Trust Service Criteria</h2>
+    <p class="section-desc">69 automated SOC 2 compliance tests pass on every build. Controls are organized by Trust Service Criteria (TSC).</p>
+
+    <div class="soc2-grid">
+      <div class="soc2-card">
+        <h3>✅ Implemented — CC6: Logical &amp; Physical Access</h3>
+        <ul class="control-list">
+          <li><span class="ctl-pass">✓</span> Authentication with MFA (CC6.1)</li>
+          <li><span class="ctl-pass">✓</span> Role-based access enforcement (CC6.2)</li>
+          <li><span class="ctl-pass">✓</span> Account lockout after failed attempts (CC6.3)</li>
+          <li><span class="ctl-pass">✓</span> Session timeout and token rotation (CC6.6)</li>
+          <li><span class="ctl-pass">✓</span> Credential storage in Secret Manager (CC6.7)</li>
+          <li><span class="ctl-pass">✓</span> Encryption at rest and in transit (CC6.1)</li>
+          <li><span class="ctl-pass">✓</span> Org-scoped data isolation (CC6.1)</li>
+        </ul>
+      </div>
+      <div class="soc2-card">
+        <h3>✅ Implemented — CC7: System Operations</h3>
+        <ul class="control-list">
+          <li><span class="ctl-pass">✓</span> Anomaly detection with sliding-window rules (CC7.2)</li>
+          <li><span class="ctl-pass">✓</span> Audit trail — 60+ event types (CC7.2)</li>
+          <li><span class="ctl-pass">✓</span> Append-only audit log (no tampering) (CC7.3)</li>
+          <li><span class="ctl-pass">✓</span> Automated security alerts (CC7.4)</li>
+          <li><span class="ctl-pass">✓</span> Stack trace stripping in production (CC7.5)</li>
+          <li><span class="ctl-pass">✓</span> Sentry error monitoring (no PHI in errors) (CC7.5)</li>
+          <li><span class="ctl-pass">✓</span> GCP infrastructure auto-scaling (CC7.1)</li>
+        </ul>
+      </div>
+      <div class="soc2-card">
+        <h3>✅ Implemented — CC8: Change Management</h3>
+        <ul class="control-list">
+          <li><span class="ctl-pass">✓</span> CI/CD pipeline (Cloud Build, 10-step) (CC8.1)</li>
+          <li><span class="ctl-pass">✓</span> 3,068 automated tests on every deployment (CC8.1)</li>
+          <li><span class="ctl-pass">✓</span> TypeScript strict mode — zero type errors (CC8.1)</li>
+          <li><span class="ctl-pass">✓</span> Prisma migration versioning (CC8.1)</li>
+          <li><span class="ctl-pass">✓</span> Docker image pinning — no latest tags (CC8.1)</li>
+          <li><span class="ctl-pass">✓</span> Non-root container execution (CC8.1)</li>
+        </ul>
+      </div>
+      <div class="soc2-card">
+        <h3>🔄 In Progress — Privacy &amp; Availability</h3>
+        <ul class="control-list">
+          <li><span class="ctl-pass">✓</span> DSAR export endpoint (P6.1)</li>
+          <li><span class="ctl-pass">✓</span> Right-to-deletion endpoint (P6.1)</li>
+          <li><span class="ctl-pass">✓</span> 7-year retention enforcement (P6.1)</li>
+          <li><span class="ctl-pending">~</span> Formal SOC 2 Type I audit (scheduled Q3 2026)</li>
+          <li><span class="ctl-pending">~</span> SOC 2 Type II audit (planned Q1 2027)</li>
+          <li><span class="ctl-pending">~</span> Disaster recovery runbook (in progress)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INFRASTRUCTURE -->
+<section style="background: white;">
+  <div class="container">
+    <div class="section-label">Infrastructure Security</div>
+    <h2 class="section-title">GCP Infrastructure</h2>
+    <p class="section-desc">AdjudiCLAIMS is deployed exclusively on Google Cloud Platform using managed services with zero infrastructure to patch.</p>
+
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon">☁️</div>
+        <h3>Cloud Run (API + Workers)</h3>
+        <p>Serverless container execution. Auto-scales to zero under no load. Non-root container user enforced. No persistent VM attack surface.</p>
+        <ul>
+          <li>Non-root container user (UID 1000)</li>
+          <li>Read-only root filesystem</li>
+          <li>Separate service accounts per workload</li>
+          <li>CPU/memory limits enforced per service</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon">🗄️</div>
+        <h3>Cloud SQL (PostgreSQL 16)</h3>
+        <p>Managed PostgreSQL with automated backups, point-in-time recovery, and private IP connectivity only. No public internet exposure.</p>
+        <ul>
+          <li>Private IP only (no public endpoint)</li>
+          <li>Automated daily backups (7-day retention)</li>
+          <li>PITR enabled (1-minute granularity)</li>
+          <li>SSL required for all connections</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔑</div>
+        <h3>Secret Manager</h3>
+        <p>All credentials stored in GCP Secret Manager with version history and audit logging. Zero hardcoded secrets anywhere in the codebase.</p>
+        <ul>
+          <li>IAM-controlled access per service account</li>
+          <li>Automatic secret rotation supported</li>
+          <li>Access logged to Cloud Audit Log</li>
+          <li>Zero secrets in environment variables or git</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ANOMALY DETECTION -->
+<section class="anomaly-section">
+  <div class="container">
+    <div class="section-label" style="color: rgba(255,255,255,0.5);">Anomaly Detection</div>
+    <h2 class="section-title" style="color: white;">Sliding-Window Detection Rules</h2>
+    <p class="section-desc" style="color: rgba(255,255,255,0.65);">Three automated detection rules monitor for unusual activity patterns. Triggers generate security alerts and audit events.</p>
+
+    <div class="anomaly-rules">
+      <div class="anomaly-rule">
+        <div class="rule-threshold">&gt; 50 docs</div>
+        <div class="rule-name">Rapid Document Access</div>
+        <div class="rule-desc">More than 50 document accesses within a 5-minute window by a single user triggers a security review flag.</div>
+        <div class="rule-action">Action: Security alert generated. Audit event logged. Account flagged for review by CLAIMS_ADMIN.</div>
+      </div>
+      <div class="anomaly-rule">
+        <div class="rule-threshold">5 attempts</div>
+        <div class="rule-name">Failed Login Threshold</div>
+        <div class="rule-desc">5 consecutive failed login attempts for an account triggers automatic 15-minute lockout and security alert.</div>
+        <div class="rule-action">Action: Account locked. IP address logged. Security alert generated. Audit event with IP + user agent.</div>
+      </div>
+      <div class="anomaly-rule">
+        <div class="rule-threshold">Off-hours</div>
+        <div class="rule-name">Bulk Export Detection</div>
+        <div class="rule-desc">Bulk data exports (DSAR, audit log exports) initiated outside business hours (defined per organization timezone) are flagged for review.</div>
+        <div class="rule-action">Action: Export proceeds but security alert generated. CLAIMS_ADMIN notified. Audit event with export scope and user.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ERROR HANDLING -->
+<section>
+  <div class="container">
+    <div class="section-label">Error Handling &amp; Logging</div>
+    <h2 class="section-title">Production Error Security</h2>
+    <p class="section-desc">Stack traces, database errors, and internal system details are never exposed to end users in production environments.</p>
+
+    <div class="two-col">
+      <table class="sec-table">
+        <thead>
+          <tr><th>Control</th><th>Implementation</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Stack Trace Stripping</strong></td>
+            <td>Production API returns generic error messages. Internal details logged to Sentry only — never to the HTTP response.</td>
+          </tr>
+          <tr>
+            <td><strong>No PHI in Error Logs</strong></td>
+            <td>Error logs capture document IDs, claim IDs, and event codes — never document content, patient names, or PHI fields.</td>
+          </tr>
+          <tr>
+            <td><strong>Sentry Integration</strong></td>
+            <td>Errors reported to Sentry with scrubbed context. PHI scrubbing rules configured to strip sensitive fields from Sentry payloads.</td>
+          </tr>
+          <tr>
+            <td><strong>Database Error Handling</strong></td>
+            <td>Prisma errors are caught and mapped to generic HTTP responses. Raw PostgreSQL error messages are never returned to clients.</td>
+          </tr>
+          <tr>
+            <td><strong>Rate Limiting</strong></td>
+            <td>API endpoints rate-limited per user session. Authentication endpoints have stricter limits (5 requests/minute). Chat endpoints: 30 requests/minute.</td>
+          </tr>
+        </tbody>
+      </table>
+      <div>
+        <div style="background: white; border-radius: var(--radius); padding: 1.75rem; box-shadow: var(--shadow-sm); margin-bottom: 1.5rem;">
+          <h3 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.75rem;">What a Production Error Response Looks Like</h3>
+          <div style="background: var(--navy); border-radius: var(--radius-sm); padding: 1rem; font-family: 'Courier New', monospace; font-size: 0.78rem; color: #93c5fd;">
+            HTTP 500 Internal Server Error<br>
+            {<br>
+            &nbsp;&nbsp;"error": "An unexpected error occurred.",<br>
+            &nbsp;&nbsp;"requestId": "req_01jx..."<br>
+            }<br><br>
+            <span style="color: rgba(147,197,253,0.5);">// No stack trace. No DB query. No file paths.</span>
+          </div>
+        </div>
+        <div style="background: white; border-radius: var(--radius); padding: 1.75rem; box-shadow: var(--shadow-sm);">
+          <h3 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.75rem;">Security Headers</h3>
+          <ul style="list-style: none; font-size: 0.83rem; display: flex; flex-direction: column; gap: 0.4rem;">
+            <li style="color: var(--text-muted);">✓ Content-Security-Policy (strict)</li>
+            <li style="color: var(--text-muted);">✓ X-Content-Type-Options: nosniff</li>
+            <li style="color: var(--text-muted);">✓ X-Frame-Options: DENY</li>
+            <li style="color: var(--text-muted);">✓ Strict-Transport-Security (HSTS, 1 year)</li>
+            <li style="color: var(--text-muted);">✓ Referrer-Policy: no-referrer</li>
+            <li style="color: var(--text-muted);">✓ Permissions-Policy: camera=(), microphone=()</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SUB-PROCESSORS -->
+<section style="background: white;">
+  <div class="container">
+    <div class="section-label">Sub-Processor List</div>
+    <h2 class="section-title">Third-Party Sub-Processors</h2>
+    <p class="section-desc">Full disclosure of every third-party service that processes AdjudiCLAIMS data, with BAA status and data handling terms.</p>
+
+    <table class="sec-table">
+      <thead>
+        <tr>
+          <th>Sub-Processor</th>
+          <th>Purpose</th>
+          <th>Data Processed</th>
+          <th>BAA</th>
+          <th>No-Training Clause</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Google Cloud</strong><br><small style="color:var(--text-muted)">Cloud SQL, Cloud Run, GCS, Secret Manager</small></td>
+          <td>Infrastructure hosting, database, storage</td>
+          <td>All claim data at rest. Encrypted.</td>
+          <td><span class="badge badge-green">✓ Executed</span></td>
+          <td><span class="badge badge-green">✓ Included</span></td>
+        </tr>
+        <tr>
+          <td><strong>Anthropic</strong><br><small style="color:var(--text-muted)">Claude API</small></td>
+          <td>AI chat, query classification, structured extraction</td>
+          <td>Anonymized document chunks (no PHI identifiers)</td>
+          <td><span class="badge badge-green">✓ Executed</span></td>
+          <td><span class="badge badge-green">✓ Included</span></td>
+        </tr>
+        <tr>
+          <td><strong>Google Document AI</strong><br><small style="color:var(--text-muted)">Vertex AI — Document AI API</small></td>
+          <td>OCR, form parsing, layout analysis</td>
+          <td>Raw document images/PDFs during processing only</td>
+          <td><span class="badge badge-green">✓ Executed</span></td>
+          <td><span class="badge badge-green">✓ Included</span></td>
+        </tr>
+        <tr>
+          <td><strong>Voyage AI</strong><br><small style="color:var(--text-muted)">via Vertex AI</small></td>
+          <td>Document embedding generation (1024-dim vectors)</td>
+          <td>Text chunks (no PHI identifiers) during embedding job only</td>
+          <td><span class="badge badge-green">✓ Executed</span></td>
+          <td><span class="badge badge-green">✓ Included</span></td>
+        </tr>
+        <tr>
+          <td><strong>Sentry</strong><br><small style="color:var(--text-muted)">Error monitoring</small></td>
+          <td>Production error tracking and alerting</td>
+          <td>Scrubbed error context (no PHI — scrubbing rules configured)</td>
+          <td><span class="badge badge-yellow">DPA Executed</span></td>
+          <td>N/A — no training use</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- DATA RETENTION -->
+<section class="retention-section">
+  <div class="container">
+    <div class="section-label">Data Retention &amp; Deletion</div>
+    <h2 class="section-title">Retention Policy</h2>
+    <p class="section-desc">AdjudiCLAIMS enforces a 7-year retention policy consistent with California Workers' Compensation record requirements. Some records are immutable by design.</p>
+
+    <table class="retention-table">
+      <thead>
+        <tr>
+          <th>Data Type</th>
+          <th>Retention Period</th>
+          <th>After Retention</th>
+          <th>Mutable?</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Claim records</strong></td>
+          <td>7 years from claim close</td>
+          <td>Purged from active database. Archived to GCS cold storage.</td>
+          <td>Examiners can update. Audit trail is immutable.</td>
+        </tr>
+        <tr>
+          <td><strong>Uploaded documents</strong></td>
+          <td>7 years from upload</td>
+          <td>Deleted from GCS and document table. Embeddings purged.</td>
+          <td>No modifications to original documents. Metadata editable.</td>
+        </tr>
+        <tr>
+          <td><strong>Audit events</strong></td>
+          <td>7 years from event (minimum)</td>
+          <td>Archived to GCS cold storage. Never deleted during retention period.</td>
+          <td><strong>Never</strong> — append-only. No UPDATE or DELETE permitted.</td>
+        </tr>
+        <tr>
+          <td><strong>Chat messages</strong></td>
+          <td>7 years from message date</td>
+          <td>Purged with parent claim.</td>
+          <td>No — messages are append-only once sent.</td>
+        </tr>
+        <tr>
+          <td><strong>User accounts</strong></td>
+          <td>Retained while org active</td>
+          <td>Soft-deleted on account closure. 30-day grace period before hard delete.</td>
+          <td>Users can update profile. Audit trail immutable.</td>
+        </tr>
+        <tr>
+          <td><strong>AI embeddings / vectors</strong></td>
+          <td>Tied to parent document</td>
+          <td>Purged when parent document is purged.</td>
+          <td>Regenerated on model update. Original not preserved.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div style="margin-top: 1.5rem; background: var(--surface); border-radius: var(--radius-sm); padding: 1.25rem; border: 1px solid var(--border); font-size: 0.85rem; color: var(--text-muted);">
+      <strong style="color: var(--text);">Right to Deletion (CCPA):</strong> Data Subject Access Requests and right-to-deletion requests are handled via dedicated API endpoints. Claims data linked to open WCAB proceedings cannot be deleted until proceedings close — this restriction is disclosed at time of request. Response time: 30 calendar days per Cal. Civ. Code § 1798.105(c).
+    </div>
+  </div>
+</section>
+
+<div class="contact-section" id="contact">
+  <div class="container">
+    <h2>Report a Security Issue</h2>
+    <p>If you discover a vulnerability or security concern, contact us immediately. SLA: acknowledgment within 24 hours, initial assessment within 72 hours.</p>
+    <div class="contact-btns">
+      <a href="mailto:security@glassboxsolutions.com" class="btn-white">security@glassboxsolutions.com</a>
+      <a href="transparency.html" class="btn-outline">Platform Transparency</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div class="nav-logo">AC</div>
+        <span style="color: white; font-weight: 700;">AdjudiCLAIMS</span>
+      </div>
+      <div class="footer-links">
+        <a href="index.html">Home</a>
+        <a href="bluf.html">Executive Summary</a>
+        <a href="how-it-works.html">How It Works</a>
+        <a href="transparency.html">Transparency</a>
+        <a href="upl-zones.html">UPL Zones</a>
+        <a href="security-hipaa.html">Security</a>
+        <a href="roi-calculator.html">ROI Calculator</a>
+      </div>
+    </div>
+    <div class="footer-copy">
+      © 2026 Glass Box Solutions, Inc. · HIPAA BAAs executed with all sub-processors. · "From Black Box to Glass Box."
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

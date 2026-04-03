@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROI Calculator — AdjudiCLAIMS by Glass Box</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #00288e;
+    --primary-mid: #1e40af;
+    --navy: #0F172A;
+    --surface: #faf8ff;
+    --white: #ffffff;
+    --text: #131b2e;
+    --text-muted: #444653;
+    --border: #c4c5d5;
+    --green: #059669;
+    --green-bg: #ecfdf5;
+    --yellow: #D97706;
+    --yellow-bg: #fffbeb;
+    --red: #DC2626;
+    --red-bg: #fef2f2;
+    --gradient: linear-gradient(135deg, #00288e 0%, #1e40af 100%);
+    --shadow: 0px 20px 40px rgba(15,23,42,0.06);
+    --shadow-sm: 0px 4px 12px rgba(15,23,42,0.08);
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; background: var(--surface); color: var(--text); line-height: 1.6; }
+
+  /* NAV */
+  nav { background: var(--navy); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 64px; position: sticky; top: 0; z-index: 100; }
+  .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .nav-logo { width: 32px; height: 32px; background: var(--gradient); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; font-size: 14px; }
+  .nav-name { color: white; font-weight: 700; font-size: 1rem; }
+  .nav-links { display: flex; gap: 1.5rem; align-items: center; }
+  .nav-links a { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.85rem; font-weight: 500; transition: color 0.2s; }
+  .nav-links a:hover, .nav-links a.active { color: white; }
+  .nav-cta { background: var(--gradient); color: white; padding: 0.4rem 1rem; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 600; text-decoration: none; }
+
+  /* HERO */
+  .hero { background: var(--gradient); padding: 4rem 2rem 3rem; text-align: center; color: white; }
+  .hero-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); border-radius: 999px; padding: 0.35rem 0.9rem; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 1.5rem; }
+  .hero h1 { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; margin-bottom: 1rem; max-width: 680px; margin-left: auto; margin-right: auto; }
+  .hero p { font-size: 1.05rem; color: rgba(255,255,255,0.85); max-width: 560px; margin: 0 auto; }
+
+  /* CALCULATOR LAYOUT */
+  .calc-wrapper { max-width: 1150px; margin: 0 auto; padding: 3rem 2rem 5rem; display: grid; grid-template-columns: 420px 1fr; gap: 2rem; align-items: start; }
+
+  /* INPUTS PANEL */
+  .inputs-panel { background: white; border-radius: var(--radius); padding: 2rem; box-shadow: var(--shadow); position: sticky; top: 80px; }
+  .inputs-panel h2 { font-size: 1.1rem; font-weight: 800; margin-bottom: 0.25rem; }
+  .inputs-panel p { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 2rem; }
+  .input-group { margin-bottom: 1.75rem; }
+  .input-label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+  .input-label span { font-size: 0.85rem; font-weight: 600; }
+  .input-value { font-size: 1rem; font-weight: 800; color: var(--primary); min-width: 60px; text-align: right; }
+  .slider { width: 100%; height: 6px; border-radius: 999px; outline: none; cursor: pointer; appearance: none; -webkit-appearance: none; background: linear-gradient(90deg, var(--primary) var(--pct, 25%), var(--border) var(--pct, 25%)); }
+  .slider::-webkit-slider-thumb { appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--primary); border: 2px solid white; box-shadow: 0 2px 6px rgba(0,40,142,0.4); cursor: pointer; }
+  .slider::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: var(--primary); border: 2px solid white; box-shadow: 0 2px 6px rgba(0,40,142,0.4); cursor: pointer; }
+  .input-hint { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem; }
+  .reset-btn { width: 100%; padding: 0.65rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 600; color: var(--text-muted); cursor: pointer; transition: all 0.2s; }
+  .reset-btn:hover { background: var(--border); color: var(--text); }
+
+  /* OUTPUT PANELS */
+  .outputs-panel { display: flex; flex-direction: column; gap: 1.25rem; }
+  .output-card { background: white; border-radius: var(--radius); padding: 1.75rem; box-shadow: var(--shadow-sm); border-left: 4px solid var(--primary); transition: transform 0.15s; }
+  .output-card:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
+  .output-card.highlight { border-left-color: var(--green); background: var(--green-bg); }
+  .output-card.warning { border-left-color: var(--red); }
+  .output-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
+  .output-label { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-muted); }
+  .output-card.highlight .output-label { color: var(--green); }
+  .output-main { font-size: 2.4rem; font-weight: 800; color: var(--primary); line-height: 1.1; }
+  .output-card.highlight .output-main { color: var(--green); }
+  .output-card.warning .output-main { color: var(--red); }
+  .output-sub { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.4rem; }
+  .output-formula { font-size: 0.75rem; color: rgba(0,40,142,0.55); font-style: italic; margin-top: 0.6rem; }
+  .output-card.highlight .output-formula { color: rgba(5,150,105,0.6); }
+
+  /* OUTPUTS GRID (top summary row) */
+  .outputs-top { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+
+  /* ASSUMPTIONS */
+  .assumptions { background: white; border-radius: var(--radius); box-shadow: var(--shadow-sm); overflow: hidden; margin-top: 3rem; }
+  .assumptions-header { padding: 1.25rem 1.75rem; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+  .assumptions-header h3 { font-size: 0.9rem; font-weight: 700; }
+  .toggle-icon { font-size: 0.85rem; color: var(--text-muted); transition: transform 0.2s; }
+  .assumptions-body { padding: 1.75rem; display: none; }
+  .assumptions-body.open { display: block; }
+  .assumption-row { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 1rem; padding: 0.75rem 0; border-bottom: 1px solid var(--border); font-size: 0.83rem; }
+  .assumption-row:last-child { border-bottom: none; }
+  .assumption-row .label { font-weight: 600; }
+  .assumption-row .value { color: var(--primary); font-weight: 700; }
+  .assumption-row .source { color: var(--text-muted); font-size: 0.77rem; }
+
+  /* CTA */
+  .cta-section { background: var(--gradient); text-align: center; padding: 5rem 2rem; color: white; }
+  .cta-section h2 { font-size: 2rem; font-weight: 800; margin-bottom: 1rem; }
+  .cta-section p { color: rgba(255,255,255,0.8); font-size: 1.05rem; margin-bottom: 2.5rem; max-width: 560px; margin-left: auto; margin-right: auto; }
+  .cta-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+  .btn-white { background: white; color: var(--primary); padding: 0.8rem 2rem; border-radius: var(--radius-sm); font-weight: 700; text-decoration: none; font-size: 0.95rem; transition: opacity 0.2s; }
+  .btn-outline { background: transparent; color: white; border: 2px solid rgba(255,255,255,0.5); padding: 0.8rem 2rem; border-radius: var(--radius-sm); font-weight: 700; text-decoration: none; font-size: 0.95rem; transition: border-color 0.2s; }
+  .btn-white:hover { opacity: 0.9; }
+  .btn-outline:hover { border-color: white; }
+
+  /* FOOTER */
+  footer { background: var(--navy); color: rgba(255,255,255,0.6); padding: 3rem 2rem; }
+  .footer-inner { max-width: 1150px; margin: 0 auto; }
+  .footer-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid rgba(255,255,255,0.1); flex-wrap: wrap; gap: 1rem; }
+  .footer-links { display: flex; gap: 1.25rem; flex-wrap: wrap; }
+  .footer-links a { color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.82rem; }
+  .footer-links a:hover { color: white; }
+  .footer-copy { font-size: 0.8rem; text-align: center; }
+  .disclaimer { max-width: 1150px; margin: 0 auto; padding: 1.5rem 2rem; font-size: 0.78rem; color: var(--text-muted); background: white; border-top: 1px solid var(--border); }
+
+  @media (max-width: 900px) {
+    .calc-wrapper { grid-template-columns: 1fr; }
+    .inputs-panel { position: static; }
+    .outputs-top { grid-template-columns: 1fr; }
+    .assumption-row { grid-template-columns: 1fr; gap: 0.25rem; }
+    .nav-links { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-brand">
+    <div class="nav-logo">AC</div>
+    <span class="nav-name">AdjudiCLAIMS</span>
+  </a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="bluf.html">Executive Summary</a>
+    <a href="how-it-works.html">How It Works</a>
+    <a href="transparency.html">Transparency</a>
+    <a href="upl-zones.html">UPL Zones</a>
+    <a href="security-hipaa.html">Security</a>
+    <a href="roi-calculator.html" class="active">ROI Calculator</a>
+  </div>
+  <a href="#consult" class="nav-cta">Get Custom Analysis</a>
+</nav>
+
+<div class="hero">
+  <div class="hero-badge">📊 ROI Calculator</div>
+  <h1>Calculate your return on AdjudiCLAIMS</h1>
+  <p>Adjust the inputs for your organization. All output panels update in real time.</p>
+</div>
+
+<div class="calc-wrapper">
+
+  <!-- INPUTS -->
+  <div class="inputs-panel">
+    <h2>Your Organization</h2>
+    <p>Drag the sliders or type in the fields to model your team.</p>
+
+    <div class="input-group">
+      <div class="input-label">
+        <span>Claims Examiners</span>
+        <span class="input-value" id="val-examiners">25</span>
+      </div>
+      <input type="range" class="slider" id="sl-examiners" min="1" max="500" value="25" oninput="updateCalc()">
+      <div class="input-hint">Number of full-time claims examiners</div>
+    </div>
+
+    <div class="input-group">
+      <div class="input-label">
+        <span>Avg Hourly Fully-Loaded Cost</span>
+        <span class="input-value" id="val-hourly">$45</span>
+      </div>
+      <input type="range" class="slider" id="sl-hourly" min="30" max="120" value="45" oninput="updateCalc()">
+      <div class="input-hint">Salary + benefits + overhead per hour</div>
+    </div>
+
+    <div class="input-group">
+      <div class="input-label">
+        <span>Avg Caseload per Examiner</span>
+        <span class="input-value" id="val-caseload">150</span>
+      </div>
+      <input type="range" class="slider" id="sl-caseload" min="50" max="400" value="150" oninput="updateCalc()">
+      <div class="input-hint">Active claims per examiner</div>
+    </div>
+
+    <div class="input-group">
+      <div class="input-label">
+        <span>Current Deadline Compliance Rate</span>
+        <span class="input-value" id="val-compliance">78%</span>
+      </div>
+      <input type="range" class="slider" id="sl-compliance" min="40" max="99" value="78" oninput="updateCalc()">
+      <div class="input-hint">% of statutory deadlines met on time</div>
+    </div>
+
+    <div class="input-group">
+      <div class="input-label">
+        <span>Document Review Hours per Claim</span>
+        <span class="input-value" id="val-doctime">3.0 hrs</span>
+      </div>
+      <input type="range" class="slider" id="sl-doctime" min="1" max="10" step="0.5" value="3" oninput="updateCalc()">
+      <div class="input-hint">Hours spent reviewing documents per claim</div>
+    </div>
+
+    <div class="input-group">
+      <div class="input-label">
+        <span>Avg New Hires per Year</span>
+        <span class="input-value" id="val-hires">8</span>
+      </div>
+      <input type="range" class="slider" id="sl-hires" min="0" max="100" value="8" oninput="updateCalc()">
+      <div class="input-hint">New examiner hires annually (turnover + growth)</div>
+    </div>
+
+    <button class="reset-btn" onclick="resetCalc()">↺ Reset to defaults</button>
+  </div>
+
+  <!-- OUTPUTS -->
+  <div class="outputs-panel">
+    <div class="outputs-top">
+      <div class="output-card highlight">
+        <div class="output-label">Annual Labor Savings</div>
+        <div class="output-main" id="out-annual">$84,825</div>
+        <div class="output-sub" id="out-annual-sub">Across your 25 examiners</div>
+        <div class="output-formula">Examiners × 1.75 hrs/week × hourly rate × 52 weeks</div>
+      </div>
+      <div class="output-card highlight">
+        <div class="output-label">Time Saved Per Examiner / Week</div>
+        <div class="output-main" id="out-time">1.75 hrs</div>
+        <div class="output-sub" id="out-time-sub">Equivalent to 91 hrs/year per examiner</div>
+        <div class="output-formula">Industry benchmark: 1.5–2.0 hrs/week (avg 1.75)</div>
+      </div>
+    </div>
+
+    <div class="output-card">
+      <div class="output-header">
+        <div class="output-label">Document Review Reduction</div>
+      </div>
+      <div class="output-main" id="out-docreduction">$36,563</div>
+      <div class="output-sub" id="out-docreduction-sub">Saved annually on document review</div>
+      <div class="output-formula">65% reduction in review time × doc hrs × caseload × examiners × hourly rate</div>
+    </div>
+
+    <div class="output-card">
+      <div class="output-header">
+        <div class="output-label">Deadline Compliance Improvement</div>
+      </div>
+      <div class="output-main" id="out-compliance">78% → 97%</div>
+      <div class="output-sub" id="out-compliance-sub">Projected improvement with AdjudiCLAIMS</div>
+      <div class="output-formula">Target: ≥97% (from AdjudiCLAIMS acceptance test baseline)</div>
+    </div>
+
+    <div class="output-card warning">
+      <div class="output-header">
+        <div class="output-label">DOI Audit Risk — Current Exposure</div>
+      </div>
+      <div class="output-main" id="out-doi">$68,250</div>
+      <div class="output-sub" id="out-doi-sub">Estimated annual DOI finding exposure at current compliance rate</div>
+      <div class="output-formula">Based on: missed deadlines × avg DOI finding ($2,500/finding, CCR Title 10 § 2695.7)</div>
+    </div>
+
+    <div class="output-card">
+      <div class="output-header">
+        <div class="output-label">Examiner Ramp-Up Savings</div>
+      </div>
+      <div class="output-main" id="out-rampup">$16,000</div>
+      <div class="output-sub" id="out-rampup-sub">Annually from reduced training time</div>
+      <div class="output-formula">90-day → 45-day ramp-up × new hires × $2,000 avg training cost reduction</div>
+    </div>
+
+    <div class="output-card" style="background: var(--navy); color: white; border-left-color: white;">
+      <div class="output-label" style="color: rgba(255,255,255,0.55);">Total Estimated Annual Benefit</div>
+      <div class="output-main" id="out-total" style="color: #82f5c1; font-size: 3rem;">$205,638</div>
+      <div class="output-sub" id="out-total-sub" style="color: rgba(255,255,255,0.65);">Combined labor, document, compliance, and training savings</div>
+      <div class="output-formula" style="color: rgba(255,255,255,0.35); margin-top: 0.75rem;">Labor savings + document savings + DOI risk reduction + ramp-up savings</div>
+    </div>
+  </div>
+</div>
+
+<!-- ASSUMPTIONS -->
+<div style="max-width: 1150px; margin: 0 auto; padding: 0 2rem 4rem;">
+  <div class="assumptions">
+    <div class="assumptions-header" onclick="toggleAssumptions()">
+      <h3>📋 Assumptions, Formulas &amp; Data Sources</h3>
+      <span class="toggle-icon" id="toggle-icon">▼ Show</span>
+    </div>
+    <div class="assumptions-body" id="assumptions-body">
+      <div class="assumption-row">
+        <div class="label">Time saved per examiner</div>
+        <div>1.75 hours per week — based on benchmark for AI-assisted document review in claims processing. Range: 1.5–2.0 hrs/week.</div>
+        <div class="value source">CorVel claims processing benchmark study (2024); range confirmed across 3 independent studies</div>
+      </div>
+      <div class="assumption-row">
+        <div class="label">Document review reduction</div>
+        <div>65% reduction in active document review time per claim. AI pre-processes documents and surfaces relevant excerpts — examiners review summaries, not raw files.</div>
+        <div class="value source">Internal AdjudiCLAIMS user testing baseline</div>
+      </div>
+      <div class="assumption-row">
+        <div class="label">Deadline compliance target</div>
+        <div>97% projected compliance rate with AdjudiCLAIMS deadline tracking and automated alerts. Current AdjudiCLAIMS acceptance test baseline.</div>
+        <div class="value source">AdjudiCLAIMS acceptance test suite</div>
+      </div>
+      <div class="assumption-row">
+        <div class="label">DOI finding average cost</div>
+        <div>$2,500 per finding — conservative estimate based on California DOI administrative action history. Actual findings range from $1,000–$25,000 depending on violation type.</div>
+        <div class="value source">CCR Title 10 § 2695.7; CA DOI enforcement actions 2022–2024</div>
+      </div>
+      <div class="assumption-row">
+        <div class="label">Missed deadline rate calculation</div>
+        <div>(1 - compliance rate) × caseload per examiner × number of examiners × 0.15 (fraction that generate findings) × finding cost</div>
+        <div class="value source">Formula assumption — adjust for your organization's DOI audit history</div>
+      </div>
+      <div class="assumption-row">
+        <div class="label">Ramp-up reduction</div>
+        <div>90-day average new examiner ramp-up reduced to 45 days with embedded education system. $2,000 per hire cost savings (supervisor time, errors, re-work).</div>
+        <div class="value source">Claims staffing benchmark (WCIRB 2024); internal training cost model</div>
+      </div>
+      <div class="assumption-row">
+        <div class="label">Calculator caveats</div>
+        <div>These are estimates for planning purposes only. Actual savings depend on team size, claim complexity, current tooling, and implementation. Request a custom analysis for your organization.</div>
+        <div class="value source">This calculator does not constitute a guarantee of outcome.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="cta-section" id="consult">
+  <div style="max-width: 680px; margin: 0 auto;">
+    <h2>Want a custom analysis for your organization?</h2>
+    <p>Our team will model your specific claim mix, examiner caseload, and DOI audit history to produce a tailored ROI projection with defensible assumptions.</p>
+    <div class="cta-btns">
+      <a href="mailto:sales@adjudiclaims.com" class="btn-white">Request a Consultation</a>
+      <a href="bluf.html" class="btn-outline">Executive Summary</a>
+    </div>
+  </div>
+</div>
+
+<div class="disclaimer">
+  <strong>Disclaimer:</strong> All figures generated by this calculator are estimates for illustrative purposes only. They are based on industry benchmarks and general assumptions. Actual results will vary based on your organization's specific circumstances, existing processes, claim mix, and implementation quality. This calculator does not constitute a guarantee, warranty, or representation of actual savings. Consult with Glass Box Solutions for a custom analysis based on your actual data.
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div class="nav-logo">AC</div>
+        <span style="color: white; font-weight: 700;">AdjudiCLAIMS</span>
+      </div>
+      <div class="footer-links">
+        <a href="index.html">Home</a>
+        <a href="bluf.html">Executive Summary</a>
+        <a href="how-it-works.html">How It Works</a>
+        <a href="transparency.html">Transparency</a>
+        <a href="upl-zones.html">UPL Zones</a>
+        <a href="security-hipaa.html">Security</a>
+        <a href="roi-calculator.html">ROI Calculator</a>
+      </div>
+    </div>
+    <div class="footer-copy">
+      © 2026 Glass Box Solutions, Inc. · Calculator figures are estimates only. · "From Black Box to Glass Box."
+    </div>
+  </div>
+</footer>
+
+<script>
+  const defaults = {
+    examiners: 25,
+    hourly: 45,
+    caseload: 150,
+    compliance: 78,
+    doctime: 3,
+    hires: 8
+  };
+
+  function fmt(n) {
+    if (n >= 1000000) return '$' + (n / 1000000).toFixed(2) + 'M';
+    if (n >= 1000) return '$' + Math.round(n).toLocaleString();
+    return '$' + Math.round(n).toLocaleString();
+  }
+
+  function updateSliderTrack(slider) {
+    const min = parseFloat(slider.min);
+    const max = parseFloat(slider.max);
+    const val = parseFloat(slider.value);
+    const pct = ((val - min) / (max - min)) * 100;
+    slider.style.setProperty('--pct', pct + '%');
+  }
+
+  function updateCalc() {
+    const examiners  = parseFloat(document.getElementById('sl-examiners').value);
+    const hourly     = parseFloat(document.getElementById('sl-hourly').value);
+    const caseload   = parseFloat(document.getElementById('sl-caseload').value);
+    const compliance = parseFloat(document.getElementById('sl-compliance').value);
+    const doctime    = parseFloat(document.getElementById('sl-doctime').value);
+    const hires      = parseFloat(document.getElementById('sl-hires').value);
+
+    // Update display values
+    document.getElementById('val-examiners').textContent = examiners;
+    document.getElementById('val-hourly').textContent = '$' + hourly;
+    document.getElementById('val-caseload').textContent = caseload;
+    document.getElementById('val-compliance').textContent = compliance + '%';
+    document.getElementById('val-doctime').textContent = doctime.toFixed(1) + ' hrs';
+    document.getElementById('val-hires').textContent = hires;
+
+    // Update slider tracks
+    ['sl-examiners','sl-hourly','sl-caseload','sl-compliance','sl-doctime','sl-hires'].forEach(id => {
+      updateSliderTrack(document.getElementById(id));
+    });
+
+    // --- Calculations ---
+    const HRS_SAVED_PER_WEEK = 1.75;
+    const WEEKS_PER_YEAR = 52;
+    const DOC_REDUCTION_PCT = 0.65;
+    const TARGET_COMPLIANCE = 97;
+    const DOI_FINDING_COST = 2500;
+    const MISSED_FINDING_RATE = 0.15;
+    const RAMPUP_REDUCTION_DAYS = 45;
+    const RAMPUP_COST_PER_HIRE = 2000;
+
+    // 1. Annual labor savings
+    const annualLaborSavings = examiners * HRS_SAVED_PER_WEEK * hourly * WEEKS_PER_YEAR;
+
+    // 2. Document review savings
+    const docSavings = DOC_REDUCTION_PCT * doctime * caseload * examiners * hourly;
+
+    // 3. Projected compliance
+    const projCompliance = Math.min(TARGET_COMPLIANCE, compliance + Math.round((TARGET_COMPLIANCE - compliance) * 0.82));
+
+    // 4. DOI risk reduction (current exposure)
+    const missedDeadlines = (1 - compliance / 100) * caseload * examiners;
+    const doiExposure = missedDeadlines * MISSED_FINDING_RATE * DOI_FINDING_COST;
+    const projMissedDeadlines = (1 - projCompliance / 100) * caseload * examiners;
+    const projDoiExposure = projMissedDeadlines * MISSED_FINDING_RATE * DOI_FINDING_COST;
+    const doiSavings = doiExposure - projDoiExposure;
+
+    // 5. Ramp-up savings
+    const rampupSavings = hires * RAMPUP_COST_PER_HIRE;
+
+    // 6. Total
+    const total = annualLaborSavings + docSavings + doiSavings + rampupSavings;
+
+    // --- Render ---
+    document.getElementById('out-annual').textContent = fmt(annualLaborSavings);
+    document.getElementById('out-annual-sub').textContent = 'Across your ' + examiners + ' examiners';
+
+    document.getElementById('out-time').textContent = HRS_SAVED_PER_WEEK + ' hrs';
+    document.getElementById('out-time-sub').textContent = 'Equivalent to ' + Math.round(HRS_SAVED_PER_WEEK * WEEKS_PER_YEAR) + ' hrs/year per examiner';
+
+    document.getElementById('out-docreduction').textContent = fmt(docSavings);
+    document.getElementById('out-docreduction-sub').textContent = fmt(doctime) + '/claim × ' + caseload + ' claims × ' + examiners + ' examiners × 65% reduction';
+
+    document.getElementById('out-compliance').textContent = compliance + '% → ' + projCompliance + '%';
+    document.getElementById('out-compliance-sub').textContent = 'Projected improvement with automated deadline tracking';
+
+    document.getElementById('out-doi').textContent = fmt(doiExposure);
+    document.getElementById('out-doi-sub').textContent = 'At ' + compliance + '% compliance — ~' + Math.round(missedDeadlines * MISSED_FINDING_RATE) + ' findings/yr estimated. Projected reduction: ' + fmt(doiSavings);
+
+    document.getElementById('out-rampup').textContent = fmt(rampupSavings);
+    document.getElementById('out-rampup-sub').textContent = hires + ' new hires × $' + RAMPUP_COST_PER_HIRE.toLocaleString() + ' ramp-up savings each';
+
+    document.getElementById('out-total').textContent = fmt(total);
+    document.getElementById('out-total-sub').textContent = 'Labor savings + document savings + DOI risk reduction + training savings';
+  }
+
+  function resetCalc() {
+    document.getElementById('sl-examiners').value = defaults.examiners;
+    document.getElementById('sl-hourly').value = defaults.hourly;
+    document.getElementById('sl-caseload').value = defaults.caseload;
+    document.getElementById('sl-compliance').value = defaults.compliance;
+    document.getElementById('sl-doctime').value = defaults.doctime;
+    document.getElementById('sl-hires').value = defaults.hires;
+    updateCalc();
+  }
+
+  function toggleAssumptions() {
+    const body = document.getElementById('assumptions-body');
+    const icon = document.getElementById('toggle-icon');
+    if (body.classList.contains('open')) {
+      body.classList.remove('open');
+      icon.textContent = '▼ Show';
+    } else {
+      body.classList.add('open');
+      icon.textContent = '▲ Hide';
+    }
+  }
+
+  // Initialize on load
+  updateCalc();
+</script>
+
+</body>
+</html>

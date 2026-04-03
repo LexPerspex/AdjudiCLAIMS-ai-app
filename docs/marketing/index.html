@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="AdjudiCLAIMS — AI-powered claims management for California Workers' Compensation examiners. Productivity, compliance, and training in one platform.">
+<title>AdjudiCLAIMS by Glass Box — From Black Box to Glass Box</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #00288e;
+    --primary-mid: #1e40af;
+    --navy: #0F172A;
+    --surface: #faf8ff;
+    --surface-low: #f2f3ff;
+    --text: #131b2e;
+    --text-muted: #444653;
+    --border: #c4c5d5;
+    --green: #059669;
+    --yellow: #D97706;
+    --red: #DC2626;
+    --gradient: linear-gradient(135deg, #00288e 0%, #1e40af 100%);
+    --shadow: 0px 20px 40px rgba(15,23,42,0.06);
+    --radius: 12px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; background: var(--surface); color: var(--text); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+
+  /* NAV */
+  nav { position: sticky; top: 0; z-index: 100; background: rgba(250,248,255,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
+  .nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; height: 64px; display: flex; align-items: center; gap: 32px; }
+  .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); font-weight: 700; font-size: 1rem; flex-shrink: 0; }
+  .nav-logo { width: 32px; height: 32px; background: var(--gradient); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 16px; }
+  .nav-links { display: flex; align-items: center; gap: 4px; flex: 1; flex-wrap: wrap; }
+  .nav-links a { text-decoration: none; color: var(--text-muted); font-size: 0.875rem; font-weight: 500; padding: 6px 12px; border-radius: 6px; transition: all 0.15s; }
+  .nav-links a:hover { color: var(--primary); background: var(--surface-low); }
+  .nav-links a.active { color: var(--primary); font-weight: 600; }
+  .btn-primary { background: var(--gradient); color: #fff; border: none; padding: 8px 18px; border-radius: 8px; font-size: 0.875rem; font-weight: 600; cursor: pointer; text-decoration: none; white-space: nowrap; transition: opacity 0.15s; }
+  .btn-primary:hover { opacity: 0.9; }
+  .btn-secondary { background: transparent; color: var(--primary); border: 1.5px solid var(--primary); padding: 8px 18px; border-radius: 8px; font-size: 0.875rem; font-weight: 600; cursor: pointer; text-decoration: none; white-space: nowrap; transition: all 0.15s; }
+  .btn-secondary:hover { background: var(--primary); color: #fff; }
+
+  /* HERO */
+  .hero { background: var(--gradient); color: #fff; padding: 96px 24px 80px; text-align: center; position: relative; overflow: hidden; }
+  .hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 70% 30%, rgba(255,255,255,0.08) 0%, transparent 60%); }
+  .hero-inner { max-width: 780px; margin: 0 auto; position: relative; }
+  .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); border-radius: 999px; padding: 6px 16px; font-size: 0.8125rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 24px; }
+  .hero h1 { font-size: clamp(2rem, 5vw, 3.25rem); font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; margin-bottom: 20px; }
+  .hero h1 span { color: #b8c4ff; }
+  .hero p { font-size: 1.125rem; color: rgba(255,255,255,0.85); max-width: 580px; margin: 0 auto 36px; }
+  .hero-ctas { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 48px; }
+  .hero-ctas .btn-white { background: #fff; color: var(--primary); border: none; padding: 12px 28px; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer; text-decoration: none; transition: opacity 0.15s; }
+  .hero-ctas .btn-white:hover { opacity: 0.92; }
+  .hero-ctas .btn-ghost { background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,0.5); padding: 12px 28px; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; text-decoration: none; transition: all 0.15s; }
+  .hero-ctas .btn-ghost:hover { border-color: #fff; background: rgba(255,255,255,0.08); }
+  .zone-pills { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .zone-pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; border-radius: 999px; font-size: 0.8125rem; font-weight: 600; }
+  .zone-pill.green { background: rgba(5,150,105,0.25); border: 1px solid rgba(5,150,105,0.5); color: #6ee7b7; }
+  .zone-pill.yellow { background: rgba(217,119,6,0.25); border: 1px solid rgba(217,119,6,0.5); color: #fcd34d; }
+  .zone-pill.red { background: rgba(220,38,38,0.25); border: 1px solid rgba(220,38,38,0.5); color: #fca5a5; }
+  .zone-pill::before { content: '●'; font-size: 8px; }
+
+  /* PROBLEM STRIP */
+  .problem-strip { background: var(--navy); color: #fff; padding: 48px 24px; }
+  .problem-inner { max-width: 1000px; margin: 0 auto; }
+  .problem-inner h2 { text-align: center; font-size: 0.875rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #94a3b8; margin-bottom: 36px; }
+  .problem-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1px; background: rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden; }
+  .problem-item { background: #1e293b; padding: 28px 24px; }
+  .problem-stat { font-size: 2.25rem; font-weight: 800; color: var(--red); margin-bottom: 6px; }
+  .problem-label { font-size: 0.9375rem; font-weight: 600; color: #e2e8f0; margin-bottom: 6px; }
+  .problem-desc { font-size: 0.875rem; color: #94a3b8; }
+
+  /* SECTION SHARED */
+  section { padding: 80px 24px; }
+  .section-inner { max-width: 1100px; margin: 0 auto; }
+  .section-tag { font-size: 0.8125rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--primary); margin-bottom: 12px; }
+  .section-title { font-size: clamp(1.75rem, 3vw, 2.25rem); font-weight: 800; letter-spacing: -0.02em; margin-bottom: 16px; color: var(--text); }
+  .section-sub { font-size: 1.0625rem; color: var(--text-muted); max-width: 540px; }
+
+  /* VALUE PILLARS */
+  .pillars { background: var(--surface-low); }
+  .pillars-header { text-align: center; margin-bottom: 56px; }
+  .pillars-header .section-sub { margin: 0 auto; }
+  .pillars-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+  .pillar-card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 32px 28px; box-shadow: var(--shadow); }
+  .pillar-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 20px; }
+  .pillar-icon.blue { background: #dde9ff; }
+  .pillar-icon.green { background: #d1fae5; }
+  .pillar-icon.purple { background: #ede9fe; }
+  .pillar-card h3 { font-size: 1.125rem; font-weight: 700; margin-bottom: 8px; }
+  .pillar-metric { font-size: 2rem; font-weight: 800; color: var(--primary); margin-bottom: 8px; }
+  .pillar-card p { font-size: 0.9375rem; color: var(--text-muted); }
+
+  /* FEATURE GRID */
+  .features { background: var(--surface); }
+  .features-header { margin-bottom: 48px; }
+  .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+  .feature-card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; transition: box-shadow 0.2s, transform 0.2s; }
+  .feature-card:hover { box-shadow: 0 8px 32px rgba(0,40,142,0.10); transform: translateY(-2px); }
+  .feature-icon { font-size: 28px; margin-bottom: 14px; }
+  .feature-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
+  .feature-card p { font-size: 0.875rem; color: var(--text-muted); margin-bottom: 12px; }
+  .feature-tag { display: inline-block; font-size: 0.75rem; font-weight: 600; padding: 2px 10px; border-radius: 999px; }
+  .tag-green { background: #d1fae5; color: #065f46; }
+  .tag-blue { background: #dde9ff; color: #1e3a8a; }
+
+  /* PHILOSOPHY */
+  .philosophy { background: var(--navy); color: #fff; text-align: center; }
+  .philosophy-inner { max-width: 780px; margin: 0 auto; }
+  .philosophy h2 { font-size: clamp(1.75rem, 3.5vw, 2.5rem); font-weight: 800; letter-spacing: -0.02em; margin-bottom: 20px; }
+  .philosophy h2 em { color: #b8c4ff; font-style: normal; }
+  .philosophy p { font-size: 1.125rem; color: #94a3b8; margin-bottom: 12px; }
+  .philosophy-tenets { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 36px; }
+  .tenet { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 10px 20px; font-size: 0.9375rem; font-weight: 600; color: #e2e8f0; }
+
+  /* UPL CALLOUT */
+  .upl-callout { background: var(--surface-low); }
+  .upl-header { text-align: center; margin-bottom: 48px; }
+  .upl-header .section-sub { margin: 0 auto; }
+  .zones-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-bottom: 36px; }
+  .zone-card { border-radius: var(--radius); padding: 28px 24px; border-width: 1px; border-style: solid; }
+  .zone-card.green { background: #f0fdf4; border-color: #a7f3d0; }
+  .zone-card.yellow { background: #fffbeb; border-color: #fde68a; }
+  .zone-card.red { background: #fff1f2; border-color: #fecdd3; }
+  .zone-label { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8125rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 4px 12px; border-radius: 999px; margin-bottom: 14px; }
+  .zone-label.green { background: #d1fae5; color: #065f46; }
+  .zone-label.yellow { background: #fef3c7; color: #92400e; }
+  .zone-label.red { background: #fee2e2; color: #991b1b; }
+  .zone-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+  .zone-card p { font-size: 0.875rem; color: var(--text-muted); margin-bottom: 12px; }
+  .zone-example { font-size: 0.8125rem; background: rgba(0,0,0,0.04); border-radius: 6px; padding: 10px 14px; font-style: italic; color: var(--text); }
+  .upl-cta { text-align: center; }
+
+  /* STATS BAR */
+  .stats-bar { background: var(--primary); color: #fff; padding: 32px 24px; }
+  .stats-inner { max-width: 900px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 24px; text-align: center; }
+  .stat-num { font-size: 2rem; font-weight: 800; margin-bottom: 4px; }
+  .stat-label { font-size: 0.875rem; color: rgba(255,255,255,0.75); }
+
+  /* CTA SECTION */
+  .cta-section { background: var(--surface); text-align: center; padding: 96px 24px; }
+  .cta-inner { max-width: 600px; margin: 0 auto; }
+  .cta-inner h2 { font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 16px; }
+  .cta-inner p { font-size: 1.0625rem; color: var(--text-muted); margin-bottom: 32px; }
+  .cta-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+  /* FOOTER */
+  footer { background: var(--navy); color: #94a3b8; padding: 40px 24px; }
+  .footer-inner { max-width: 1100px; margin: 0 auto; }
+  .footer-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 32px; flex-wrap: wrap; margin-bottom: 32px; }
+  .footer-brand { display: flex; align-items: center; gap: 10px; color: #fff; font-weight: 700; font-size: 1rem; }
+  .footer-logo { width: 32px; height: 32px; background: rgba(255,255,255,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  .footer-tagline { font-size: 0.875rem; color: #64748b; margin-top: 6px; }
+  .footer-links { display: flex; gap: 40px; flex-wrap: wrap; }
+  .footer-col h4 { font-size: 0.8125rem; font-weight: 600; color: #e2e8f0; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; }
+  .footer-col a { display: block; font-size: 0.875rem; color: #64748b; text-decoration: none; margin-bottom: 8px; transition: color 0.15s; }
+  .footer-col a:hover { color: #e2e8f0; }
+  .footer-bottom { border-top: 1px solid rgba(255,255,255,0.06); padding-top: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; font-size: 0.8125rem; }
+  .upl-footer { background: var(--red); color: #fff; text-align: center; padding: 10px 24px; font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+
+  @media (max-width: 768px) {
+    .nav-links { display: none; }
+    .footer-top { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="nav-brand">
+      <div class="nav-logo">⚖</div>
+      AdjudiCLAIMS
+    </a>
+    <div class="nav-links">
+      <a href="how-it-works.html">How It Works</a>
+      <a href="upl-zones.html">UPL Zones</a>
+      <a href="transparency.html">Transparency</a>
+      <a href="security-hipaa.html">Security</a>
+      <a href="roi-calculator.html">ROI Calculator</a>
+      <a href="bluf.html">Executive Summary</a>
+    </div>
+    <a href="#demo" class="btn-primary">Request Demo</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge">⚖ Glass Box Solutions · California Workers' Comp</div>
+    <h1>From <span>Black Box</span><br>to Glass Box.</h1>
+    <p>AI-powered claims management for California Workers' Compensation examiners. Save time, stay compliant, train continuously — without ever crossing the line into legal advice.</p>
+    <div class="hero-ctas">
+      <a href="#demo" class="btn-white">Request Demo</a>
+      <a href="how-it-works.html" class="btn-ghost">See How It Works →</a>
+    </div>
+    <div class="zone-pills">
+      <span class="zone-pill green">GREEN · Factual data &amp; calculations</span>
+      <span class="zone-pill yellow">YELLOW · Statistical context</span>
+      <span class="zone-pill red">RED · Attorney referral only</span>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEM -->
+<div class="problem-strip">
+  <div class="problem-inner">
+    <h2>The industry problem we solve</h2>
+    <div class="problem-grid">
+      <div class="problem-item">
+        <div class="problem-stat">25–40%</div>
+        <div class="problem-label">Annual Examiner Turnover</div>
+        <div class="problem-desc">New examiners need 60–90 days to reach competency. Most training doesn't stick because it's disconnected from daily work.</div>
+      </div>
+      <div class="problem-item">
+        <div class="problem-stat">3+ hrs</div>
+        <div class="problem-label">Per Claim — Manual Document Review</div>
+        <div class="problem-desc">125–175 open claims per examiner. Hundreds of pages per file. No AI assistance for factual extraction or summarization.</div>
+      </div>
+      <div class="problem-item">
+        <div class="problem-stat">$$$</div>
+        <div class="problem-label">DOI Audit Findings</div>
+        <div class="problem-desc">Missed 15-day, 40-day, and 14-day payment deadlines generate audit findings, penalties, and bad faith exposure under Cal. Ins. Code § 790.03(h).</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PILLARS -->
+<section class="pillars">
+  <div class="section-inner">
+    <div class="pillars-header">
+      <div class="section-tag">Why AdjudiCLAIMS</div>
+      <h2 class="section-title">Three value streams. One platform.</h2>
+      <p class="section-sub">AdjudiCLAIMS addresses your productivity problem, your compliance problem, and your training problem simultaneously.</p>
+    </div>
+    <div class="pillars-grid">
+      <div class="pillar-card">
+        <div class="pillar-icon blue">⚡</div>
+        <h3>Productivity</h3>
+        <div class="pillar-metric">1.5–2 hrs</div>
+        <p>Saved per examiner per week through AI-assisted document review, auto-populated claim fields, and instant benefit calculations.</p>
+      </div>
+      <div class="pillar-card">
+        <div class="pillar-icon green">✓</div>
+        <h3>Compliance</h3>
+        <div class="pillar-metric">&gt;98%</div>
+        <p>Regulatory deadline compliance. Color-coded urgency tracking for every 15-day, 40-day, and 14-day statutory deadline across your entire portfolio.</p>
+      </div>
+      <div class="pillar-card">
+        <div class="pillar-icon purple">🎓</div>
+        <h3>Training</h3>
+        <div class="pillar-metric">Embedded</div>
+        <p>The product IS the training program. Every statutory deadline is cited. Every regulation is explained. Every decision point teaches the why, not just the what.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features">
+  <div class="section-inner">
+    <div class="features-header">
+      <div class="section-tag">Core Features</div>
+      <h2 class="section-title">Everything a claims examiner needs.</h2>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">📄</div>
+        <h3>Document Pipeline</h3>
+        <p>Upload claim files — PDF, DOCX, images. AI automatically runs OCR, classifies by type (12 categories, 150+ subtypes), extracts key fields, and indexes for search.</p>
+        <span class="feature-tag tag-blue">Google Document AI + Claude</span>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⏰</div>
+        <h3>Regulatory Deadline Dashboard</h3>
+        <p>Every statutory deadline auto-generated at claim creation: 15-day acknowledgment, 40-day determination, 14-day first TD payment. Color-coded urgency. Every deadline cites the statute.</p>
+        <span class="feature-tag tag-green">GREEN Zone · Factual</span>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🧮</div>
+        <h3>Benefit Calculator</h3>
+        <p>Statutory TD rate (LC 4653: 2/3 AWE), TD payment schedules with 14-day cycles (LC 4650), automatic late-payment penalty detection (LC 4650(c)), death benefits (LC 4700–4706).</p>
+        <span class="feature-tag tag-green">GREEN Zone · Arithmetic only</span>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💬</div>
+        <h3>AI Chat — UPL-Filtered</h3>
+        <p>"What WPI did the QME assign?" "When is the next TD payment due?" Factual answers over claim documents — with citations. Legal questions are blocked and redirected to defense counsel.</p>
+        <span class="feature-tag tag-blue">3-Stage UPL Enforcement</span>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔍</div>
+        <h3>Investigation Checklist</h3>
+        <p>10-item checklist auto-generated per claim: three-point contact, recorded statement, employer report, medical records, DWC-1, index bureau check, AWE verification. Tracks completion with timestamps.</p>
+        <span class="feature-tag tag-blue">CCR § 10109 Compliant</span>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎓</div>
+        <h3>Education System</h3>
+        <p>86 foundational terms, 57 always-present regulatory education entries, 4 mandatory training modules, 20 step-by-step decision workflows. Quarterly refreshers. Monthly compliance reviews.</p>
+        <span class="feature-tag tag-green">10 CCR § 2695.6 Aligned</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PHILOSOPHY -->
+<section class="philosophy">
+  <div class="philosophy-inner">
+    <h2>The product <em>is</em> the training program.</h2>
+    <p>Most claims software automates tasks and leaves examiners in the dark about why. AdjudiCLAIMS does the opposite. Every deadline is cited. Every regulation is explained. Every AI output shows its work.</p>
+    <p>We call it the Glass Box philosophy: the AI shows you what it found, where it found it, and what the law says about it. No black boxes. No unexplained outputs. No guessing.</p>
+    <div class="philosophy-tenets">
+      <span class="tenet">Every deadline cites statute</span>
+      <span class="tenet">Every calculation shows its formula</span>
+      <span class="tenet">Every AI output links to source</span>
+      <span class="tenet">Every regulation explains consequences</span>
+    </div>
+  </div>
+</section>
+
+<!-- UPL CALLOUT -->
+<section class="upl-callout">
+  <div class="section-inner">
+    <div class="upl-header">
+      <div class="section-tag">UPL Compliance</div>
+      <h2 class="section-title">AI that knows where the line is.</h2>
+      <p class="section-sub">Under Cal. Bus. &amp; Prof. Code § 6125, only licensed attorneys may practice law. Claims examiners are not attorneys. AdjudiCLAIMS enforces this boundary automatically — every query, every response, every time.</p>
+    </div>
+    <div class="zones-row">
+      <div class="zone-card green">
+        <span class="zone-label green">● GREEN · Permitted</span>
+        <h3>Factual Data &amp; Calculations</h3>
+        <p>Medical record summaries, WPI extractions, benefit calculations, deadline tracking, document classification, claim chronologies.</p>
+        <div class="zone-example">"The QME report on page 4 states 12% WPI for the lumbar spine, dated 2025-03-01."</div>
+      </div>
+      <div class="zone-card yellow">
+        <span class="zone-label yellow">● YELLOW · Disclaimer Required</span>
+        <h3>Statistical &amp; Legal-Adjacent</h3>
+        <p>Comparable claims data, medical inconsistency flags, litigation indicators — presented as data only, with a mandatory disclaimer to consult defense counsel.</p>
+        <div class="zone-example">"⚠ Comparable lumbar claims resolved $45K–$85K (p25–p75). Consult defense counsel before using in reserve discussions."</div>
+      </div>
+      <div class="zone-card red">
+        <span class="zone-label red">● RED · Blocked</span>
+        <h3>Legal Analysis &amp; Advice</h3>
+        <p>Coverage opinions, settlement recommendations, case law interpretation, liability determinations, outcome predictions — blocked immediately.</p>
+        <div class="zone-example">"🛑 This requires legal analysis by a licensed attorney. Contact defense counsel."</div>
+      </div>
+    </div>
+    <div class="upl-cta">
+      <a href="upl-zones.html" class="btn-secondary" style="display:inline-block;">Explore the UPL Zone System →</a>
+    </div>
+  </div>
+</section>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stats-inner">
+    <div>
+      <div class="stat-num">3,068</div>
+      <div class="stat-label">Tests Passing (100%)</div>
+    </div>
+    <div>
+      <div class="stat-num">12</div>
+      <div class="stat-label">UPL Acceptance Criteria</div>
+    </div>
+    <div>
+      <div class="stat-num">24+</div>
+      <div class="stat-label">Prohibited Output Patterns Blocked</div>
+    </div>
+    <div>
+      <div class="stat-num">60+</div>
+      <div class="stat-label">Audit Event Types Logged</div>
+    </div>
+    <div>
+      <div class="stat-num">7 yrs</div>
+      <div class="stat-label">Immutable Audit Retention</div>
+    </div>
+  </div>
+</div>
+
+<!-- CTA -->
+<section class="cta-section" id="demo">
+  <div class="cta-inner">
+    <h2>Ready to see it in action?</h2>
+    <p>Schedule a demo for your claims team. We'll walk through a live claim — document upload through compliance dashboard.</p>
+    <div class="cta-buttons">
+      <a href="mailto:demo@adjudica.ai" class="btn-primary" style="display:inline-block; padding:12px 28px; font-size:1rem;">Request Demo</a>
+      <a href="bluf.html" class="btn-secondary" style="display:inline-block; padding:12px 28px; font-size:1rem;">Executive Summary</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div>
+        <div class="footer-brand"><div class="footer-logo">⚖</div> AdjudiCLAIMS</div>
+        <div class="footer-tagline">by Glass Box Solutions, Inc.</div>
+        <div class="footer-tagline" style="margin-top:4px;">"From Black Box to Glass Box."</div>
+      </div>
+      <div class="footer-links">
+        <div class="footer-col">
+          <h4>Product</h4>
+          <a href="how-it-works.html">How It Works</a>
+          <a href="roi-calculator.html">ROI Calculator</a>
+          <a href="bluf.html">Executive Summary</a>
+        </div>
+        <div class="footer-col">
+          <h4>Compliance</h4>
+          <a href="upl-zones.html">UPL Zone Explorer</a>
+          <a href="transparency.html">Platform Transparency</a>
+          <a href="security-hipaa.html">Security &amp; HIPAA</a>
+        </div>
+        <div class="footer-col">
+          <h4>Company</h4>
+          <a href="mailto:demo@adjudica.ai">Request Demo</a>
+          <a href="mailto:security@adjudica.ai">Security Contact</a>
+          <a href="mailto:legal@adjudica.ai">Legal Contact</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Glass Box Solutions, Inc. All rights reserved.</span>
+      <span>California Workers' Compensation · AI Claims Management</span>
+    </div>
+  </div>
+</footer>
+<div class="upl-footer">AdjudiCLAIMS provides factual information only — not legal advice. All substantive claim decisions require licensed attorney involvement for legal issues. Cal. Bus. &amp; Prof. Code § 6125.</div>
+
+</body>
+</html>

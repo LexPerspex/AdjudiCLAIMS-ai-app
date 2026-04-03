@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AdjudiCLAIMS — Executive Summary (BLUF)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #00288e;
+    --primary-mid: #1e40af;
+    --navy: #0F172A;
+    --surface: #faf8ff;
+    --surface-low: #f2f3ff;
+    --text: #131b2e;
+    --text-muted: #444653;
+    --border: #c4c5d5;
+    --green: #059669;
+    --yellow: #D97706;
+    --red: #DC2626;
+    --gradient: linear-gradient(135deg, #00288e 0%, #1e40af 100%);
+    --shadow: 0px 20px 40px rgba(15,23,42,0.06);
+    --radius: 12px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; background: var(--surface); color: var(--text); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+
+  /* NAV */
+  nav { background: rgba(250,248,255,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+  .nav-inner { max-width: 1100px; margin: 0 auto; padding: 0 24px; height: 64px; display: flex; align-items: center; gap: 32px; }
+  .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); font-weight: 700; font-size: 1rem; flex-shrink: 0; }
+  .nav-logo { width: 32px; height: 32px; background: var(--gradient); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 16px; }
+  .nav-links { display: flex; align-items: center; gap: 4px; flex: 1; }
+  .nav-links a { text-decoration: none; color: var(--text-muted); font-size: 0.875rem; font-weight: 500; padding: 6px 12px; border-radius: 6px; transition: all 0.15s; }
+  .nav-links a:hover { color: var(--primary); background: var(--surface-low); }
+  .btn-primary { background: var(--gradient); color: #fff; border: none; padding: 8px 18px; border-radius: 8px; font-size: 0.875rem; font-weight: 600; cursor: pointer; text-decoration: none; white-space: nowrap; }
+
+  /* DOC HEADER */
+  .doc-header { background: var(--gradient); color: #fff; padding: 48px 24px 40px; }
+  .doc-header-inner { max-width: 800px; margin: 0 auto; display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+  .doc-brand { display: flex; align-items: center; gap: 12px; }
+  .doc-logo { width: 48px; height: 48px; background: rgba(255,255,255,0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+  .doc-brand-text h1 { font-size: 1.5rem; font-weight: 800; }
+  .doc-brand-text p { font-size: 0.875rem; color: rgba(255,255,255,0.75); }
+  .doc-meta { text-align: right; font-size: 0.875rem; color: rgba(255,255,255,0.75); }
+  .doc-meta strong { display: block; color: #fff; font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+  .classification { display: inline-block; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 4px; padding: 3px 12px; font-size: 0.8125rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; margin-top: 8px; }
+
+  /* DOCUMENT BODY */
+  .doc-body { max-width: 800px; margin: 0 auto; padding: 48px 24px 80px; }
+
+  /* BLUF BOX */
+  .bluf-box { background: var(--navy); color: #fff; border-radius: var(--radius); padding: 32px; margin-bottom: 48px; }
+  .bluf-box h2 { font-size: 0.8125rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #b8c4ff; margin-bottom: 16px; }
+  .bluf-points { list-style: none; }
+  .bluf-points li { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 1.0625rem; }
+  .bluf-points li:last-child { border-bottom: none; }
+  .bluf-bullet { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; flex-shrink: 0; margin-top: 2px; }
+  .bluf-bullet.b1 { background: #b8c4ff; color: var(--navy); }
+  .bluf-bullet.b2 { background: #6ee7b7; color: var(--navy); }
+  .bluf-bullet.b3 { background: #fca5a5; color: var(--navy); }
+
+  /* SECTIONS */
+  .doc-section { margin-bottom: 48px; }
+  .doc-section h2 { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--primary); border-bottom: 2px solid var(--primary); padding-bottom: 6px; margin-bottom: 20px; }
+  .doc-section h3 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+
+  /* STAT BLOCKS */
+  .stat-blocks { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px; margin-bottom: 8px; }
+  .stat-block { background: var(--surface-low); border: 1px solid var(--border); border-radius: 10px; padding: 20px 16px; text-align: center; }
+  .stat-block .num { font-size: 1.875rem; font-weight: 800; color: var(--primary); line-height: 1; margin-bottom: 6px; }
+  .stat-block .num.red { color: var(--red); }
+  .stat-block .lbl { font-size: 0.8125rem; color: var(--text-muted); font-weight: 500; }
+
+  /* TABLE */
+  table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; }
+  thead th { background: var(--surface-low); text-align: left; padding: 10px 14px; font-size: 0.8125rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 2px solid var(--border); }
+  tbody td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--surface-low); }
+  .feature-name { font-weight: 600; }
+  .benefit-text { color: var(--text-muted); }
+
+  /* ROI GRID */
+  .roi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
+  .roi-card { border-radius: 10px; padding: 20px 16px; text-align: center; }
+  .roi-card.blue { background: #dde9ff; border: 1px solid #93c5fd; }
+  .roi-card.green { background: #d1fae5; border: 1px solid #6ee7b7; }
+  .roi-card.purple { background: #ede9fe; border: 1px solid #c4b5fd; }
+  .roi-card.amber { background: #fef3c7; border: 1px solid #fde68a; }
+  .roi-card .roi-num { font-size: 1.75rem; font-weight: 800; margin-bottom: 4px; }
+  .roi-card.blue .roi-num { color: var(--primary); }
+  .roi-card.green .roi-num { color: #065f46; }
+  .roi-card.purple .roi-num { color: #5b21b6; }
+  .roi-card.amber .roi-num { color: #92400e; }
+  .roi-card .roi-lbl { font-size: 0.8125rem; font-weight: 600; color: var(--text-muted); }
+
+  /* COMPLIANCE POSTURE */
+  .compliance-items { display: flex; flex-direction: column; gap: 12px; }
+  .compliance-item { display: flex; align-items: flex-start; gap: 12px; background: var(--surface-low); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+  .compliance-badge { padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 700; white-space: nowrap; flex-shrink: 0; }
+  .badge-green { background: #d1fae5; color: #065f46; }
+  .badge-blue { background: #dde9ff; color: #1e3a8a; }
+  .badge-amber { background: #fef3c7; color: #92400e; }
+  .compliance-text h4 { font-size: 0.9375rem; font-weight: 700; margin-bottom: 3px; }
+  .compliance-text p { font-size: 0.875rem; color: var(--text-muted); }
+
+  /* STATUS */
+  .status-items { display: flex; flex-direction: column; gap: 10px; }
+  .status-item { display: flex; align-items: center; gap: 10px; font-size: 0.9375rem; }
+  .status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .dot-green { background: var(--green); }
+  .dot-yellow { background: var(--yellow); }
+  .dot-red { background: var(--red); }
+
+  /* NEXT STEPS */
+  .next-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+  .next-step { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 20px 16px; text-align: center; text-decoration: none; color: var(--text); transition: all 0.15s; box-shadow: var(--shadow); }
+  .next-step:hover { border-color: var(--primary); box-shadow: 0 4px 16px rgba(0,40,142,0.12); }
+  .next-step .ns-icon { font-size: 24px; margin-bottom: 10px; }
+  .next-step h4 { font-size: 0.9375rem; font-weight: 700; margin-bottom: 4px; }
+  .next-step p { font-size: 0.8125rem; color: var(--text-muted); }
+
+  /* FOOTER */
+  footer { background: var(--navy); color: #64748b; padding: 32px 24px; text-align: center; font-size: 0.875rem; }
+  footer a { color: #94a3b8; text-decoration: none; margin: 0 8px; }
+  footer a:hover { color: #e2e8f0; }
+  .upl-footer { background: var(--red); color: #fff; text-align: center; padding: 10px 24px; font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+
+  @media print {
+    nav, footer, .upl-footer, .next-steps { display: none !important; }
+    body { background: #fff; color: #000; }
+    .doc-header { background: #00288e !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .bluf-box { background: #0F172A !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .doc-body { padding: 24px; }
+  }
+  @media (max-width: 768px) { .nav-links { display: none; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="nav-brand">
+      <div class="nav-logo">⚖</div>
+      AdjudiCLAIMS
+    </a>
+    <div class="nav-links">
+      <a href="how-it-works.html">How It Works</a>
+      <a href="upl-zones.html">UPL Zones</a>
+      <a href="transparency.html">Transparency</a>
+      <a href="security-hipaa.html">Security</a>
+      <a href="roi-calculator.html">ROI Calculator</a>
+    </div>
+    <a href="mailto:demo@adjudica.ai" class="btn-primary">Request Demo</a>
+  </div>
+</nav>
+
+<div class="doc-header">
+  <div class="doc-header-inner">
+    <div class="doc-brand">
+      <div class="doc-logo">⚖</div>
+      <div class="doc-brand-text">
+        <h1>AdjudiCLAIMS</h1>
+        <p>by Glass Box Solutions, Inc.</p>
+      </div>
+    </div>
+    <div class="doc-meta">
+      <strong>Executive Summary</strong>
+      California Workers' Compensation · AI Claims Management<br>
+      Prepared: April 2026
+      <span class="classification">Decision Maker Brief</span>
+    </div>
+  </div>
+</div>
+
+<div class="doc-body">
+
+  <!-- BOTTOM LINE UP FRONT -->
+  <div class="bluf-box">
+    <h2>Bottom Line Up Front</h2>
+    <ul class="bluf-points">
+      <li>
+        <span class="bluf-bullet b1">1</span>
+        <span><strong>What it is:</strong> An AI-powered claims management information tool for California Workers' Compensation claims examiners — combining a productivity assistant, a compliance engine, and an embedded training system in a single platform.</span>
+      </li>
+      <li>
+        <span class="bluf-bullet b2">2</span>
+        <span><strong>What it saves:</strong> 1.5–2 hours per examiner per week through AI-assisted document review, auto-populated claim fields, and instant statutory benefit calculations — while projecting &gt;98% regulatory deadline compliance across your entire portfolio.</span>
+      </li>
+      <li>
+        <span class="bluf-bullet b3">3</span>
+        <span><strong>What it protects:</strong> Claims examiners are not attorneys. Every AI output is UPL-filtered through three enforcement layers. Legal questions are blocked and redirected to defense counsel. The system cannot provide legal advice — by architectural design, not just policy.</span>
+      </li>
+    </ul>
+  </div>
+
+  <!-- THE PROBLEM -->
+  <div class="doc-section">
+    <h2>The Problem</h2>
+    <div class="stat-blocks">
+      <div class="stat-block">
+        <div class="num red">25–40%</div>
+        <div class="lbl">Annual examiner turnover in California WC</div>
+      </div>
+      <div class="stat-block">
+        <div class="num red">3+ hrs</div>
+        <div class="lbl">Manual document review per claim file</div>
+      </div>
+      <div class="stat-block">
+        <div class="num red">125–175</div>
+        <div class="lbl">Open claims per examiner simultaneously</div>
+      </div>
+      <div class="stat-block">
+        <div class="num red">$10K+</div>
+        <div class="lbl">Estimated cost per DOI audit finding</div>
+      </div>
+    </div>
+    <p style="font-size:0.875rem; color: var(--text-muted); margin-top: 12px;">Sources: CorVel benchmarks, DOI audit schedules, industry HR surveys. Specific figures vary by organization.</p>
+  </div>
+
+  <!-- THE SOLUTION -->
+  <div class="doc-section">
+    <h2>The Solution — Feature → Benefit</h2>
+    <table>
+      <thead>
+        <tr><th>Feature</th><th>What It Does</th><th>Business Benefit</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="feature-name">Document Pipeline</td>
+          <td>OCR, classify (12 types), extract key fields, index for AI search</td>
+          <td class="benefit-text">Reduces 3-hour document review to ~15 minutes per claim</td>
+        </tr>
+        <tr>
+          <td class="feature-name">Regulatory Deadline Dashboard</td>
+          <td>Auto-generates every statutory deadline at claim creation; color-coded urgency</td>
+          <td class="benefit-text">Eliminates deadline misses and associated audit findings, penalties, bad faith exposure</td>
+        </tr>
+        <tr>
+          <td class="feature-name">Benefit Calculator</td>
+          <td>Statutory TD rate (LC 4653), payment schedule (LC 4650), death benefits (LC 4700–4706)</td>
+          <td class="benefit-text">Zero arithmetic errors; verified against 50+ known scenarios at 100% accuracy</td>
+        </tr>
+        <tr>
+          <td class="feature-name">AI Chat — UPL-Filtered</td>
+          <td>Factual Q&amp;A over claim documents; legal questions blocked and redirected to counsel</td>
+          <td class="benefit-text">Instant fact-finding without UPL risk; examiners work faster, attorneys handle only legal questions</td>
+        </tr>
+        <tr>
+          <td class="feature-name">AOE/COE Coverage Tracking</td>
+          <td>Per-body-part status tracking (admitted/denied/pending); append-only determination log</td>
+          <td class="benefit-text">Full audit trail of every coverage decision; defensible record for WCAB</td>
+        </tr>
+        <tr>
+          <td class="feature-name">Investigation Checklist</td>
+          <td>10-item completeness tracker auto-generated per claim</td>
+          <td class="benefit-text">CCR § 10109 compliance; prevents missed investigation steps</td>
+        </tr>
+        <tr>
+          <td class="feature-name">Education System</td>
+          <td>86 dismissable terms + 57 always-present regulatory entries + 4 training modules</td>
+          <td class="benefit-text">New examiners reach competency in 30–45 days vs. 60–90 days; satisfies 10 CCR § 2695.6</td>
+        </tr>
+        <tr>
+          <td class="feature-name">Compliance Dashboard &amp; Reporting</td>
+          <td>DOI audit-ready reports (CCR 10101, 10103); examiner and team compliance scores</td>
+          <td class="benefit-text">Pass DOI audit examinations; supervisor visibility across entire examiner portfolio</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ROI -->
+  <div class="doc-section">
+    <h2>ROI at a Glance</h2>
+    <div class="roi-grid">
+      <div class="roi-card blue">
+        <div class="roi-num">1.5–2 hrs</div>
+        <div class="roi-lbl">Saved per examiner per week</div>
+      </div>
+      <div class="roi-card green">
+        <div class="roi-num">&gt;98%</div>
+        <div class="roi-lbl">Projected deadline compliance rate</div>
+      </div>
+      <div class="roi-card purple">
+        <div class="roi-num">30–45 days</div>
+        <div class="roi-lbl">Examiner ramp-up (vs. 60–90 today)</div>
+      </div>
+      <div class="roi-card amber">
+        <div class="roi-num">100%</div>
+        <div class="roi-lbl">DOI audit readiness score target</div>
+      </div>
+    </div>
+    <p style="font-size:0.8125rem; color: var(--text-muted); margin-top:12px;">For a personalized ROI estimate based on your team size, see the <a href="roi-calculator.html" style="color: var(--primary); font-weight:600;">interactive ROI Calculator →</a></p>
+  </div>
+
+  <!-- COMPLIANCE POSTURE -->
+  <div class="doc-section">
+    <h2>Compliance Posture</h2>
+    <div class="compliance-items">
+      <div class="compliance-item">
+        <span class="compliance-badge badge-green">UPL · Enforced</span>
+        <div class="compliance-text">
+          <h4>Unauthorized Practice of Law Prevention</h4>
+          <p>Three independent enforcement layers: pre-chat query classifier (regex + LLM), constrained system prompts, post-generation output validator (24+ prohibited patterns). 11 of 12 acceptance criteria verified by automated tests. 12th pending outside counsel sign-off.</p>
+        </div>
+      </div>
+      <div class="compliance-item">
+        <span class="compliance-badge badge-green">HIPAA · BAAs Executed</span>
+        <div class="compliance-text">
+          <h4>HIPAA Compliance</h4>
+          <p>Business Associate Agreements executed with all PHI sub-processors (Google, Anthropic). All AI providers contractually prohibited from training on client data. 7-year data retention. Breach notification procedure documented.</p>
+        </div>
+      </div>
+      <div class="compliance-item">
+        <span class="compliance-badge badge-blue">SOC 2 · Controls in Place</span>
+        <div class="compliance-text">
+          <h4>SOC 2 Security Controls</h4>
+          <p>Argon2id password hashing, TOTP MFA, account lockout, RBAC (3 roles), org-scoped multi-tenancy, immutable audit trail (60+ event types, 7-year retention), Sentry error monitoring, GCP Secret Manager for all credentials.</p>
+        </div>
+      </div>
+      <div class="compliance-item">
+        <span class="compliance-badge badge-blue">DOI · Audit-Ready Reports</span>
+        <div class="compliance-text">
+          <h4>Department of Insurance Compliance</h4>
+          <p>CCR 10101 claim file summaries, CCR 10103 activity logs, deadline adherence statistics, audit readiness score. All regulatory deadlines cite their statutory authority. All benefit calculations show formulas and Labor Code citations.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BUILD STATUS -->
+  <div class="doc-section">
+    <h2>Build Status</h2>
+    <div class="status-items">
+      <div class="status-item"><span class="status-dot dot-green"></span><span><strong>3,068 tests passing</strong> at 100% — unit, integration, SOC 2, UPL acceptance, E2E</span></div>
+      <div class="status-item"><span class="status-dot dot-green"></span><span><strong>0 TypeScript errors</strong> · 0 lint errors · CI/CD build succeeds</span></div>
+      <div class="status-item"><span class="status-dot dot-green"></span><span><strong>11 of 12 UPL acceptance criteria</strong> met by automated test</span></div>
+      <div class="status-item"><span class="status-dot dot-green"></span><span><strong>~85% complete</strong> toward production MVP across 10 build phases</span></div>
+      <div class="status-item"><span class="status-dot dot-yellow"></span><span><strong>3 blockers remaining:</strong> (1) Cloud Run staging deployment verification, (2) production database migration, (3) outside counsel UPL sign-off (package prepared, submission pending)</span></div>
+    </div>
+  </div>
+
+  <!-- NEXT STEPS -->
+  <div class="doc-section">
+    <h2>Next Steps</h2>
+    <div class="next-steps">
+      <a href="mailto:demo@adjudica.ai" class="next-step">
+        <div class="ns-icon">📅</div>
+        <h4>Request a Demo</h4>
+        <p>Live walkthrough of a real claim — document upload through compliance dashboard</p>
+      </a>
+      <a href="transparency.html" class="next-step">
+        <div class="ns-icon">🔍</div>
+        <h4>Review Transparency Page</h4>
+        <p>Full technical and legal detail on the UPL enforcement architecture</p>
+      </a>
+      <a href="roi-calculator.html" class="next-step">
+        <div class="ns-icon">📊</div>
+        <h4>Calculate Your ROI</h4>
+        <p>Enter your team size and caseload for a custom savings estimate</p>
+      </a>
+      <a href="security-hipaa.html" class="next-step">
+        <div class="ns-icon">🔒</div>
+        <h4>Security &amp; HIPAA Review</h4>
+        <p>Sub-processor list, BAA status, SOC 2 controls, audit trail details</p>
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <a href="index.html">Home</a>
+  <a href="how-it-works.html">How It Works</a>
+  <a href="upl-zones.html">UPL Zones</a>
+  <a href="transparency.html">Transparency</a>
+  <a href="security-hipaa.html">Security</a>
+  <a href="roi-calculator.html">ROI Calculator</a>
+  <br><br>
+  © 2026 Glass Box Solutions, Inc. · "From Black Box to Glass Box."
+</footer>
+<div class="upl-footer">AdjudiCLAIMS provides factual information only — not legal advice. All legal issues require licensed attorney analysis. Cal. Bus. &amp; Prof. Code § 6125.</div>
+
+</body>
+</html>

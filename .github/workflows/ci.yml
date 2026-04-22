@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [main, staging, dev, "feat/**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  typecheck:
+    name: typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Stub @adjudica/document-classifier
+        run: |
+          mkdir -p ../Adjudica-classifier/dist
+          echo '{"name":"@adjudica/document-classifier","version":"2.0.0","main":"dist/index.js","types":"dist/index.d.ts"}' \
+            > ../Adjudica-classifier/package.json
+          echo 'export class DocumentClassifier { constructor(...args) {} }' \
+            > ../Adjudica-classifier/dist/index.js
+          printf 'export declare class DocumentClassifier {\n  constructor(...args: any[]);\n  classify(text: string, filename?: string): Promise<{ documentType: string | null; documentSubtype: string | null; confidence: number; aiReasoning: string; documentDate: string | null; }>;\n}\n' \
+            > ../Adjudica-classifier/dist/index.d.ts
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run typecheck
+        run: npm run typecheck
+
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Stub @adjudica/document-classifier
+        run: |
+          mkdir -p ../Adjudica-classifier/dist
+          echo '{"name":"@adjudica/document-classifier","version":"2.0.0","main":"dist/index.js","types":"dist/index.d.ts"}' \
+            > ../Adjudica-classifier/package.json
+          echo 'export class DocumentClassifier { constructor(...args) {} }' \
+            > ../Adjudica-classifier/dist/index.js
+          printf 'export declare class DocumentClassifier {\n  constructor(...args: any[]);\n  classify(text: string, filename?: string): Promise<{ documentType: string | null; documentSubtype: string | null; confidence: number; aiReasoning: string; documentDate: string | null; }>;\n}\n' \
+            > ../Adjudica-classifier/dist/index.d.ts
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm run test

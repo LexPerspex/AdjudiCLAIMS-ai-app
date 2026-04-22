@@ -4,19 +4,21 @@
 // CA Workers' Compensation claims management AI platform.
 // Phase 2A standalone deployment — no shared claims with attorney product.
 //
-// Database: PlanetScale (MySQL/Vitess)
+// Database: PostgreSQL 15 + pgvector
 // ORM: Prisma 6
 // Multi-tenancy: Organization-scoped (CARRIER, TPA, SELF_INSURED)
-// Vector search: Vertex AI Vector Search (Voyage Large embeddings)
+// Vector search: pgvector (in-DB) — Voyage Large embeddings
 // =============================================================================
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [vector]
 }
 
 // =============================================================================
@@ -449,6 +451,58 @@ enum MaturityLabel {
   @@map("maturity_label")
 }
 
+enum ContradictionType {
+  DATE_CONFLICT
+  VALUE_CONFLICT
+  EXISTENCE_CONFLICT
+  ATTRIBUTION_CONFLICT
+  STATUS_CONFLICT
+
+  @@map("contradiction_type")
+}
+
+enum QueryType {
+  FORM_FIELD
+  CHAT_QUERY
+
+  @@map("query_type")
+}
+
+enum ExecutionTier {
+  MICRO
+  STANDARD
+  DEEP
+
+  @@map("execution_tier")
+}
+
+enum QueryPattern {
+  ENTITY_LOOKUP
+  RELATIONSHIP
+  TEMPORAL
+  NARRATIVE
+  ANALYTICAL
+
+  @@map("query_pattern")
+}
+
+enum QueryOutcome {
+  GRAPH_HIT
+  VECTOR_HIT
+  FALLBACK
+  NO_RESULT
+
+  @@map("query_outcome")
+}
+
+enum RoutingScope {
+  HOT
+  WARM
+  COLD
+
+  @@map("routing_scope")
+}
+
 // =============================================================================
 // Models
 // =============================================================================
@@ -463,8 +517,9 @@ model Organization {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  users  User[]
-  claims Claim[]
+  users                User[]
+  claims               Claim[]
+  graphRoutingMemories GraphRoutingMemory[]
 
   @@map("organizations")
 }
@@ -588,12 +643,15 @@ model Claim {
   medicalPayments        MedicalPayment[]
 
   // Graph RAG relations
-  graphNodes          GraphNode[]
-  graphEdges          GraphEdge[]
-  graphSummaries      GraphSummary[]
-  graphMaturity       GraphMaturity?
-  graphStatusChanges  GraphStatusChange[]
-  graphQuerySignals   GraphQuerySignal[]
+  graphNodes           GraphNode[]
+  graphEdges           GraphEdge[]
+  graphSummaries       GraphSummary[]
+  graphMaturity        GraphMaturity?
+  graphStatusChanges   GraphStatusChange[]
+  graphQuerySignals    GraphQuerySignal[]
+  graphEntityMerges    GraphEntityMerge[]
+  graphRoutingMemories GraphRoutingMemory[]
+  claimFacts           ClaimFact[]
 
   @@index([organizationId], map: "idx_claims_organization_id")
   @@index([assignedExaminerId], map: "idx_claims_assigned_examiner_id")
@@ -642,6 +700,7 @@ model Document {
   chunks          DocumentChunk[]
   extractedFields ExtractedField[]
   timelineEvents  TimelineEvent[]
+  chatCitations   ChatCitation[]
 
   // Investigation items satisfied by this document
   investigationItems InvestigationItem[] @relation("SatisfiedByDocument")
@@ -655,7 +714,7 @@ model Document {
 }
 
 /// Text chunk for RAG retrieval against claim documents.
-/// Embeddings stored externally in Vertex AI Vector Search (Voyage Large model).
+/// Embeddings stored in pgvector (Voyage Large model).
 ///
 /// Chunking upgrades (2026-03-27):
 ///   - Token-based sizing (512 tokens target)
@@ -666,13 +725,13 @@ model Document {
 model DocumentChunk {
   id         String @id @default(cuid()) @map("id")
   documentId String @map("document_id")
-  content    String @map("content") 
+  content    String @map("content")
   chunkIndex Int    @map("chunk_index")
 
   // 3-level heading structure
-  headingL1 String? @map("heading_l1") 
-  headingL2 String? @map("heading_l2") 
-  headingL3 String? @map("heading_l3") 
+  headingL1 String? @map("heading_l1")
+  headingL2 String? @map("heading_l2")
+  headingL3 String? @map("heading_l3")
 
   // Atomic preservation flags
   pageNumbers       Json?   @map("page_numbers")
@@ -686,15 +745,23 @@ model DocumentChunk {
   isParent      Boolean  @default(false) @map("is_parent")
 
   // Contextual prefix (included in embedding, excluded from LLM generation)
-  contextPrefix String? @map("context_prefix") 
+  contextPrefix String? @map("context_prefix")
 
   // Token-based metadata
-  tokenCount Int? @map("token_count")
+  tokenCount           Int?    @map("token_count")
+  chunkVectorAlgorithm String? @map("chunk_vector_algorithm")
+  chunkVectorDimension Int?    @map("chunk_vector_dimension")
+
+  // pgvector — dimension set per-model in migration
+  embedding    Unsupported("vector")? @map("embedding")
+  searchVector Unsupported("tsvector")? @map("search_vector") // GENERATED — managed by migration
 
   // Relations
   document    Document       @relation(fields: [documentId], references: [id], onDelete: Cascade)
   parentChunk DocumentChunk? @relation("ChunkParent", fields: [parentChunkId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   childChunks DocumentChunk[] @relation("ChunkParent")
+  factCitations FactCitation[]
+  chatCitations ChatCitation[]
 
   @@index([documentId], map: "idx_document_chunks_document_id")
   @@index([documentId, chunkIndex], map: "idx_document_chunks_doc_chunk_idx")
@@ -730,6 +797,12 @@ model TimelineEvent {
   eventType   String   @map("event_type")
   description String   @map("description")
   source      String   @map("source")
+
+  // pgvector — enables similarity search across timeline events
+  embedding        Unsupported("vector")? @map("embedding")
+  searchVector     Unsupported("tsvector")? @map("search_vector") // GENERATED — managed by migration
+  embeddingModel   String? @map("embedding_model")
+  embeddingDimension Int?  @map("embedding_dimension")
 
   // Relations
   claim    Claim     @relation(fields: [claimId], references: [id])
@@ -776,7 +849,8 @@ model ChatMessage {
   createdAt DateTime @default(now()) @map("created_at")
 
   // Relations
-  session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  session   ChatSession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  citations ChatCitation[]
 
   @@index([sessionId], map: "idx_chat_messages_session_id")
   @@index([sessionId, createdAt], map: "idx_chat_messages_session_created")
@@ -1160,45 +1234,60 @@ model MedicalPayment {
 /// Per-claim graph node — entities extracted from documents.
 /// Nodes are scoped to a single claim and typed by the 13-value ontology.
 model GraphNode {
-  id              String        @id @default(cuid()) @map("id")
-  claimId         String        @map("claim_id")
-  nodeType        GraphNodeType @map("node_type")
-  canonicalName   String        @map("canonical_name") 
-  aliases         Json          @default("[]") @map("aliases")
-  properties      Json          @default("{}") @map("properties")
+  id            String        @id @default(cuid()) @map("id")
+  claimId       String        @map("claim_id")
+  nodeType      GraphNodeType @map("node_type")
+  canonicalName String        @map("canonical_name")
+  aliases       String[]      @default([]) @map("aliases")
+  properties    Json          @default("{}") @map("properties")
 
-  // Person/Org subtype (stored as JSON since PersonRole/OrgType are domain-specific)
-  personRole      PersonRole?   @map("person_role")
-  orgType         OrgType?      @map("org_type")
+  // Person/Org subtype
+  personRole PersonRole? @map("person_role")
+  orgType    OrgType?    @map("org_type")
 
   // Provenance
-  sourceDocumentIds Json        @default("[]") @map("source_document_ids")
-  confidence        Float       @default(0) @map("confidence")
+  sourceDocumentIds String[] @default([]) @map("source_document_ids")
+  confidence        Float    @default(0) @map("confidence")
 
-  // Embedding (model-agnostic — dimension stored per-model, not per-schema)
-  embeddingModel  String?       @map("embedding_model")
+  // Canonical deduplication — survivorId if this node was merged into another
+  canonicalId String? @map("canonical_id")
+
+  // pgvector embedding
+  embedding      Unsupported("vector")? @map("embedding")
+  embeddingModel String?                @map("embedding_model")
 
   // Human verification
-  humanVerified   Boolean       @default(false) @map("human_verified")
-  humanVerifiedBy String?       @map("human_verified_by")
-  locked          Boolean       @default(false) @map("locked")
+  humanVerified   Boolean   @default(false) @map("human_verified")
+  humanVerifiedAt DateTime? @map("human_verified_at")
+  humanVerifiedBy String?   @map("human_verified_by") // format: "user:{id}" or "system:{service}"
+  locked          Boolean   @default(false) @map("locked")
+
+  // SOC2 actor attribution
+  createdBy String? @map("created_by") // format: "user:{id}" or "system:{service}"
+  traceId   String? @map("trace_id")   // LangFuse trace ID
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  claim         Claim       @relation(fields: [claimId], references: [id])
-  outgoingEdges GraphEdge[] @relation("EdgeSource")
-  incomingEdges GraphEdge[] @relation("EdgeTarget")
+  claim            Claim                @relation(fields: [claimId], references: [id])
+  outgoingEdges    GraphEdge[]          @relation("EdgeSource")
+  incomingEdges    GraphEdge[]          @relation("EdgeTarget")
+  canonicalNode    GraphNode?           @relation("NodeCanonical", fields: [canonicalId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  mergedInto       GraphNode[]          @relation("NodeCanonical")
+  mergesAsSurvivor GraphEntityMerge[]   @relation("MergeSurvivor")
+  mergesAsMerged   GraphEntityMerge[]   @relation("MergeMerged")
+  statusChanges    GraphStatusChange[]  @relation("StatusChangeNode")
 
   @@index([claimId, nodeType], map: "idx_graph_nodes_claim_type")
   @@index([claimId, canonicalName], map: "idx_graph_nodes_claim_name")
   @@index([nodeType], map: "idx_graph_nodes_type")
+  @@index([canonicalId], map: "idx_graph_nodes_canonical_id")
   @@map("graph_nodes")
 }
 
 /// Per-claim graph edge — relationships between nodes with neuro-plastic properties.
-/// Edges carry provenance, confidence (Noisy-OR), contradiction state, and traversal stats.
+/// Edges carry provenance, confidence (Noisy-OR), contradiction state, and Hebbian LTP stats.
 model GraphEdge {
   id           String        @id @default(cuid()) @map("id")
   claimId      String        @map("claim_id")
@@ -1208,55 +1297,66 @@ model GraphEdge {
   properties   Json          @default("{}") @map("properties")
 
   // Provenance
-  sourceDocumentIds Json @default("[]") @map("source_document_ids")
-  sourceChunkIds    Json @default("[]") @map("source_chunk_ids")
+  sourceDocumentIds String[] @default([]) @map("source_document_ids")
+  sourceChunkIds    String[] @default([]) @map("source_chunk_ids")
 
   // Confidence (Noisy-OR across sources)
-  confidence        Float @default(0) @map("confidence")
-  sourceConfidences Json  @default("[]") @map("source_confidences")
+  confidence        Float    @default(0) @map("confidence")
+  sourceConfidences Float[]  @default([]) @map("source_confidences")
 
-  // Neuro-plastic weight (Hebbian strengthening / lazy decay)
-  weight          Float    @default(1.0) @map("weight")
-  traversalCount  Int      @default(0) @map("traversal_count")
-  lastTraversedAt DateTime? @map("last_traversed_at")
+  // Neuro-plastic weight (Hebbian LTP: ln(1 + corroborationCount))
+  weight             Float     @default(1.0) @map("weight")
+  traversalCount     Int       @default(0) @map("traversal_count")
+  lastTraversedAt    DateTime? @map("last_traversed_at")
+  corroborationCount Int       @default(1) @map("corroboration_count") // starts at 1 — first creation IS first corroboration
+  firstEstablishedAt DateTime  @default(now()) @map("first_established_at")
+  lastCorroboratedAt DateTime? @map("last_corroborated_at")
 
   // Contradiction tracking
-  contradictionStatus    ContradictionStatus @default(NONE) @map("contradiction_status")
-  contradictedByEdgeIds  Json                @default("[]") @map("contradicted_by_edge_ids")
-  contradictionType      String?             @map("contradiction_type")
+  contradictionStatus   ContradictionStatus @default(NONE) @map("contradiction_status")
+  contradictedByEdgeIds String[]            @default([]) @map("contradicted_by_edge_ids")
+  contradictionType     ContradictionType?  @map("contradiction_type")
 
   // Human verification
-  humanVerified   Boolean  @default(false) @map("human_verified")
-  humanVerifiedBy String?  @map("human_verified_by")
-  locked          Boolean  @default(false) @map("locked")
+  humanVerified   Boolean   @default(false) @map("human_verified")
+  humanVerifiedAt DateTime? @map("human_verified_at")
+  humanVerifiedBy String?   @map("human_verified_by") // format: "user:{id}" or "system:{service}"
+  locked          Boolean   @default(false) @map("locked")
+
+  // SOC2 actor attribution
+  createdBy String? @map("created_by") // format: "user:{id}" or "system:{service}"
+  traceId   String? @map("trace_id")   // LangFuse trace ID
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  claim      Claim     @relation(fields: [claimId], references: [id])
-  sourceNode GraphNode @relation("EdgeSource", fields: [sourceNodeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  targetNode GraphNode @relation("EdgeTarget", fields: [targetNodeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  claim         Claim               @relation(fields: [claimId], references: [id])
+  sourceNode    GraphNode           @relation("EdgeSource", fields: [sourceNodeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  targetNode    GraphNode           @relation("EdgeTarget", fields: [targetNodeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  statusChanges GraphStatusChange[] @relation("StatusChangeEdge")
 
   @@index([claimId, edgeType], map: "idx_graph_edges_claim_type")
   @@index([sourceNodeId], map: "idx_graph_edges_source")
   @@index([targetNodeId], map: "idx_graph_edges_target")
   @@index([claimId, weight], map: "idx_graph_edges_claim_weight")
   @@index([contradictionStatus], map: "idx_graph_edges_contradiction")
+  @@index([claimId, traversalCount, lastTraversedAt], map: "idx_graph_edges_traversal")
   @@map("graph_edges")
 }
 
 /// Subgraph summary — consolidated natural language summary of a node cluster.
 model GraphSummary {
-  id       String  @id @default(cuid()) @map("id")
-  claimId  String  @map("claim_id")
-  nodeIds  Json    @default("[]") @map("node_ids")
-  edgeIds  Json    @default("[]") @map("edge_ids")
-  summary  String  @map("summary") 
-  isValid  Boolean @default(true) @map("is_valid")
+  id      String  @id @default(cuid()) @map("id")
+  claimId String  @map("claim_id")
+  nodeIds Json    @default("[]") @map("node_ids")
+  edgeIds Json    @default("[]") @map("edge_ids")
+  summary String  @map("summary")
+  isValid Boolean @default(true) @map("is_valid")
 
-  // Embedding
-  embeddingModel String? @map("embedding_model")
+  // pgvector embedding for semantic search over summaries
+  summaryEmbedding Unsupported("vector")? @map("summary_embedding")
+  embeddingModel   String?                @map("embedding_model")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -1289,41 +1389,50 @@ model GraphMaturity {
   @@map("graph_maturity")
 }
 
-/// Tracks property changes on graph nodes for audit/timeline purposes.
+/// Tracks property changes on graph nodes and edges for audit/timeline purposes.
 model GraphStatusChange {
-  id            String   @id @default(cuid()) @map("id")
-  claimId       String   @map("claim_id")
-  targetNodeId  String   @map("target_node_id")
-  field         String   @map("field")
-  oldValue      String?  @map("old_value") 
-  newValue      String?  @map("new_value") 
-  effectiveDate DateTime? @map("effective_date")
-  documentId    String?  @map("document_id")
-  confidence    Float    @default(0) @map("confidence")
+  id               String    @id @default(cuid()) @map("id")
+  claimId          String    @map("claim_id")
+  nodeId           String?   @map("node_id")  // set when tracking a node change
+  edgeId           String?   @map("edge_id")  // set when tracking an edge change
+  propertyName     String    @map("property_name")
+  oldValue         String?   @map("old_value")
+  newValue         String    @map("new_value")
+  effectiveDate    DateTime? @map("effective_date")
+  sourceDocumentId String?   @map("source_document_id")
+  sourceChunkId    String?   @map("source_chunk_id")
+  createdBy        String?   @map("created_by") // format: "user:{id}" or "system:{service}"
 
   createdAt DateTime @default(now()) @map("created_at")
 
   // Relations
-  claim Claim @relation(fields: [claimId], references: [id])
+  claim Claim      @relation(fields: [claimId], references: [id])
+  node  GraphNode? @relation("StatusChangeNode", fields: [nodeId], references: [id], onDelete: Cascade)
+  edge  GraphEdge? @relation("StatusChangeEdge", fields: [edgeId], references: [id], onDelete: Cascade)
 
   @@index([claimId], map: "idx_graph_status_changes_claim")
-  @@index([targetNodeId], map: "idx_graph_status_changes_node")
+  @@index([nodeId], map: "idx_graph_status_changes_node")
+  @@index([edgeId], map: "idx_graph_status_changes_edge")
   @@map("graph_status_changes")
 }
 
-/// Cognitive router query signal — tracks how graph queries are routed and whether they succeeded.
+/// Cognitive router query signal — tracks how graph queries are routed and their outcomes.
+/// @retention 90d — enforced by cleanupGraphSignalsWorkflow (PHI data minimization)
+/// observeSnapshot/graphResult/vectorResult may contain PHI — store entity IDs over raw text where possible.
 model GraphQuerySignal {
-  id              String   @id @default(cuid()) @map("id")
-  claimId         String   @map("claim_id")
-  queryText       String   @map("query_text") 
-  queryPattern    String?  @map("query_pattern")
-  observeSnapshot Json?    @map("observe_snapshot")
-  tierSelected    String?  @map("tier_selected")
-  tierUsed        String?  @map("tier_used")
-  escalated       Boolean  @default(false) @map("escalated")
-  iscDriftScore   Float?   @map("isc_drift_score")
-  succeeded       Boolean? @map("succeeded")
-  latencyMs       Int?     @map("latency_ms")
+  id                 String        @id @default(cuid()) @map("id")
+  claimId            String        @map("claim_id")
+  queryId            String        @map("query_id") // idempotency key
+  queryType          QueryType     @map("query_type")
+  pattern            QueryPattern  @map("pattern")
+  observeSnapshot    Json?         @map("observe_snapshot") // PHI: node IDs preferred over raw text
+  isCTarget          Json?         @map("is_c_target")
+  selectedTier       ExecutionTier @map("selected_tier")
+  graphResult        Json?         @map("graph_result")    // PHI: node IDs preferred
+  vectorResult       Json?         @map("vector_result")   // PHI: chunk IDs preferred
+  outcome            QueryOutcome  @map("outcome")
+  coverageConfidence Float         @default(0) @map("coverage_confidence")
+  responseAccuracy   Float?        @map("response_accuracy")
 
   createdAt DateTime @default(now()) @map("created_at")
 
@@ -1331,6 +1440,120 @@ model GraphQuerySignal {
   claim Claim @relation(fields: [claimId], references: [id])
 
   @@index([claimId], map: "idx_graph_query_signals_claim")
-  @@index([queryPattern], map: "idx_graph_query_signals_pattern")
+  @@index([queryType], map: "idx_graph_query_signals_query_type")
+  @@index([pattern], map: "idx_graph_query_signals_pattern")
+  @@index([createdAt], map: "idx_graph_query_signals_created_at")
   @@map("graph_query_signals")
+}
+
+/// Entity deduplication audit log — records when two graph nodes are merged (survivor absorbs merged).
+model GraphEntityMerge {
+  id             String    @id @default(cuid()) @map("id")
+  claimId        String    @map("claim_id")
+  survivorNodeId String    @map("survivor_node_id")
+  mergedNodeId   String    @map("merged_node_id")
+  mergeReason    String    @map("merge_reason")
+  confidence     Float     @default(0) @map("confidence")
+  metadata       Json?     @map("metadata")
+  mergedAt       DateTime  @default(now()) @map("merged_at")
+  reversedAt     DateTime? @map("reversed_at")
+
+  // Relations
+  claim        Claim     @relation(fields: [claimId], references: [id])
+  survivorNode GraphNode @relation("MergeSurvivor", fields: [survivorNodeId], references: [id], onDelete: Cascade)
+  mergedNode   GraphNode @relation("MergeMerged", fields: [mergedNodeId], references: [id], onDelete: Cascade)
+
+  @@index([claimId], map: "idx_graph_entity_merges_claim")
+  @@index([survivorNodeId], map: "idx_graph_entity_merges_survivor")
+  @@index([mergedNodeId], map: "idx_graph_entity_merges_merged")
+  @@map("graph_entity_merges")
+}
+
+/// Learned query routing preferences — HOT (claim-specific), WARM (org-wide), COLD (global).
+/// Tracks which execution tier succeeds for a given query pattern to minimize routing latency.
+model GraphRoutingMemory {
+  id             String        @id @default(cuid()) @map("id")
+  claimId        String?       @map("claim_id")        // HOT: claim-scoped
+  organizationId String?       @map("organization_id") // WARM: org-scoped
+  scope          RoutingScope  @map("scope")
+  pattern        QueryPattern  @map("pattern")
+  preferredTier  ExecutionTier @map("preferred_tier")
+  successCount   Int           @default(0) @map("success_count")
+  failureCount   Int           @default(0) @map("failure_count")
+  lastUpdatedAt  DateTime      @updatedAt @map("last_updated_at")
+  createdAt      DateTime      @default(now()) @map("created_at")
+
+  // Relations
+  claim        Claim?        @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([claimId, scope, pattern], map: "uq_routing_claim_scope_pattern")
+  @@unique([organizationId, scope, pattern], map: "uq_routing_org_scope_pattern")
+  @@index([scope, pattern], map: "idx_graph_routing_scope_pattern")
+  @@map("graph_routing_memory")
+}
+
+// =============================================================================
+// Claim Knowledge Models (ClaimFact + Citations)
+// =============================================================================
+
+/// Key-value fact extracted from claim documents with provenance.
+/// Provides structured, citable knowledge on top of the graph and vector layers.
+model ClaimFact {
+  id      String  @id @default(cuid()) @map("id")
+  claimId String  @map("claim_id")
+  key     String  @map("key")
+  value   String  @map("value")
+  source  String? @map("source")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  claim     Claim          @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  citations FactCitation[]
+
+  @@index([claimId, key], map: "idx_claim_facts_claim_key")
+  @@map("claim_facts")
+}
+
+/// Citation linking a ClaimFact to its source document chunk.
+model FactCitation {
+  id              String  @id @default(cuid()) @map("id")
+  factId          String  @map("fact_id")
+  documentChunkId String  @map("document_chunk_id")
+  pageNumber      Int?    @map("page_number")
+  excerpt         String? @map("excerpt")
+  similarityScore Float?  @map("similarity_score")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  fact          ClaimFact     @relation(fields: [factId], references: [id], onDelete: Cascade)
+  documentChunk DocumentChunk @relation(fields: [documentChunkId], references: [id], onDelete: Cascade)
+
+  @@index([factId], map: "idx_fact_citations_fact_id")
+  @@index([documentChunkId], map: "idx_fact_citations_chunk_id")
+  @@map("fact_citations")
+}
+
+/// Citation linking a ChatMessage response to its source document chunk.
+/// Enables Glass Box transparency — every AI answer traces to a document.
+model ChatCitation {
+  id              String  @id @default(cuid()) @map("id")
+  messageId       String  @map("message_id")
+  chunkId         String  @map("chunk_id")         // DocumentChunk.id
+  documentId      String  @map("document_id")       // FK to Document
+  pageNumber      Int?    @map("page_number")
+  excerpt         String? @map("excerpt")
+  similarityScore Float   @map("similarity_score")  // 0–1 relevance from vector search
+
+  // Relations
+  message       ChatMessage   @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  documentChunk DocumentChunk @relation(fields: [chunkId], references: [id], onDelete: Cascade)
+  document      Document      @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([messageId], map: "idx_chat_citations_message_id")
+  @@index([documentId], map: "idx_chat_citations_document_id")
+  @@map("chat_citations")
 }

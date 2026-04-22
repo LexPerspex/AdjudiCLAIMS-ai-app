@@ -308,7 +308,7 @@ describe('HIPAA §164.312 Technical Safeguards', () => {
       // 2. The expiry date is approximately 8 hours in the future (±60s tolerance)
       expect(cookieStr).toMatch(/Expires=/i);
       const expiresMatch = cookieStr?.match(/Expires=([^;]+)/i);
-      if (expiresMatch) {
+      if (expiresMatch?.[1]) {
         const expiresDate = new Date(expiresMatch[1].trim());
         const expiresMs = expiresDate.getTime();
         const nowMs = Date.now();

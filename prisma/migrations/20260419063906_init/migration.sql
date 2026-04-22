@@ -1,5 +1,5 @@
--- CreateSchema
-CREATE SCHEMA IF NOT EXISTS "public";
+-- CreateExtension
+CREATE EXTENSION IF NOT EXISTS "vector";
 
 -- CreateEnum
 CREATE TYPE "organization_type" AS ENUM ('CARRIER', 'TPA', 'SELF_INSURED');
@@ -38,7 +38,7 @@ CREATE TYPE "investigation_item_type" AS ENUM ('THREE_POINT_CONTACT_WORKER', 'TH
 CREATE TYPE "payment_type" AS ENUM ('TD', 'PD', 'DEATH_BENEFIT', 'SJDB_VOUCHER');
 
 -- CreateEnum
-CREATE TYPE "audit_event_type" AS ENUM ('DOCUMENT_UPLOADED', 'DOCUMENT_CLASSIFIED', 'DOCUMENT_VIEWED', 'DOCUMENT_DELETED', 'CLAIM_CREATED', 'CLAIM_STATUS_CHANGED', 'COVERAGE_DETERMINATION', 'RESERVE_CHANGED', 'BENEFIT_CALCULATED', 'BENEFIT_PAYMENT_ISSUED', 'DEADLINE_CREATED', 'DEADLINE_MET', 'DEADLINE_MISSED', 'DEADLINE_WAIVED', 'CHAT_MESSAGE_SENT', 'CHAT_RESPONSE_GENERATED', 'UPL_ZONE_CLASSIFICATION', 'UPL_OUTPUT_BLOCKED', 'UPL_DISCLAIMER_INJECTED', 'UPL_OUTPUT_VALIDATION_FAIL', 'COUNSEL_REFERRAL_GENERATED', 'UR_DECISION', 'INVESTIGATION_ACTIVITY', 'TRAINING_MODULE_COMPLETED', 'TRAINING_ASSESSMENT_PASSED', 'TIER1_TERM_DISMISSED', 'USER_LOGIN', 'USER_LOGOUT', 'PERMISSION_DENIED', 'LETTER_GENERATED', 'COUNSEL_REFERRAL_CREATED', 'COUNSEL_REFERRAL_STATUS_CHANGED', 'COMPLIANCE_REPORT_GENERATED', 'LIEN_CREATED', 'LIEN_STATUS_CHANGED', 'LIEN_OMFS_COMPARED', 'LIEN_RESOLVED', 'REGULATORY_CHANGE_ACKNOWLEDGED', 'MONTHLY_REVIEW_COMPLETED', 'QUARTERLY_REFRESHER_COMPLETED');
+CREATE TYPE "audit_event_type" AS ENUM ('DOCUMENT_UPLOADED', 'DOCUMENT_CLASSIFIED', 'DOCUMENT_VIEWED', 'DOCUMENT_DELETED', 'CLAIM_CREATED', 'CLAIM_STATUS_CHANGED', 'COVERAGE_DETERMINATION', 'RESERVE_CHANGED', 'BENEFIT_CALCULATED', 'BENEFIT_PAYMENT_ISSUED', 'DEADLINE_CREATED', 'DEADLINE_MET', 'DEADLINE_MISSED', 'DEADLINE_WAIVED', 'CHAT_MESSAGE_SENT', 'CHAT_RESPONSE_GENERATED', 'UPL_ZONE_CLASSIFICATION', 'UPL_OUTPUT_BLOCKED', 'UPL_DISCLAIMER_INJECTED', 'UPL_OUTPUT_VALIDATION_FAIL', 'COUNSEL_REFERRAL_GENERATED', 'UR_DECISION', 'INVESTIGATION_ACTIVITY', 'TRAINING_MODULE_COMPLETED', 'TRAINING_ASSESSMENT_PASSED', 'TIER1_TERM_DISMISSED', 'USER_LOGIN', 'USER_LOGOUT', 'PERMISSION_DENIED', 'LETTER_GENERATED', 'COUNSEL_REFERRAL_CREATED', 'COUNSEL_REFERRAL_STATUS_CHANGED', 'COMPLIANCE_REPORT_GENERATED', 'LIEN_CREATED', 'LIEN_STATUS_CHANGED', 'LIEN_OMFS_COMPARED', 'LIEN_RESOLVED', 'REGULATORY_CHANGE_ACKNOWLEDGED', 'MONTHLY_REVIEW_COMPLETED', 'QUARTERLY_REFRESHER_COMPLETED', 'USER_LOGIN_FAILED', 'USER_ACCOUNT_LOCKED', 'USER_MFA_ENROLLED', 'USER_MFA_VERIFIED', 'USER_PASSWORD_CHANGED', 'USER_CREATED', 'USER_DEACTIVATED', 'USER_ROLE_CHANGED', 'SESSION_EXPIRED', 'EXPORT_DATA_REQUESTED', 'DATA_DELETION_REQUESTED', 'DATA_DELETION_COMPLETED', 'SYSTEM_CONFIG_CHANGED', 'DEPLOYMENT_COMPLETED', 'ANOMALY_DETECTED', 'BODY_PART_STATUS_CHANGED', 'MEDICAL_PAYMENT_RECORDED');
 
 -- CreateEnum
 CREATE TYPE "letter_type" AS ENUM ('TD_BENEFIT_EXPLANATION', 'TD_PAYMENT_SCHEDULE', 'WAITING_PERIOD_NOTICE', 'EMPLOYER_NOTIFICATION_LC3761', 'BENEFIT_ADJUSTMENT_NOTICE');
@@ -54,6 +54,12 @@ CREATE TYPE "lien_status" AS ENUM ('RECEIVED', 'UNDER_REVIEW', 'OMFS_COMPARED', 
 
 -- CreateEnum
 CREATE TYPE "filing_fee_status" AS ENUM ('PAID', 'NOT_PAID', 'EXEMPT', 'UNKNOWN');
+
+-- CreateEnum
+CREATE TYPE "body_part_status" AS ENUM ('PENDING', 'ADMITTED', 'DENIED', 'UNDER_INVESTIGATION');
+
+-- CreateEnum
+CREATE TYPE "medical_payment_type" AS ENUM ('DIRECT_PAYMENT', 'LIEN_PAYMENT', 'PHARMACY', 'DME', 'DIAGNOSTICS');
 
 -- CreateEnum
 CREATE TYPE "workflow_step_status" AS ENUM ('PENDING', 'COMPLETED', 'SKIPPED');
@@ -76,6 +82,24 @@ CREATE TYPE "org_type" AS ENUM ('EMPLOYER', 'CARRIER', 'TPA_ORG', 'MEDICAL_FACIL
 -- CreateEnum
 CREATE TYPE "maturity_label" AS ENUM ('NASCENT', 'GROWING', 'MATURE', 'COMPLETE');
 
+-- CreateEnum
+CREATE TYPE "contradiction_type" AS ENUM ('DATE_CONFLICT', 'VALUE_CONFLICT', 'EXISTENCE_CONFLICT', 'ATTRIBUTION_CONFLICT', 'STATUS_CONFLICT');
+
+-- CreateEnum
+CREATE TYPE "query_type" AS ENUM ('FORM_FIELD', 'CHAT_QUERY');
+
+-- CreateEnum
+CREATE TYPE "execution_tier" AS ENUM ('MICRO', 'STANDARD', 'DEEP');
+
+-- CreateEnum
+CREATE TYPE "query_pattern" AS ENUM ('ENTITY_LOOKUP', 'RELATIONSHIP', 'TEMPORAL', 'NARRATIVE', 'ANALYTICAL');
+
+-- CreateEnum
+CREATE TYPE "query_outcome" AS ENUM ('GRAPH_HIT', 'VECTOR_HIT', 'FALLBACK', 'NO_RESULT');
+
+-- CreateEnum
+CREATE TYPE "routing_scope" AS ENUM ('HOT', 'WARM', 'COLD');
+
 -- CreateTable
 CREATE TABLE "organizations" (
     "id" TEXT NOT NULL,
@@ -95,6 +119,18 @@ CREATE TABLE "users" (
     "organization_id" TEXT NOT NULL,
     "role" "user_role" NOT NULL,
     "is_active" BOOLEAN NOT NULL DEFAULT true,
+    "password_hash" TEXT,
+    "email_verified" BOOLEAN NOT NULL DEFAULT false,
+    "email_verification_token" TEXT,
+    "email_verification_expiry" TIMESTAMP(3),
+    "mfa_secret" TEXT,
+    "mfa_enabled" BOOLEAN NOT NULL DEFAULT false,
+    "failed_login_attempts" INTEGER NOT NULL DEFAULT 0,
+    "locked_until" TIMESTAMP(3),
+    "last_login_at" TIMESTAMP(3),
+    "password_changed_at" TIMESTAMP(3),
+    "deleted_at" TIMESTAMP(3),
+    "deleted_by" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -126,6 +162,8 @@ CREATE TABLE "claims" (
     "is_litigated" BOOLEAN NOT NULL DEFAULT false,
     "has_applicant_attorney" BOOLEAN NOT NULL DEFAULT false,
     "is_cumulative_trauma" BOOLEAN NOT NULL DEFAULT false,
+    "deleted_at" TIMESTAMP(3),
+    "deleted_by" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -149,6 +187,8 @@ CREATE TABLE "documents" (
     "contains_privileged" BOOLEAN NOT NULL DEFAULT false,
     "ocr_status" "ocr_status" NOT NULL DEFAULT 'PENDING',
     "extracted_text" TEXT,
+    "deleted_at" TIMESTAMP(3),
+    "deleted_by" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -173,6 +213,10 @@ CREATE TABLE "document_chunks" (
     "is_parent" BOOLEAN NOT NULL DEFAULT false,
     "context_prefix" TEXT,
     "token_count" INTEGER,
+    "chunk_vector_algorithm" TEXT,
+    "chunk_vector_dimension" INTEGER,
+    "embedding" vector,
+    "search_vector" tsvector,
 
     CONSTRAINT "document_chunks_pkey" PRIMARY KEY ("id")
 );
@@ -198,6 +242,10 @@ CREATE TABLE "timeline_events" (
     "event_type" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "source" TEXT NOT NULL,
+    "embedding" vector,
+    "search_vector" tsvector,
+    "embedding_model" TEXT,
+    "embedding_dimension" INTEGER,
 
     CONSTRAINT "timeline_events_pkey" PRIMARY KEY ("id")
 );
@@ -382,8 +430,60 @@ CREATE TABLE "lien_line_items" (
     "omfs_rate" DECIMAL(10,2),
     "is_overcharge" BOOLEAN NOT NULL DEFAULT false,
     "overcharge_amount" DECIMAL(10,2),
+    "body_part_id" TEXT,
 
     CONSTRAINT "lien_line_items_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "claim_body_parts" (
+    "id" TEXT NOT NULL,
+    "claim_id" TEXT NOT NULL,
+    "body_part_name" TEXT NOT NULL,
+    "icd_code" TEXT,
+    "status" "body_part_status" NOT NULL DEFAULT 'PENDING',
+    "status_changed_at" TIMESTAMP(3),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "claim_body_parts_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "coverage_determinations" (
+    "id" TEXT NOT NULL,
+    "claim_id" TEXT NOT NULL,
+    "body_part_id" TEXT NOT NULL,
+    "previous_status" "body_part_status",
+    "new_status" "body_part_status" NOT NULL,
+    "determination_date" DATE NOT NULL,
+    "determined_by_id" TEXT NOT NULL,
+    "basis" TEXT NOT NULL,
+    "counsel_referral_id" TEXT,
+    "notes" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "coverage_determinations_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "medical_payments" (
+    "id" TEXT NOT NULL,
+    "claim_id" TEXT NOT NULL,
+    "body_part_id" TEXT,
+    "lien_id" TEXT,
+    "provider_name" TEXT NOT NULL,
+    "payment_type" "medical_payment_type" NOT NULL,
+    "amount" DECIMAL(12,2) NOT NULL,
+    "payment_date" DATE NOT NULL,
+    "service_date" DATE,
+    "cpt_code" TEXT,
+    "description" TEXT NOT NULL,
+    "check_number" TEXT,
+    "notes" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "medical_payments_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -392,16 +492,21 @@ CREATE TABLE "graph_nodes" (
     "claim_id" TEXT NOT NULL,
     "node_type" "graph_node_type" NOT NULL,
     "canonical_name" TEXT NOT NULL,
-    "aliases" JSONB NOT NULL DEFAULT '[]',
+    "aliases" TEXT[] DEFAULT ARRAY[]::TEXT[],
     "properties" JSONB NOT NULL DEFAULT '{}',
     "person_role" "person_role",
     "org_type" "org_type",
-    "source_document_ids" JSONB NOT NULL DEFAULT '[]',
+    "source_document_ids" TEXT[] DEFAULT ARRAY[]::TEXT[],
     "confidence" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "canonical_id" TEXT,
+    "embedding" vector,
     "embedding_model" TEXT,
     "human_verified" BOOLEAN NOT NULL DEFAULT false,
+    "human_verified_at" TIMESTAMP(3),
     "human_verified_by" TEXT,
     "locked" BOOLEAN NOT NULL DEFAULT false,
+    "created_by" TEXT,
+    "trace_id" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -416,19 +521,25 @@ CREATE TABLE "graph_edges" (
     "source_node_id" TEXT NOT NULL,
     "target_node_id" TEXT NOT NULL,
     "properties" JSONB NOT NULL DEFAULT '{}',
-    "source_document_ids" JSONB NOT NULL DEFAULT '[]',
-    "source_chunk_ids" JSONB NOT NULL DEFAULT '[]',
+    "source_document_ids" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "source_chunk_ids" TEXT[] DEFAULT ARRAY[]::TEXT[],
     "confidence" DOUBLE PRECISION NOT NULL DEFAULT 0,
-    "source_confidences" JSONB NOT NULL DEFAULT '[]',
+    "source_confidences" DOUBLE PRECISION[] DEFAULT ARRAY[]::DOUBLE PRECISION[],
     "weight" DOUBLE PRECISION NOT NULL DEFAULT 1.0,
     "traversal_count" INTEGER NOT NULL DEFAULT 0,
     "last_traversed_at" TIMESTAMP(3),
+    "corroboration_count" INTEGER NOT NULL DEFAULT 1,
+    "first_established_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "last_corroborated_at" TIMESTAMP(3),
     "contradiction_status" "contradiction_status" NOT NULL DEFAULT 'NONE',
-    "contradicted_by_edge_ids" JSONB NOT NULL DEFAULT '[]',
-    "contradiction_type" TEXT,
+    "contradicted_by_edge_ids" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "contradiction_type" "contradiction_type",
     "human_verified" BOOLEAN NOT NULL DEFAULT false,
+    "human_verified_at" TIMESTAMP(3),
     "human_verified_by" TEXT,
     "locked" BOOLEAN NOT NULL DEFAULT false,
+    "created_by" TEXT,
+    "trace_id" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -443,6 +554,7 @@ CREATE TABLE "graph_summaries" (
     "edge_ids" JSONB NOT NULL DEFAULT '[]',
     "summary" TEXT NOT NULL,
     "is_valid" BOOLEAN NOT NULL DEFAULT true,
+    "summary_embedding" vector,
     "embedding_model" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
@@ -470,13 +582,15 @@ CREATE TABLE "graph_maturity" (
 CREATE TABLE "graph_status_changes" (
     "id" TEXT NOT NULL,
     "claim_id" TEXT NOT NULL,
-    "target_node_id" TEXT NOT NULL,
-    "field" TEXT NOT NULL,
+    "node_id" TEXT,
+    "edge_id" TEXT,
+    "property_name" TEXT NOT NULL,
     "old_value" TEXT,
-    "new_value" TEXT,
+    "new_value" TEXT NOT NULL,
     "effective_date" TIMESTAMP(3),
-    "document_id" TEXT,
-    "confidence" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "source_document_id" TEXT,
+    "source_chunk_id" TEXT,
+    "created_by" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "graph_status_changes_pkey" PRIMARY KEY ("id")
@@ -486,18 +600,90 @@ CREATE TABLE "graph_status_changes" (
 CREATE TABLE "graph_query_signals" (
     "id" TEXT NOT NULL,
     "claim_id" TEXT NOT NULL,
-    "query_text" TEXT NOT NULL,
-    "query_pattern" TEXT,
+    "query_id" TEXT NOT NULL,
+    "query_type" "query_type" NOT NULL,
+    "pattern" "query_pattern" NOT NULL,
     "observe_snapshot" JSONB,
-    "tier_selected" TEXT,
-    "tier_used" TEXT,
-    "escalated" BOOLEAN NOT NULL DEFAULT false,
-    "isc_drift_score" DOUBLE PRECISION,
-    "succeeded" BOOLEAN,
-    "latency_ms" INTEGER,
+    "is_c_target" JSONB,
+    "selected_tier" "execution_tier" NOT NULL,
+    "graph_result" JSONB,
+    "vector_result" JSONB,
+    "outcome" "query_outcome" NOT NULL,
+    "coverage_confidence" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "response_accuracy" DOUBLE PRECISION,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "graph_query_signals_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "graph_entity_merges" (
+    "id" TEXT NOT NULL,
+    "claim_id" TEXT NOT NULL,
+    "survivor_node_id" TEXT NOT NULL,
+    "merged_node_id" TEXT NOT NULL,
+    "merge_reason" TEXT NOT NULL,
+    "confidence" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "metadata" JSONB,
+    "merged_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "reversed_at" TIMESTAMP(3),
+
+    CONSTRAINT "graph_entity_merges_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "graph_routing_memory" (
+    "id" TEXT NOT NULL,
+    "claim_id" TEXT,
+    "organization_id" TEXT,
+    "scope" "routing_scope" NOT NULL,
+    "pattern" "query_pattern" NOT NULL,
+    "preferred_tier" "execution_tier" NOT NULL,
+    "success_count" INTEGER NOT NULL DEFAULT 0,
+    "failure_count" INTEGER NOT NULL DEFAULT 0,
+    "last_updated_at" TIMESTAMP(3) NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "graph_routing_memory_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "claim_facts" (
+    "id" TEXT NOT NULL,
+    "claim_id" TEXT NOT NULL,
+    "key" TEXT NOT NULL,
+    "value" TEXT NOT NULL,
+    "source" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "claim_facts_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "fact_citations" (
+    "id" TEXT NOT NULL,
+    "fact_id" TEXT NOT NULL,
+    "document_chunk_id" TEXT NOT NULL,
+    "page_number" INTEGER,
+    "excerpt" TEXT,
+    "similarity_score" DOUBLE PRECISION,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "fact_citations_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "chat_citations" (
+    "id" TEXT NOT NULL,
+    "message_id" TEXT NOT NULL,
+    "chunk_id" TEXT NOT NULL,
+    "document_id" TEXT NOT NULL,
+    "page_number" INTEGER,
+    "excerpt" TEXT,
+    "similarity_score" DOUBLE PRECISION NOT NULL,
+
+    CONSTRAINT "chat_citations_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -720,6 +906,39 @@ CREATE INDEX "idx_lien_line_items_lien_id" ON "lien_line_items"("lien_id");
 CREATE INDEX "idx_lien_line_items_cpt_code" ON "lien_line_items"("cpt_code");
 
 -- CreateIndex
+CREATE INDEX "idx_lien_line_items_body_part_id" ON "lien_line_items"("body_part_id");
+
+-- CreateIndex
+CREATE INDEX "idx_claim_body_parts_claim_id" ON "claim_body_parts"("claim_id");
+
+-- CreateIndex
+CREATE INDEX "idx_claim_body_parts_claim_status" ON "claim_body_parts"("claim_id", "status");
+
+-- CreateIndex
+CREATE INDEX "idx_coverage_determinations_claim_id" ON "coverage_determinations"("claim_id");
+
+-- CreateIndex
+CREATE INDEX "idx_coverage_determinations_body_part_id" ON "coverage_determinations"("body_part_id");
+
+-- CreateIndex
+CREATE INDEX "idx_coverage_determinations_claim_date" ON "coverage_determinations"("claim_id", "determination_date");
+
+-- CreateIndex
+CREATE INDEX "idx_medical_payments_claim_id" ON "medical_payments"("claim_id");
+
+-- CreateIndex
+CREATE INDEX "idx_medical_payments_claim_date" ON "medical_payments"("claim_id", "payment_date");
+
+-- CreateIndex
+CREATE INDEX "idx_medical_payments_body_part_id" ON "medical_payments"("body_part_id");
+
+-- CreateIndex
+CREATE INDEX "idx_medical_payments_lien_id" ON "medical_payments"("lien_id");
+
+-- CreateIndex
+CREATE INDEX "idx_medical_payments_provider" ON "medical_payments"("provider_name");
+
+-- CreateIndex
 CREATE INDEX "idx_graph_nodes_claim_type" ON "graph_nodes"("claim_id", "node_type");
 
 -- CreateIndex
@@ -727,6 +946,9 @@ CREATE INDEX "idx_graph_nodes_claim_name" ON "graph_nodes"("claim_id", "canonica
 
 -- CreateIndex
 CREATE INDEX "idx_graph_nodes_type" ON "graph_nodes"("node_type");
+
+-- CreateIndex
+CREATE INDEX "idx_graph_nodes_canonical_id" ON "graph_nodes"("canonical_id");
 
 -- CreateIndex
 CREATE INDEX "idx_graph_edges_claim_type" ON "graph_edges"("claim_id", "edge_type");
@@ -744,6 +966,9 @@ CREATE INDEX "idx_graph_edges_claim_weight" ON "graph_edges"("claim_id", "weight
 CREATE INDEX "idx_graph_edges_contradiction" ON "graph_edges"("contradiction_status");
 
 -- CreateIndex
+CREATE INDEX "idx_graph_edges_traversal" ON "graph_edges"("claim_id", "traversal_count", "last_traversed_at");
+
+-- CreateIndex
 CREATE INDEX "idx_graph_summaries_claim" ON "graph_summaries"("claim_id");
 
 -- CreateIndex
@@ -753,13 +978,55 @@ CREATE UNIQUE INDEX "graph_maturity_claim_id_key" ON "graph_maturity"("claim_id"
 CREATE INDEX "idx_graph_status_changes_claim" ON "graph_status_changes"("claim_id");
 
 -- CreateIndex
-CREATE INDEX "idx_graph_status_changes_node" ON "graph_status_changes"("target_node_id");
+CREATE INDEX "idx_graph_status_changes_node" ON "graph_status_changes"("node_id");
+
+-- CreateIndex
+CREATE INDEX "idx_graph_status_changes_edge" ON "graph_status_changes"("edge_id");
 
 -- CreateIndex
 CREATE INDEX "idx_graph_query_signals_claim" ON "graph_query_signals"("claim_id");
 
 -- CreateIndex
-CREATE INDEX "idx_graph_query_signals_pattern" ON "graph_query_signals"("query_pattern");
+CREATE INDEX "idx_graph_query_signals_query_type" ON "graph_query_signals"("query_type");
+
+-- CreateIndex
+CREATE INDEX "idx_graph_query_signals_pattern" ON "graph_query_signals"("pattern");
+
+-- CreateIndex
+CREATE INDEX "idx_graph_query_signals_created_at" ON "graph_query_signals"("created_at");
+
+-- CreateIndex
+CREATE INDEX "idx_graph_entity_merges_claim" ON "graph_entity_merges"("claim_id");
+
+-- CreateIndex
+CREATE INDEX "idx_graph_entity_merges_survivor" ON "graph_entity_merges"("survivor_node_id");
+
+-- CreateIndex
+CREATE INDEX "idx_graph_entity_merges_merged" ON "graph_entity_merges"("merged_node_id");
+
+-- CreateIndex
+CREATE INDEX "idx_graph_routing_scope_pattern" ON "graph_routing_memory"("scope", "pattern");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "uq_routing_claim_scope_pattern" ON "graph_routing_memory"("claim_id", "scope", "pattern");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "uq_routing_org_scope_pattern" ON "graph_routing_memory"("organization_id", "scope", "pattern");
+
+-- CreateIndex
+CREATE INDEX "idx_claim_facts_claim_key" ON "claim_facts"("claim_id", "key");
+
+-- CreateIndex
+CREATE INDEX "idx_fact_citations_fact_id" ON "fact_citations"("fact_id");
+
+-- CreateIndex
+CREATE INDEX "idx_fact_citations_chunk_id" ON "fact_citations"("document_chunk_id");
+
+-- CreateIndex
+CREATE INDEX "idx_chat_citations_message_id" ON "chat_citations"("message_id");
+
+-- CreateIndex
+CREATE INDEX "idx_chat_citations_document_id" ON "chat_citations"("document_id");
 
 -- AddForeignKey
 ALTER TABLE "users" ADD CONSTRAINT "users_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "organizations"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -846,7 +1113,37 @@ ALTER TABLE "liens" ADD CONSTRAINT "liens_claim_id_fkey" FOREIGN KEY ("claim_id"
 ALTER TABLE "lien_line_items" ADD CONSTRAINT "lien_line_items_lien_id_fkey" FOREIGN KEY ("lien_id") REFERENCES "liens"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "lien_line_items" ADD CONSTRAINT "lien_line_items_body_part_id_fkey" FOREIGN KEY ("body_part_id") REFERENCES "claim_body_parts"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "claim_body_parts" ADD CONSTRAINT "claim_body_parts_claim_id_fkey" FOREIGN KEY ("claim_id") REFERENCES "claims"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "coverage_determinations" ADD CONSTRAINT "coverage_determinations_claim_id_fkey" FOREIGN KEY ("claim_id") REFERENCES "claims"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "coverage_determinations" ADD CONSTRAINT "coverage_determinations_body_part_id_fkey" FOREIGN KEY ("body_part_id") REFERENCES "claim_body_parts"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "coverage_determinations" ADD CONSTRAINT "coverage_determinations_determined_by_id_fkey" FOREIGN KEY ("determined_by_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "coverage_determinations" ADD CONSTRAINT "coverage_determinations_counsel_referral_id_fkey" FOREIGN KEY ("counsel_referral_id") REFERENCES "counsel_referrals"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "medical_payments" ADD CONSTRAINT "medical_payments_claim_id_fkey" FOREIGN KEY ("claim_id") REFERENCES "claims"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "medical_payments" ADD CONSTRAINT "medical_payments_body_part_id_fkey" FOREIGN KEY ("body_part_id") REFERENCES "claim_body_parts"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "medical_payments" ADD CONSTRAINT "medical_payments_lien_id_fkey" FOREIGN KEY ("lien_id") REFERENCES "liens"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "graph_nodes" ADD CONSTRAINT "graph_nodes_claim_id_fkey" FOREIGN KEY ("claim_id") REFERENCES "claims"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "graph_nodes" ADD CONSTRAINT "graph_nodes_canonical_id_fkey" FOREIGN KEY ("canonical_id") REFERENCES "graph_nodes"("id") ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 -- AddForeignKey
 ALTER TABLE "graph_edges" ADD CONSTRAINT "graph_edges_claim_id_fkey" FOREIGN KEY ("claim_id") REFERENCES "claims"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -867,5 +1164,43 @@ ALTER TABLE "graph_maturity" ADD CONSTRAINT "graph_maturity_claim_id_fkey" FOREI
 ALTER TABLE "graph_status_changes" ADD CONSTRAINT "graph_status_changes_claim_id_fkey" FOREIGN KEY ("claim_id") REFERENCES "claims"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "graph_status_changes" ADD CONSTRAINT "graph_status_changes_node_id_fkey" FOREIGN KEY ("node_id") REFERENCES "graph_nodes"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "graph_status_changes" ADD CONSTRAINT "graph_status_changes_edge_id_fkey" FOREIGN KEY ("edge_id") REFERENCES "graph_edges"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "graph_query_signals" ADD CONSTRAINT "graph_query_signals_claim_id_fkey" FOREIGN KEY ("claim_id") REFERENCES "claims"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
+-- AddForeignKey
+ALTER TABLE "graph_entity_merges" ADD CONSTRAINT "graph_entity_merges_claim_id_fkey" FOREIGN KEY ("claim_id") REFERENCES "claims"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "graph_entity_merges" ADD CONSTRAINT "graph_entity_merges_survivor_node_id_fkey" FOREIGN KEY ("survivor_node_id") REFERENCES "graph_nodes"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "graph_entity_merges" ADD CONSTRAINT "graph_entity_merges_merged_node_id_fkey" FOREIGN KEY ("merged_node_id") REFERENCES "graph_nodes"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "graph_routing_memory" ADD CONSTRAINT "graph_routing_memory_claim_id_fkey" FOREIGN KEY ("claim_id") REFERENCES "claims"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "graph_routing_memory" ADD CONSTRAINT "graph_routing_memory_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "organizations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "claim_facts" ADD CONSTRAINT "claim_facts_claim_id_fkey" FOREIGN KEY ("claim_id") REFERENCES "claims"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "fact_citations" ADD CONSTRAINT "fact_citations_fact_id_fkey" FOREIGN KEY ("fact_id") REFERENCES "claim_facts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "fact_citations" ADD CONSTRAINT "fact_citations_document_chunk_id_fkey" FOREIGN KEY ("document_chunk_id") REFERENCES "document_chunks"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "chat_citations" ADD CONSTRAINT "chat_citations_message_id_fkey" FOREIGN KEY ("message_id") REFERENCES "chat_messages"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "chat_citations" ADD CONSTRAINT "chat_citations_chunk_id_fkey" FOREIGN KEY ("chunk_id") REFERENCES "document_chunks"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "chat_citations" ADD CONSTRAINT "chat_citations_document_id_fkey" FOREIGN KEY ("document_id") REFERENCES "documents"("id") ON DELETE CASCADE ON UPDATE CASCADE;

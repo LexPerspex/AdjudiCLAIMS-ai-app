@@ -56,12 +56,72 @@ describe('verifyClaimAccess', () => {
       id: 'claim-1',
       organizationId: 'org-2',
       assignedExaminerId: 'user-1',
+      deletedAt: null,
     });
 
     const result = await verifyClaimAccess('claim-1', 'user-1', UserRole.CLAIMS_EXAMINER, 'org-1');
 
     expect(result.authorized).toBe(false);
     expect(result.claim).toBeNull();
+  });
+
+  // -----------------------------------------------------------------------
+  // Soft-delete guard
+  // -----------------------------------------------------------------------
+
+  it('returns unauthorized when claim is soft-deleted (examiner)', async () => {
+    mockClaimFindUnique.mockResolvedValueOnce({
+      id: 'claim-1',
+      organizationId: 'org-1',
+      assignedExaminerId: 'user-1',
+      deletedAt: new Date('2026-04-01'),
+    });
+
+    const result = await verifyClaimAccess('claim-1', 'user-1', UserRole.CLAIMS_EXAMINER, 'org-1');
+
+    expect(result.authorized).toBe(false);
+    expect(result.claim).toBeNull();
+  });
+
+  it('returns unauthorized when claim is soft-deleted (supervisor)', async () => {
+    mockClaimFindUnique.mockResolvedValueOnce({
+      id: 'claim-1',
+      organizationId: 'org-1',
+      assignedExaminerId: 'user-2',
+      deletedAt: new Date('2026-04-01'),
+    });
+
+    const result = await verifyClaimAccess('claim-1', 'user-supervisor', UserRole.CLAIMS_SUPERVISOR, 'org-1');
+
+    expect(result.authorized).toBe(false);
+    expect(result.claim).toBeNull();
+  });
+
+  it('returns unauthorized when claim is soft-deleted (admin)', async () => {
+    mockClaimFindUnique.mockResolvedValueOnce({
+      id: 'claim-1',
+      organizationId: 'org-1',
+      assignedExaminerId: 'user-2',
+      deletedAt: new Date('2026-04-01'),
+    });
+
+    const result = await verifyClaimAccess('claim-1', 'user-admin', UserRole.CLAIMS_ADMIN, 'org-1');
+
+    expect(result.authorized).toBe(false);
+    expect(result.claim).toBeNull();
+  });
+
+  it('returns authorized when deletedAt is null (not deleted)', async () => {
+    mockClaimFindUnique.mockResolvedValueOnce({
+      id: 'claim-1',
+      organizationId: 'org-1',
+      assignedExaminerId: 'user-1',
+      deletedAt: null,
+    });
+
+    const result = await verifyClaimAccess('claim-1', 'user-1', UserRole.CLAIMS_EXAMINER, 'org-1');
+
+    expect(result.authorized).toBe(true);
   });
 
   // -----------------------------------------------------------------------
@@ -73,6 +133,7 @@ describe('verifyClaimAccess', () => {
       id: 'claim-1',
       organizationId: 'org-1',
       assignedExaminerId: 'user-2',
+      deletedAt: null,
     });
 
     const result = await verifyClaimAccess('claim-1', 'user-1', UserRole.CLAIMS_EXAMINER, 'org-1');
@@ -86,12 +147,13 @@ describe('verifyClaimAccess', () => {
       id: 'claim-1',
       organizationId: 'org-1',
       assignedExaminerId: 'user-2',
+      deletedAt: null,
     });
 
     const result = await verifyClaimAccess('claim-1', 'user-1', UserRole.CLAIMS_EXAMINER, 'org-1');
 
     expect(result.authorized).toBe(false);
-    expect(result.claim).toEqual({
+    expect(result.claim).toMatchObject({
       id: 'claim-1',
       organizationId: 'org-1',
       assignedExaminerId: 'user-2',
@@ -103,12 +165,13 @@ describe('verifyClaimAccess', () => {
       id: 'claim-1',
       organizationId: 'org-1',
       assignedExaminerId: 'user-1',
+      deletedAt: null,
     });
 
     const result = await verifyClaimAccess('claim-1', 'user-1', UserRole.CLAIMS_EXAMINER, 'org-1');
 
     expect(result.authorized).toBe(true);
-    expect(result.claim).toEqual({
+    expect(result.claim).toMatchObject({
       id: 'claim-1',
       organizationId: 'org-1',
       assignedExaminerId: 'user-1',
@@ -124,6 +187,7 @@ describe('verifyClaimAccess', () => {
       id: 'claim-1',
       organizationId: 'org-1',
       assignedExaminerId: 'user-2',
+      deletedAt: null,
     });
 
     const result = await verifyClaimAccess('claim-1', 'user-1', UserRole.CLAIMS_SUPERVISOR, 'org-1');
@@ -136,13 +200,18 @@ describe('verifyClaimAccess', () => {
       id: 'claim-1',
       organizationId: 'org-1',
       assignedExaminerId: 'user-99',
+      deletedAt: null,
     };
     mockClaimFindUnique.mockResolvedValueOnce(claimData);
 
     const result = await verifyClaimAccess('claim-1', 'user-1', UserRole.CLAIMS_SUPERVISOR, 'org-1');
 
     expect(result.authorized).toBe(true);
-    expect(result.claim).toEqual(claimData);
+    expect(result.claim).toMatchObject({
+      id: 'claim-1',
+      organizationId: 'org-1',
+      assignedExaminerId: 'user-99',
+    });
   });
 
   // -----------------------------------------------------------------------
@@ -154,6 +223,7 @@ describe('verifyClaimAccess', () => {
       id: 'claim-1',
       organizationId: 'org-1',
       assignedExaminerId: 'user-2',
+      deletedAt: null,
     });
 
     const result = await verifyClaimAccess('claim-1', 'user-1', UserRole.CLAIMS_ADMIN, 'org-1');
@@ -170,6 +240,7 @@ describe('verifyClaimAccess', () => {
       id: 'claim-1',
       organizationId: 'org-2',
       assignedExaminerId: 'user-2',
+      deletedAt: null,
     });
 
     const result = await verifyClaimAccess('claim-1', 'user-1', UserRole.CLAIMS_SUPERVISOR, 'org-1');
@@ -183,6 +254,7 @@ describe('verifyClaimAccess', () => {
       id: 'claim-1',
       organizationId: 'org-2',
       assignedExaminerId: 'user-2',
+      deletedAt: null,
     });
 
     const result = await verifyClaimAccess('claim-1', 'user-1', UserRole.CLAIMS_ADMIN, 'org-1');
@@ -195,14 +267,14 @@ describe('verifyClaimAccess', () => {
   // Prisma query verification
   // -----------------------------------------------------------------------
 
-  it('queries prisma with correct claim ID', async () => {
+  it('queries prisma with correct claim ID and includes deletedAt in select', async () => {
     mockClaimFindUnique.mockResolvedValueOnce(null);
 
     await verifyClaimAccess('claim-42', 'user-1', UserRole.CLAIMS_EXAMINER, 'org-1');
 
     expect(mockClaimFindUnique).toHaveBeenCalledWith({
       where: { id: 'claim-42' },
-      select: { id: true, organizationId: true, assignedExaminerId: true },
+      select: { id: true, organizationId: true, assignedExaminerId: true, deletedAt: true },
     });
   });
 
@@ -211,6 +283,7 @@ describe('verifyClaimAccess', () => {
       id: 'claim-1',
       organizationId: 'org-1',
       assignedExaminerId: 'user-1',
+      deletedAt: null,
     });
 
     await verifyClaimAccess('claim-1', 'user-1', UserRole.CLAIMS_EXAMINER, 'org-1');

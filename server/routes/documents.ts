@@ -230,6 +230,7 @@ export async function documentRoutes(server: FastifyInstance): Promise<void> {
           containsPrivileged: true,
           ocrStatus: true,
           extractedText: true,
+          deletedAt: true,
           createdAt: true,
           updatedAt: true,
           extractedFields: {
@@ -244,7 +245,8 @@ export async function documentRoutes(server: FastifyInstance): Promise<void> {
         },
       });
 
-      if (!document) return reply.code(404).send({ error: 'Document not found' });
+      // Treat soft-deleted documents as non-existent
+      if (!document || document.deletedAt != null) return reply.code(404).send({ error: 'Document not found' });
 
       // Verify claim access
       const { authorized } = await verifyClaimAccess(

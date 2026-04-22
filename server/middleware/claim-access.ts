@@ -5,7 +5,7 @@
  * across documents, deadlines, and investigation routes.
  *
  * Verifies:
- * 1. Claim exists
+ * 1. Claim exists and has not been soft-deleted
  * 2. Claim belongs to the user's organization
  * 3. If CLAIMS_EXAMINER, claim is assigned to them
  */
@@ -25,9 +25,10 @@ export interface ClaimAccessResult {
 /**
  * Verify the caller has access to the given claim.
  *
- * - Organization ownership check
+ * - Soft-delete guard: deleted claims return unauthorized (404 upstream)
+ * - Organization ownership check: cross-org access returns unauthorized
  * - Examiner assignment check (for CLAIMS_EXAMINER role)
- * - Supervisors and admins can access all org claims
+ * - Supervisors and admins can access all non-deleted org claims
  */
 export async function verifyClaimAccess(
   claimId: string,
@@ -37,10 +38,12 @@ export async function verifyClaimAccess(
 ): Promise<ClaimAccessResult> {
   const claim = await prisma.claim.findUnique({
     where: { id: claimId },
-    select: { id: true, organizationId: true, assignedExaminerId: true },
+    select: { id: true, organizationId: true, assignedExaminerId: true, deletedAt: true },
   });
 
-  if (!claim || claim.organizationId !== orgId) {
+  // Treat soft-deleted claims as non-existent — same as not found.
+  // Note: deletedAt == null covers both null and undefined (legacy mocks without the field).
+  if (!claim || claim.deletedAt != null || claim.organizationId !== orgId) {
     return { authorized: false, claim: null };
   }
 

@@ -203,12 +203,14 @@ export async function claimsRoutes(server: FastifyInstance): Promise<void> {
           currentReserveLien: true,
           totalPaidIndemnity: true,
           totalPaidMedical: true,
+          deletedAt: true,
           createdAt: true,
           updatedAt: true,
         },
       });
 
-      if (!claim) {
+      // Treat soft-deleted claims as non-existent
+      if (!claim || claim.deletedAt != null) {
         return reply.code(404).send({ error: 'Claim not found' });
       }
 
@@ -225,7 +227,9 @@ export async function claimsRoutes(server: FastifyInstance): Promise<void> {
         return reply.code(403).send({ error: 'Access denied to this claim' });
       }
 
-      return claim;
+      // Strip internal soft-delete field — not part of the public API contract
+      const { deletedAt: _deletedAt, ...claimResponse } = claim;
+      return claimResponse;
     },
   );
 
@@ -352,10 +356,12 @@ export async function claimsRoutes(server: FastifyInstance): Promise<void> {
           organizationId: true,
           assignedExaminerId: true,
           status: true,
+          deletedAt: true,
         },
       });
 
-      if (!existing) {
+      // Treat soft-deleted claims as non-existent
+      if (!existing || existing.deletedAt != null) {
         return reply.code(404).send({ error: 'Claim not found' });
       }
 

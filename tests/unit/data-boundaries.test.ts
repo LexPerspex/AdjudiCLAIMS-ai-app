@@ -95,6 +95,7 @@ const MOCK_CLAIM = {
   id: 'claim-1',
   organizationId: 'org-1',
   assignedExaminerId: 'user-1',
+  deletedAt: null,
 };
 
 const MOCK_DOCUMENT_EXAMINER = {
@@ -113,6 +114,7 @@ const MOCK_DOCUMENT_EXAMINER = {
   containsPrivileged: false,
   ocrStatus: 'COMPLETE' as const,
   extractedText: 'Sample extracted text',
+  deletedAt: null,
   createdAt: new Date('2026-03-20'),
   updatedAt: new Date('2026-03-20'),
   extractedFields: [],

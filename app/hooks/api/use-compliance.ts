@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '~/services/api';
 
 /* ------------------------------------------------------------------ */
@@ -95,6 +95,26 @@ export interface UplMonitoringMetrics {
   adversarialDetectionRate: number; // 0–1
 }
 
+/** GET /api/compliance/upl/blocks */
+export interface RecentRedBlock {
+  id: string;
+  timestamp: string;
+  userId: string;
+  userName: string;
+  queryLengthBucket: 'short' | 'medium' | 'long';
+  isAdversarial: boolean;
+}
+
+export interface RecentRedBlocksResponse {
+  blocks: RecentRedBlock[];
+}
+
+/** GET /PUT /api/compliance/upl/alert-config */
+export interface UplAlertConfig {
+  redRateThreshold: number; // 0–1
+  blockCountThreshold: number;
+  alertsEnabled: boolean;}
+
 /* ------------------------------------------------------------------ */
 /*  Hooks                                                              */
 /* ------------------------------------------------------------------ */
@@ -133,5 +153,35 @@ export function useUplMonitoring(params?: { startDate?: string; endDate?: string
     queryKey: ['compliance', 'upl', params],
     queryFn: () => apiFetch<UplMonitoringMetrics>(`/compliance/upl${qs ? `?${qs}` : ''}`),
     refetchInterval: 60_000,
+  });
+}
+
+export function useRecentUplBlocks(limit = 25) {
+  return useQuery<RecentRedBlocksResponse>({
+    queryKey: ['compliance', 'upl', 'blocks', limit],
+    queryFn: () =>
+      apiFetch<RecentRedBlocksResponse>(`/compliance/upl/blocks?limit=${String(limit)}`),
+    refetchInterval: 60_000,
+  });
+}
+
+export function useUplAlertConfig() {
+  return useQuery<UplAlertConfig>({
+    queryKey: ['compliance', 'upl', 'alert-config'],
+    queryFn: () => apiFetch<UplAlertConfig>('/compliance/upl/alert-config'),
+  });
+}
+
+export function useSetUplAlertConfig() {
+  const queryClient = useQueryClient();
+  return useMutation<UplAlertConfig, Error, Partial<UplAlertConfig>>({
+    mutationFn: (updates) =>
+      apiFetch<UplAlertConfig>('/compliance/upl/alert-config', {
+        method: 'PUT',
+        body: JSON.stringify(updates),
+      }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['compliance', 'upl', 'alert-config'] });
+    },
   });
 }

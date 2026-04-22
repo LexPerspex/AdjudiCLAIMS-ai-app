@@ -195,6 +195,55 @@ export interface UplMonitoringOptions {
 }
 
 // ---------------------------------------------------------------------------
+
+/**
+ * A single recent RED-zone block event visible to supervisors/admins.
+ *
+ * NEVER exposes query content — only metadata safe for compliance review.
+ * The queryLengthBucket gives supervisors a rough sense of query complexity
+ * without exposing potentially PII-containing query text.
+ */
+export interface RecentRedBlock {
+  /** Audit event ID. */
+  id: string;
+  /** ISO timestamp of the block event. */
+  timestamp: string;
+  /** ID of the user whose query was blocked. */
+  userId: string;
+  /** Display name of the user whose query was blocked. */
+  userName: string;
+  /**
+   * Coarse query length bucket — 'short' (<50 chars), 'medium' (50-200),
+   * 'long' (>200). Never includes actual query text.
+   */
+  queryLengthBucket: 'short' | 'medium' | 'long';
+  /** Whether the block also triggered an adversarial detection flag. */
+  isAdversarial: boolean;
+}
+
+/**
+ * Alert threshold configuration for UPL compliance monitoring.
+ *
+ * Supervisors and admins can set the RED zone rate threshold above which
+ * the dashboard shows a warning badge. Stored in-memory per org; not
+ * DB-persisted (resets on server restart).
+ */
+export interface UplAlertConfig {
+  /**
+   * RED zone rate threshold (0–1). If the 24h RED rate exceeds this, the
+   * dashboard shows an alert. Default: 0.05 (5%).
+   */
+  redRateThreshold: number; // 0–1
+  /**
+   * Absolute block count threshold per 24h window. If blocks exceed this,
+   * alert regardless of rate. Default: 10.
+   */
+  blockCountThreshold: number;
+  /** Whether alert checking is enabled at all. Default: true. */
+  alertsEnabled: boolean;
+}
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
@@ -695,6 +744,127 @@ export async function getUplDashboard(
     blocksPerPeriod,
     adversarialDetectionRate,
   };
+}
+
+// ---------------------------------------------------------------------------
+// 5. Recent RED-zone block events
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns the most recent RED-zone block events for an org.
+ *
+ * Metadata only — NEVER exposes query content. The `queryLengthBucket` field
+ * is derived from `eventData.queryLength` (an integer logged at classify time)
+ * and bucketed into coarse categories to aid compliance review without
+ * revealing query text.
+ *
+ * @param orgId  Organization to scope the query to.
+ * @param limit  Maximum number of events to return (default 25, max 100).
+ */
+export async function getRecentRedBlocks(
+  orgId: string,
+  limit = 25,
+): Promise<RecentRedBlock[]> {
+  const safeLimit = Math.min(Math.max(1, limit), 100);
+
+  const blockEvents = await prisma.auditEvent.findMany({
+    where: {
+      user: { organizationId: orgId },
+      eventType: 'UPL_OUTPUT_BLOCKED',
+    },
+    select: {
+      id: true,
+      createdAt: true,
+      userId: true,
+      eventData: true,
+      user: { select: { name: true } },
+    },
+    orderBy: { createdAt: 'desc' },
+    take: safeLimit,
+  });
+
+  return blockEvents.map((event) => {
+    const data = event.eventData as Record<string, unknown> | null;
+    const queryLength = typeof data?.queryLength === 'number' ? data.queryLength : 0;
+    const isAdversarial = typeof data?.isAdversarial === 'boolean' ? data.isAdversarial : false;
+
+    let queryLengthBucket: RecentRedBlock['queryLengthBucket'];
+    if (queryLength < 50) {
+      queryLengthBucket = 'short';
+    } else if (queryLength <= 200) {
+      queryLengthBucket = 'medium';
+    } else {
+      queryLengthBucket = 'long';
+    }
+
+    return {
+      id: event.id,
+      timestamp: event.createdAt.toISOString(),
+      userId: event.userId,
+      userName: event.user.name,
+      queryLengthBucket,
+      isAdversarial,
+    };
+  });
+}
+
+// ---------------------------------------------------------------------------
+// 6. Alert configuration (in-memory, per-org)
+// ---------------------------------------------------------------------------
+
+const DEFAULT_ALERT_CONFIG: UplAlertConfig = {
+  redRateThreshold: 0.05,
+  blockCountThreshold: 10,
+  alertsEnabled: true,
+};
+
+/**
+ * Per-org alert configurations stored in-memory.
+ * Resets on server restart — acceptable per AJC-7 scope (not DB-persisted).
+ */
+const alertConfigStore = new Map<string, UplAlertConfig>();
+
+/**
+ * Returns the current UPL alert configuration for an org.
+ * Returns the default config if no custom config has been set.
+ */
+export function getUplAlertConfig(orgId: string): UplAlertConfig {
+  return alertConfigStore.get(orgId) ?? { ...DEFAULT_ALERT_CONFIG };
+}
+
+/**
+ * Updates the UPL alert configuration for an org.
+ * Validates that threshold values are within sensible ranges.
+ *
+ * @param orgId   Organization to update.
+ * @param updates Partial config to merge with the current config.
+ * @returns       The updated config.
+ */
+export function setUplAlertConfig(
+  orgId: string,
+  updates: Partial<UplAlertConfig>,
+): UplAlertConfig {
+  const current = getUplAlertConfig(orgId);
+
+  const updated: UplAlertConfig = {
+    ...current,
+    ...updates,
+    // Clamp thresholds to valid ranges
+    redRateThreshold: clamp(
+      typeof updates.redRateThreshold === 'number' ? updates.redRateThreshold : current.redRateThreshold,
+      0,
+      1,
+    ),
+    blockCountThreshold: Math.max(
+      0,
+      typeof updates.blockCountThreshold === 'number'
+        ? Math.round(updates.blockCountThreshold)
+        : current.blockCountThreshold,
+    ),
+  };
+
+  alertConfigStore.set(orgId, updated);
+  return updated;
 }
 
 // ---------------------------------------------------------------------------

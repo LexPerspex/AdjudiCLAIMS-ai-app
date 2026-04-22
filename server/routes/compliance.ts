@@ -22,6 +22,9 @@ import {
   getSupervisorTeamMetrics,
   getAdminComplianceReport,
   getUplMonitoringMetrics,
+  getRecentRedBlocks,
+  getUplAlertConfig,
+  setUplAlertConfig,
 } from '../services/compliance-dashboard.service.js';
 
 // ---------------------------------------------------------------------------
@@ -32,6 +35,16 @@ const UplQuerySchema = z.object({
   startDate: z.string().optional(),
   endDate: z.string().optional(),
   period: z.enum(['day', 'week', 'month']).optional().default('week'),
+});
+
+const UplBlocksQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(100).optional().default(25),
+});
+
+const UplAlertConfigBodySchema = z.object({
+  redRateThreshold: z.number().min(0).max(1).optional(),
+  blockCountThreshold: z.number().int().min(0).optional(),
+  alertsEnabled: z.boolean().optional(),
 });
 
 // ---------------------------------------------------------------------------
@@ -137,6 +150,76 @@ export async function complianceRoutes(server: FastifyInstance): Promise<void> {
       });
 
       return dashboard;
+    },
+  );
+
+  /**
+   * GET /api/compliance/upl/blocks
+   *
+   * Returns recent RED-zone block events for the org.
+   * Metadata only — NEVER includes query content.
+   * Restricted to CLAIMS_SUPERVISOR and CLAIMS_ADMIN.
+   */
+  server.get(
+    '/compliance/upl/blocks',
+    { preHandler: [requireAuth(), requireRole(UserRole.CLAIMS_SUPERVISOR, UserRole.CLAIMS_ADMIN)] },
+    async (request, reply) => {
+      const user = request.session.user;
+      if (!user) return reply.code(401).send({ error: 'Authentication required' });
+
+      const queryParsed = UplBlocksQuerySchema.safeParse(request.query);
+      if (!queryParsed.success) {
+        return reply.code(400).send({
+          error: 'Invalid query parameters',
+          details: queryParsed.error.issues,
+        });
+      }
+
+      const blocks = await getRecentRedBlocks(user.organizationId, queryParsed.data.limit);
+      return { blocks };
+    },
+  );
+
+  /**
+   * GET /api/compliance/upl/alert-config
+   *
+   * Returns the current UPL alert configuration for the org.
+   * Restricted to CLAIMS_SUPERVISOR and CLAIMS_ADMIN.
+   */
+  server.get(
+    '/compliance/upl/alert-config',
+    { preHandler: [requireAuth(), requireRole(UserRole.CLAIMS_SUPERVISOR, UserRole.CLAIMS_ADMIN)] },
+    async (request, reply) => {
+      const user = request.session.user;
+      if (!user) return reply.code(401).send({ error: 'Authentication required' });
+
+      return getUplAlertConfig(user.organizationId);
+    },
+  );
+
+  /**
+   * PUT /api/compliance/upl/alert-config
+   *
+   * Updates the UPL alert configuration for the org.
+   * Restricted to CLAIMS_SUPERVISOR and CLAIMS_ADMIN.
+   */
+  server.put(
+    '/compliance/upl/alert-config',
+    { preHandler: [requireAuth(), requireRole(UserRole.CLAIMS_SUPERVISOR, UserRole.CLAIMS_ADMIN)] },
+    async (request, reply) => {
+      const user = request.session.user;
+      if (!user) return reply.code(401).send({ error: 'Authentication required' });
+
+      const bodyParsed = UplAlertConfigBodySchema.safeParse(request.body);
+      if (!bodyParsed.success) {
+        return reply.code(400).send({
+          error: 'Invalid request body',
+          details: bodyParsed.error.issues,
+        });
+      }
+
+      const updated = setUplAlertConfig(user.organizationId, bodyParsed.data);
+      return updated;
     },
   );
 }

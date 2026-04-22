@@ -13,6 +13,11 @@ import {
   FileBarChart,
   Activity,
   Lock,
+  Bell,
+  BellOff,
+  UserX,
+  ChevronRight,
+  Save,
 } from 'lucide-react';
 import { cn } from '~/lib/utils';
 import { PageHeader } from '~/components/layout/page-header';
@@ -21,9 +26,13 @@ import {
   useTeamCompliance,
   useAdminCompliance,
   useUplMonitoring,
+  useRecentUplBlocks,
+  useUplAlertConfig,
+  useSetUplAlertConfig,
   type ExaminerBreakdown,
   type BlocksPerPeriod,
   type ComplianceScoreBreakdown,
+  type RecentRedBlock,
 } from '~/hooks/api/use-compliance';
 import { useAuth } from '~/hooks/use-auth';
 
@@ -593,12 +602,282 @@ function AdminComplianceView() {
 }
 
 /* ------------------------------------------------------------------ */
+/*  UPL Recent Blocks Table                                           */
+/* ------------------------------------------------------------------ */
+
+function RecentBlocksTable() {
+  const blocksQuery = useRecentUplBlocks(25);
+  const data = blocksQuery.data;
+
+  if (blocksQuery.isLoading) {
+    return <LoadingState message="Loading recent blocks..." />;
+  }
+
+  if (blocksQuery.isError || !data) {
+    return (
+      <ErrorState
+        message="Failed to load recent block events."
+        onRetry={() => void blocksQuery.refetch()}
+      />
+    );
+  }
+
+  const { blocks } = data;
+
+  const bucketLabel: Record<RecentRedBlock['queryLengthBucket'], string> = {
+    short: '< 50 chars',
+    medium: '50–200 chars',
+    long: '> 200 chars',
+  };
+
+  return (
+    <div className="bg-surface-container-lowest rounded-2xl ambient-shadow overflow-hidden">
+      <div className="px-5 py-4 border-b border-surface-container flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <UserX className="w-4 h-4 text-error" />
+          <h4 className="text-sm font-bold text-on-surface">Recent RED-Zone Blocks</h4>
+        </div>
+        <span className="text-[10px] text-slate-400">{blocks.length} most recent</span>
+      </div>
+
+      {blocks.length === 0 ? (
+        <div className="px-5 py-8 flex items-center justify-center gap-2 text-secondary">
+          <CheckCircle className="w-5 h-5" />
+          <p className="text-sm font-bold">No RED-zone blocks recorded</p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="border-b border-surface-container">
+                <th className="px-4 py-2 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  Timestamp
+                </th>
+                <th className="px-4 py-2 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  User
+                </th>
+                <th className="px-4 py-2 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  Query Size
+                </th>
+                <th className="px-4 py-2 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  Adversarial
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-surface-container">
+              {blocks.map((block) => (
+                <tr key={block.id} className="hover:bg-surface-container/50 transition-colors">
+                  <td className="px-4 py-2.5 text-on-surface-variant whitespace-nowrap">
+                    {new Date(block.timestamp).toLocaleString()}
+                  </td>
+                  <td className="px-4 py-2.5">
+                    <span className="font-semibold text-on-surface">{block.userName}</span>
+                    <span className="ml-1.5 text-[9px] text-slate-400 font-mono">
+                      {block.userId.slice(0, 8)}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2.5 text-on-surface-variant">
+                    {bucketLabel[block.queryLengthBucket]}
+                  </td>
+                  <td className="px-4 py-2.5">
+                    {block.isAdversarial ? (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-error bg-error/10 px-2 py-0.5 rounded-full">
+                        <ChevronRight className="w-3 h-3" />
+                        Yes
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-slate-400">No</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      <p className="px-5 py-2 text-[9px] text-slate-400 border-t border-surface-container">
+        Query content is never stored or displayed — metadata only. Timestamps in local time.
+      </p>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  UPL Alert Configuration Panel                                     */
+/* ------------------------------------------------------------------ */
+
+function AlertConfigPanel() {
+  const configQuery = useUplAlertConfig();
+  const setConfig = useSetUplAlertConfig();
+
+  const [redRatePct, setRedRatePct] = useState<string>('');
+  const [blockCount, setBlockCount] = useState<string>('');
+  const [enabled, setEnabled] = useState<boolean | null>(null);
+  const [saved, setSaved] = useState(false);
+
+  const config = configQuery.data;
+  const currentRedRatePct = config ? Math.round(config.redRateThreshold * 100) : 5;
+  const currentBlockCount = config?.blockCountThreshold ?? 10;
+  const currentEnabled = enabled !== null ? enabled : (config?.alertsEnabled ?? true);
+
+  const handleSave = () => {
+    const updates: Parameters<typeof setConfig.mutate>[0] = {};
+
+    const parsedRate = parseFloat(redRatePct);
+    if (!Number.isNaN(parsedRate) && parsedRate >= 0 && parsedRate <= 100) {
+      updates.redRateThreshold = parsedRate / 100;
+    }
+
+    const parsedCount = parseInt(blockCount, 10);
+    if (!Number.isNaN(parsedCount) && parsedCount >= 0) {
+      updates.blockCountThreshold = parsedCount;
+    }
+
+    if (enabled !== null) {
+      updates.alertsEnabled = enabled;
+    }
+
+    setConfig.mutate(updates, {
+      onSuccess: () => {
+        setRedRatePct('');
+        setBlockCount('');
+        setEnabled(null);
+        setSaved(true);
+        setTimeout(() => { setSaved(false); }, 2500);
+      },
+    });
+  };
+
+  if (configQuery.isLoading) {
+    return <LoadingState message="Loading alert configuration..." />;
+  }
+
+  return (
+    <div className="bg-surface-container-lowest rounded-2xl p-5 ambient-shadow">
+      <div className="flex items-center gap-2 mb-4">
+        <Bell className="w-4 h-4 text-primary" />
+        <h4 className="text-sm font-bold text-on-surface">Alert Configuration</h4>
+        <span className="text-[10px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full uppercase">
+          Supervisor+
+        </span>
+      </div>
+
+      <div className="space-y-4">
+        {/* Alerts enabled toggle */}
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold text-on-surface">Alerts Enabled</p>
+            <p className="text-[10px] text-slate-400">
+              Show warning banner when thresholds are exceeded
+            </p>
+          </div>
+          <button
+            onClick={() => { setEnabled(!currentEnabled); }}
+            className={cn(
+              'flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full transition-colors',
+              currentEnabled
+                ? 'bg-secondary/10 text-secondary hover:bg-secondary/20'
+                : 'bg-surface-container text-slate-400 hover:bg-surface-container-high',
+            )}
+          >
+            {currentEnabled ? (
+              <>
+                <Bell className="w-3 h-3" />
+                On
+              </>
+            ) : (
+              <>
+                <BellOff className="w-3 h-3" />
+                Off
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* RED rate threshold */}
+        <div className="space-y-1">
+          <label className="text-xs font-semibold text-on-surface" htmlFor="red-rate-threshold">
+            RED Zone Rate Alert Threshold
+          </label>
+          <p className="text-[10px] text-slate-400">
+            Alert if RED queries exceed this % of total in the last 24h (current: {currentRedRatePct}%)
+          </p>
+          <div className="flex items-center gap-2">
+            <input
+              id="red-rate-threshold"
+              type="number"
+              min="0"
+              max="100"
+              step="1"
+              placeholder={String(currentRedRatePct)}
+              value={redRatePct}
+              onChange={(e) => { setRedRatePct(e.target.value); }}
+              className="w-24 px-2 py-1.5 text-xs bg-surface-container border border-outline-variant/30 rounded-lg text-on-surface focus:outline-none focus:border-primary/50"
+            />
+            <span className="text-xs text-slate-400">%</span>
+          </div>
+        </div>
+
+        {/* Block count threshold */}
+        <div className="space-y-1">
+          <label className="text-xs font-semibold text-on-surface" htmlFor="block-count-threshold">
+            Block Count Alert Threshold
+          </label>
+          <p className="text-[10px] text-slate-400">
+            Alert if absolute block count exceeds this in 24h (current: {currentBlockCount})
+          </p>
+          <div className="flex items-center gap-2">
+            <input
+              id="block-count-threshold"
+              type="number"
+              min="0"
+              step="1"
+              placeholder={String(currentBlockCount)}
+              value={blockCount}
+              onChange={(e) => { setBlockCount(e.target.value); }}
+              className="w-24 px-2 py-1.5 text-xs bg-surface-container border border-outline-variant/30 rounded-lg text-on-surface focus:outline-none focus:border-primary/50"
+            />
+            <span className="text-xs text-slate-400">blocks</span>
+          </div>
+        </div>
+
+        {/* Save button */}
+        <div className="pt-1 flex items-center gap-3">
+          <button
+            onClick={handleSave}
+            disabled={setConfig.isPending}
+            className="flex items-center gap-1.5 text-xs font-bold bg-primary text-on-primary px-3 py-1.5 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+          >
+            <Save className="w-3 h-3" />
+            {setConfig.isPending ? 'Saving...' : 'Save Configuration'}
+          </button>
+          {saved && (
+            <span className="text-[10px] text-secondary font-bold flex items-center gap-1">
+              <CheckCircle className="w-3 h-3" />
+              Saved
+            </span>
+          )}
+          {setConfig.isError && (
+            <span className="text-[10px] text-error font-bold flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" />
+              Save failed — retry
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /*  UPL Monitoring Panel (Supervisor + Admin)                         */
 /* ------------------------------------------------------------------ */
 
 function UplMonitoringPanel() {
   const uplQuery = useUplMonitoring();
+  const alertConfigQuery = useUplAlertConfig();
   const data = uplQuery.data;
+  const alertConfig = alertConfigQuery.data;
 
   if (uplQuery.isLoading) {
     return <LoadingState message="Loading UPL monitoring data..." />;
@@ -624,6 +903,16 @@ function UplMonitoringPanel() {
     (max, b) => (b.count > max ? b.count : max),
     0,
   );
+  const totalBlocks24h = blocksPerPeriod.slice(-1)[0]?.count ?? 0;
+  const redRate = zoneDistribution.red / total;
+
+  // Threshold alert banner
+  const alertsEnabled = alertConfig?.alertsEnabled ?? true;
+  const redRateThreshold = alertConfig?.redRateThreshold ?? 0.05;
+  const blockCountThreshold = alertConfig?.blockCountThreshold ?? 10;
+  const redRateBreached = alertsEnabled && redRate > redRateThreshold;
+  const blockCountBreached = alertsEnabled && totalBlocks24h > blockCountThreshold;
+  const showAlert = redRateBreached || blockCountBreached;
 
   return (
     <div className="space-y-4">
@@ -635,12 +924,87 @@ function UplMonitoringPanel() {
         </span>
       </div>
 
+      {/* Threshold alert banner */}
+      {showAlert && (
+        <div className="flex items-start gap-3 bg-error/10 border border-error/20 rounded-xl px-4 py-3">
+          <AlertCircle className="w-5 h-5 text-error shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-bold text-error">UPL Alert Threshold Exceeded</p>
+            <ul className="text-[11px] text-error/80 mt-0.5 space-y-0.5">
+              {redRateBreached && (
+                <li>
+                  RED zone rate {redPct}% exceeds configured threshold of{' '}
+                  {Math.round(redRateThreshold * 100)}%
+                </li>
+              )}
+              {blockCountBreached && (
+                <li>
+                  Block count {totalBlocks24h} (latest day) exceeds threshold of {blockCountThreshold}
+                </li>
+              )}
+            </ul>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-12 gap-4">
         {/* Zone distribution */}
         <div className="col-span-12 lg:col-span-4 bg-surface-container-lowest rounded-2xl p-5 ambient-shadow">
           <h4 className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-4">
             Zone Distribution (30 days)
           </h4>
+          {/* Mini donut chart */}
+          <div className="flex items-center gap-4 mb-4">
+            <svg width="64" height="64" viewBox="0 0 64 64" className="-rotate-90">
+              {(() => {
+                const radius = 24;
+                const cx = 32;
+                const cy = 32;
+                const circumference = 2 * Math.PI * radius;
+                // Segments: GREEN, YELLOW, RED
+                const segments = [
+                  { pct: greenPct, color: 'text-secondary' },
+                  { pct: yellowPct, color: 'text-tertiary-container' },
+                  { pct: redPct, color: 'text-error' },
+                ];
+                let offset = 0;
+                return segments.map(({ pct, color }) => {
+                  const dashArray = (pct / 100) * circumference;
+                  const dashOffset = circumference - dashArray;
+                  const rotationOffset = (offset / 100) * circumference;
+                  offset += pct;
+                  return (
+                    <circle
+                      key={color}
+                      cx={cx}
+                      cy={cy}
+                      r={radius}
+                      fill="transparent"
+                      stroke="currentColor"
+                      strokeWidth="10"
+                      strokeDasharray={`${dashArray} ${circumference - dashArray}`}
+                      strokeDashoffset={-rotationOffset}
+                      className={color}
+                    />
+                  );
+                });
+              })()}
+            </svg>
+            <div className="space-y-1 text-[10px]">
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-secondary shrink-0" />
+                <span className="text-slate-400">Green {greenPct}%</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-tertiary-container shrink-0" />
+                <span className="text-slate-400">Yellow {yellowPct}%</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-error shrink-0" />
+                <span className="text-slate-400">Red {redPct}%</span>
+              </div>
+            </div>
+          </div>
           <div className="space-y-3">
             {[
               { label: 'GREEN — Factual', pct: greenPct, count: zoneDistribution.green, color: 'bg-secondary', textColor: 'text-secondary' },
@@ -740,6 +1104,12 @@ function UplMonitoringPanel() {
           )}
         </div>
       </div>
+
+      {/* Recent RED-zone blocks table */}
+      <RecentBlocksTable />
+
+      {/* Alert configuration */}
+      <AlertConfigPanel />
     </div>
   );
 }

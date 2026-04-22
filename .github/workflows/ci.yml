@@ -13,6 +13,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Stub @adjudica/document-classifier
+        run: |
+          mkdir -p ../Adjudica-classifier/dist
+          echo '{"name":"@adjudica/document-classifier","version":"2.0.0","main":"dist/index.js","types":"dist/index.d.ts"}' \
+            > ../Adjudica-classifier/package.json
+          echo 'export class DocumentClassifier { constructor(...args) {} }' \
+            > ../Adjudica-classifier/dist/index.js
+          printf 'export declare class DocumentClassifier {\n  constructor(...args: any[]);\n  classify(content: string, options?: Record<string, unknown>): Promise<unknown>;\n}\n' \
+            > ../Adjudica-classifier/dist/index.d.ts
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -30,6 +40,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Stub @adjudica/document-classifier
+        run: |
+          mkdir -p ../Adjudica-classifier/dist
+          echo '{"name":"@adjudica/document-classifier","version":"2.0.0","main":"dist/index.js","types":"dist/index.d.ts"}' \
+            > ../Adjudica-classifier/package.json
+          echo 'export class DocumentClassifier { constructor(...args) {} }' \
+            > ../Adjudica-classifier/dist/index.js
+          printf 'export declare class DocumentClassifier {\n  constructor(...args: any[]);\n  classify(content: string, options?: Record<string, unknown>): Promise<unknown>;\n}\n' \
+            > ../Adjudica-classifier/dist/index.d.ts
 
       - name: Set up Node.js
         uses: actions/setup-node@v4

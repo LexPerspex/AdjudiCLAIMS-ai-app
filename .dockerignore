@@ -1,0 +1,55 @@
+# =============================================================================
+# AdjudiCLAIMS Docker Build Ignore
+# Excludes files from the Docker build context that are not needed in production.
+# Keeping the context small speeds up builds and reduces accidental file inclusion.
+# =============================================================================
+
+# Dependencies — reinstalled fresh inside the container
+node_modules/
+
+# Git history — not needed in production image
+.git/
+.gitignore
+.gitattributes
+
+# Build artifacts — rebuilt inside the container
+build/
+.next/
+
+# Development & local config
+.env
+.env.*
+*.local
+
+# Editor artifacts
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Test files — not needed in production
+tests/
+vitest.config*.ts
+playwright.config.ts
+coverage/
+
+# Documentation
+docs/
+marketing/
+*.md
+!package.json
+
+# Planning files
+.planning/
+ISSUES.md
+CLAUDE.md
+CLAUDE.local.md
+
+# CI/CD config (not needed inside container)
+.github/
+cloudbuild*.yaml
+Dockerfile*
+
+# NOTE: Do NOT exclude react-router.config.ts, vite.config.ts, or tsconfig.json —
+# these are required by `npm run build` inside the container (Vite/React Router build step).

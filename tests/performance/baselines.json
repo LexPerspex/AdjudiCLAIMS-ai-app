@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$comment": "AdjudiCLAIMS Performance Baseline Thresholds — AJC-12. All values in milliseconds unless noted. Update values when infrastructure changes materially (e.g. Cloud Run tier upgrade, region change). Rationale for each threshold is in tests/performance/README.md.",
+  "version": "1.0.0",
+  "updatedAt": "2026-04-20",
+  "scenarios": {
+    "chat_latency": {
+      "description": "Chat endpoint full round-trip: UPL classify → RAG retrieve → Claude API → output validate → response. Measured at POST /api/claims/:claimId/chat.",
+      "endpoint": "POST /api/claims/:claimId/chat",
+      "thresholds": {
+        "p50_ms": 2000,
+        "p95_ms": 5000,
+        "p99_ms": 10000
+      },
+      "rationale": {
+        "p50_ms": "Median user experience — must feel fast for routine queries (AWE calculation, deadline lookup)",
+        "p95_ms": "95th percentile — acceptable for AI-assisted responses; Claude API introduces variance",
+        "p99_ms": "99th percentile — accounts for cold starts, large document context, and Claude API tail latency"
+      }
+    },
+    "document_processing": {
+      "description": "Document upload and OCR pipeline throughput. Measured from POST /api/claims/:claimId/documents (multipart upload) through Document AI processing completion.",
+      "endpoint": "POST /api/claims/:claimId/documents",
+      "thresholds": {
+        "p50_ms": 15000,
+        "p95_ms": 30000,
+        "p99_ms": 60000,
+        "max_file_size_mb": 50,
+        "max_pages_for_p95_target": 20
+      },
+      "rationale": {
+        "p50_ms": "Typical single-page medical report through Google Document AI",
+        "p95_ms": "Multi-page reports up to 20 pages; complex layouts (EOR, medical charts)",
+        "p99_ms": "Large documents (50+ pages); Document AI async processing tail",
+        "max_file_size_mb": "Hard limit enforced by server; 50 MB covers all practical WC document types",
+        "max_pages_for_p95_target": "p95 target only applies to documents ≤20 pages; larger docs may exceed"
+      }
+    },
+    "concurrent_users": {
+      "description": "10 concurrent users over 30 seconds — simulates a morning shift start at a mid-size TPA. Measured via simultaneous requests to health and auth-gated endpoints.",
+      "concurrency": 10,
+      "duration_seconds": 30,
+      "thresholds": {
+        "p95_ms": 1500,
+        "p99_ms": 3000,
+        "max_error_rate_pct": 0,
+        "max_p95_degradation_vs_single_user_pct": 50
+      },
+      "rationale": {
+        "p95_ms": "Under 10-user concurrent load, p95 must stay under 1500 ms for non-AI endpoints",
+        "p99_ms": "3s p99 gives headroom for auth processing under burst load",
+        "max_error_rate_pct": "Zero 5xx errors under 10-user load — any 500 is a reliability failure",
+        "max_p95_degradation_vs_single_user_pct": "Concurrency must not degrade p95 by more than 50% vs single-user baseline"
+      }
+    },
+    "health_endpoints": {
+      "description": "Liveness and readiness probes — must respond fast for Cloud Run health checks.",
+      "thresholds": {
+        "liveness_p50_ms": 300,
+        "liveness_p95_ms": 1000,
+        "readiness_p50_ms": 500,
+        "readiness_p95_ms": 2000
+      },
+      "rationale": {
+        "liveness_p50_ms": "GET /api/health has no DB call; sub-300ms median is easily achievable",
+        "liveness_p95_ms": "Cloud Run health check timeout is typically 5s; 1s p95 gives ample margin",
+        "readiness_p50_ms": "GET /api/health/db requires a Prisma ping; 500ms median allows for cold pool",
+        "readiness_p95_ms": "Database cold query can take 500-800ms; 2s p95 accounts for this plus Cloud SQL wake"
+      }
+    },
+    "auth_endpoints": {
+      "description": "Login and session check latency. argon2 bcrypt work factor adds deliberate latency to login.",
+      "thresholds": {
+        "login_p50_ms": 1500,
+        "login_p95_ms": 3000,
+        "session_check_p50_ms": 300,
+        "session_check_p95_ms": 800
+      },
+      "rationale": {
+        "login_p50_ms": "argon2id hash verification adds ~400-800ms intentionally (brute-force resistance)",
+        "login_p95_ms": "Under concurrent login load, argon2 is CPU-bound; 3s p95 is acceptable",
+        "session_check_p50_ms": "Unauthenticated session check returns 401 quickly without DB lookup",
+        "session_check_p95_ms": "800ms p95 covers authenticated session validation with token decryption"
+      }
+    },
+    "protected_api_endpoints": {
+      "description": "Standard CRUD endpoints — claims, deadlines, compliance, education. These return 401 for unauthenticated requests (fast path).",
+      "thresholds": {
+        "p95_ms": 800
+      },
+      "endpoints": [
+        "GET /api/claims",
+        "GET /api/deadlines",
+        "GET /api/workflows",
+        "GET /api/compliance/examiner",
+        "GET /api/education/profile"
+      ],
+      "rationale": {
+        "p95_ms": "Auth rejection (401) should be sub-100ms; 800ms p95 accounts for authenticated requests with DB queries"
+      }
+    },
+    "upl_classifier": {
+      "description": "UPL query zone classifier (GREEN/YELLOW/RED) — lightweight LLM call that must complete before chat response is generated.",
+      "endpoint": "POST /api/upl/classify",
+      "thresholds": {
+        "p95_ms": 2000
+      },
+      "rationale": {
+        "p95_ms": "Classifier is a fast Gemini Flash call; 2s p95 accounts for cold model warm-up"
+      }
+    },
+    "peak_load": {
+      "description": "50 concurrent users — peak load simulation for the full Cloud Run deployment. Validates that a single Cloud Run instance handles burst without 5xx.",
+      "concurrency": 50,
+      "thresholds": {
+        "health_p95_ms": 3000,
+        "max_5xx_errors": 0
+      },
+      "rationale": {
+        "health_p95_ms": "50 concurrent health requests should resolve within 3s even under CPU contention",
+        "max_5xx_errors": "Zero server errors under peak load is a hard requirement for production readiness"
+      }
+    }
+  },
+  "ci_integration": {
+    "command": "npx tsx tests/performance/load-test.ts",
+    "env_var": "DEPLOYMENT_URL",
+    "exit_code_on_failure": 1,
+    "run_on": "post-deployment verification in Cloud Build"
+  }
+}

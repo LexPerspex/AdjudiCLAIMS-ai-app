@@ -27,7 +27,8 @@
     "worker:document": "tsx server/temporal/document/worker.ts",
     "worker:llm": "tsx server/temporal/llm/worker.ts",
     "workers": "npm-run-all --parallel worker:document worker:llm",
-    "test:rag-eval": "tsx tests/rag-eval/eval-runner.ts"
+    "test:rag-eval": "tsx tests/rag-eval/eval-runner.ts",
+    "test:e2e": "npx playwright test"
   },
   "dependencies": {
     "@adjudica/document-classifier": "file:../Adjudica-classifier",

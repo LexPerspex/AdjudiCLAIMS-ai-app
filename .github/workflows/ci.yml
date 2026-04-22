@@ -1,12 +1,67 @@
+# @Developed & Documented by Glass Box Solutions, Inc. using human ingenuity and modern technology
+#
+# AdjudiCLAIMS — GitHub Actions CI Pipeline
+#
+# Jobs:
+#   typecheck     — TypeScript type checking on all branches/PRs
+#   test          — Unit tests on all branches/PRs
+#   playwright    — Playwright E2E suite against staging URL on push to `staging` branch only
+#
+# Primary CI/CD: Google Cloud Build (cloudbuild.yaml) — manages Docker build + Cloud Run deploy.
+# This file adds a GitHub Actions layer for PR quality gates and the staging E2E post-deployment gate.
+#
+# =============================================================================
+# PRE-REQUISITES FOR THE PLAYWRIGHT JOB TO PASS
+# =============================================================================
+# Before the `playwright` job can fire against a live server, the following
+# manual steps must be completed by the infrastructure owner (Alex):
+#
+# 1. STAGING_URL GitHub Secret
+#    Go to: Settings → Secrets and variables → Actions → New repository secret
+#    Name:  STAGING_URL
+#    Value: The Cloud Run URL for the staging deployment.
+#            Example: https://adjudiclaims-api-<hash>-uw.a.run.app
+#            Or the custom domain: https://adjudiclaims.glassboxsolutions.com
+#            (Check `gcloud run services describe adjudiclaims-api --region us-west1 --project adjudiclaims-staging` for the live URL.)
+#
+# 2. Cloud Build Trigger for `staging` branch
+#    The Cloud Build trigger that deploys on push to `staging` must be created
+#    manually in the GCP Console (adjudiclaims-staging project, us-west1).
+#    See AJC-1 notes — this was deferred as a manual step for Alex.
+#    Without the trigger, staging is never deployed and this job has nothing to test.
+#
+# 3. Staging Database Migration
+#    Run: npx prisma migrate deploy
+#    against the adjudiclaims-staging Cloud SQL instance before first deploy.
+#    See AJC-2 for the migration procedure.
+#
+# 4. Cloud Run Service Health
+#    The adjudiclaims-api Cloud Run service in the staging project must be
+#    deployed and returning 200 at the health endpoint before this job passes.
+#    Manual check: curl https://<STAGING_URL>/api/health
+# =============================================================================
+
 name: CI
 
 on:
   push:
-    branches: [main, staging, dev, "feat/**"]
+    branches:
+      - main
+      - staging
+      - dev
+      - 'feat/**'
+      - 'fix/**'
+      - 'chore/**'
+      - 'docs/**'
   pull_request:
-    branches: [main]
+    branches:
+      - main
+      - staging
 
 jobs:
+  # ---------------------------------------------------------------------------
+  # TypeScript type checking — runs on every push and PR
+  # ---------------------------------------------------------------------------
   typecheck:
     name: typecheck
     runs-on: ubuntu-latest
@@ -35,6 +90,10 @@ jobs:
       - name: Run typecheck
         run: npm run typecheck
 
+  # ---------------------------------------------------------------------------
+  # Unit tests — runs on every push and PR
+  # Mirrors the Cloud Build quality gate (Steps 4-6 of cloudbuild.yaml)
+  # ---------------------------------------------------------------------------
   test:
     name: test
     runs-on: ubuntu-latest
@@ -62,3 +121,72 @@ jobs:
 
       - name: Run tests
         run: npm run test
+
+  # ---------------------------------------------------------------------------
+  # Playwright E2E — post-deployment gate, staging branch only
+  #
+  # Triggered by: push to `staging` branch (after Cloud Build deploys the image)
+  #
+  # This job runs the full Playwright suite (tests/e2e/, 4 specs) against the
+  # live staging Cloud Run URL. It is the final quality gate before a staging
+  # deployment is considered healthy.
+  #
+  # See PRE-REQUISITES at the top of this file before this job can pass.
+  # ---------------------------------------------------------------------------
+  playwright:
+    name: Playwright E2E (staging)
+    runs-on: ubuntu-latest
+    # Only run on the staging branch — not on PRs, not on main
+    if: github.ref == 'refs/heads/staging' && github.event_name == 'push'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Stub @adjudica/document-classifier
+        # Mirrors the stub pattern used in typecheck and test jobs above
+        run: |
+          mkdir -p ../Adjudica-classifier/dist
+          echo '{"name":"@adjudica/document-classifier","version":"2.0.0","main":"dist/index.js","types":"dist/index.d.ts"}' \
+            > ../Adjudica-classifier/package.json
+          echo 'export class DocumentClassifier { constructor(...args) {} }' \
+            > ../Adjudica-classifier/dist/index.js
+          printf 'export declare class DocumentClassifier {\n  constructor(...args: any[]);\n  classify(text: string, filename?: string): Promise<{ documentType: string | null; documentSubtype: string | null; confidence: number; aiReasoning: string; documentDate: string | null; }>;\n}\n' \
+            > ../Adjudica-classifier/dist/index.d.ts
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Install Playwright browsers
+        # Install only Chromium — matches playwright.config.ts projects configuration
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright E2E tests
+        # DEPLOYMENT_URL sources from the STAGING_URL GitHub Actions secret.
+        # See PRE-REQUISITES at the top of this file for how to set this secret.
+        # playwright.config.ts reads DEPLOYMENT_URL; if unset, falls back to the
+        # production Cloud Run URL — which is intentionally NOT desired here.
+        run: npm run test:e2e
+        env:
+          DEPLOYMENT_URL: ${{ secrets.STAGING_URL }}
+          # CI=true suppresses interactive Playwright reporter prompts
+          CI: 'true'
+
+      - name: Upload Playwright report
+        # Always upload the HTML report on failure for post-mortem debugging.
+        # Find it in the GitHub Actions run → Artifacts → playwright-report.
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14

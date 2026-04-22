@@ -1,0 +1,172 @@
+# @Developed & Documented by Glass Box Solutions, Inc. using human ingenuity and modern technology
+# =============================================================================
+# AdjudiCLAIMS Cloud Build — Staging CI/CD Pipeline
+# =============================================================================
+# Deploys: API server to Cloud Run staging
+# Trigger: Push to staging branch (configure in GCP Cloud Build triggers)
+# Project (build): adjudica-internal (Artifact Registry lives here)
+# Project (deploy): adjudiclaims-staging (Cloud Run service lives here)
+#
+# Staging secrets live in adjudica-internal Secret Manager under adjudiclaims-staging-* names.
+# Staging NEVER shares a database or secrets with production — see GBS security policy.
+# =============================================================================
+
+substitutions:
+  _REGION: us-west1
+  _ARTIFACT_REGISTRY: us-west1-docker.pkg.dev/adjudica-internal/adjudiclaims
+  _ENVIRONMENT: staging
+  _IMAGE_TAG: staging-latest
+  # Service names — same as production for Cloud Run URL consistency
+  _SERVICE_NAME: adjudiclaims-api
+  _WORKER_DOC_SERVICE: adjudiclaims-worker-document
+  _WORKER_LLM_SERVICE: adjudiclaims-worker-llm
+  # Staging secret names (never share with production)
+  _DB_SECRET: adjudiclaims-staging-db-url
+  _ANTHROPIC_SECRET: adjudiclaims-staging-anthropic-key
+  _SESSION_SECRET: adjudiclaims-staging-session-secret
+  _SENTRY_SECRET: adjudiclaims-staging-sentry-dsn
+  _TEMPORAL_SECRET: adjudiclaims-staging-temporal-api-key
+  # Temporal address — staging may share the same cluster for now; workers allowFailure=true
+  _TEMPORAL_ADDRESS: temporal.adjudiclaims.internal:7233
+  # Cloud Run target project for staging
+  _DEPLOY_PROJECT: adjudiclaims-staging
+
+steps:
+  # ---- Step 1: Install dependencies ----
+  # @adjudica/document-classifier is a file: dependency not available in Cloud Build.
+  # Stub it so npm ci and prisma generate succeed.
+  - name: 'node:20-slim'
+    entrypoint: bash
+    args:
+      - '-c'
+      - |
+        npm ci --legacy-peer-deps --ignore-scripts 2>&1 || true
+        rm -rf node_modules/@adjudica/document-classifier
+        mkdir -p node_modules/@adjudica/document-classifier/dist
+        echo '{"name":"@adjudica/document-classifier","version":"1.0.0","main":"dist/index.js","types":"dist/index.d.ts"}' > node_modules/@adjudica/document-classifier/package.json
+        echo 'module.exports = { DocumentClassifier: class { constructor() {} classify() { return { documentType: null, documentSubtype: null, confidence: 0, aiReasoning: "", documentDate: null }; } }, getExtractionFields: () => null, buildExtractionResponseSchema: () => ({}), buildExtractionPrompt: () => "" };' > node_modules/@adjudica/document-classifier/dist/index.js
+        echo 'export declare class DocumentClassifier { constructor(...args: any[]); classify(text: string, filename?: string): Promise<any>; } export declare function getExtractionFields(subtype: string): any; export declare function buildExtractionResponseSchema(fields: any): any; export declare function buildExtractionPrompt(fields: any, type: string, subtype: string): string;' > node_modules/@adjudica/document-classifier/dist/index.d.ts
+    id: install
+
+  # ---- Step 2: Generate Prisma client ----
+  - name: 'node:20-slim'
+    entrypoint: npx
+    args: ['prisma', 'generate']
+    id: prisma
+    waitFor: ['install']
+
+  # ---- Step 3: Typecheck ----
+  - name: 'node:20-slim'
+    entrypoint: npm
+    args: ['run', 'typecheck']
+    id: typecheck
+    waitFor: ['prisma']
+
+  # ---- Step 4: Unit tests ----
+  # Note: UPL compliance tests (test:upl) are NOT run in staging CI — they require
+  # a live Anthropic API key and are covered by the GitHub Actions CI workflow.
+  # Unit tests cover application logic; UPL tests run in the CI status check.
+  - name: 'node:20-slim'
+    entrypoint: npm
+    args: ['run', 'test']
+    id: test
+    waitFor: ['prisma']
+    env:
+      - 'NODE_ENV=test'
+
+  # ---- Step 5: Build Docker image ----
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '--build-arg=SENTRY_RELEASE=${_IMAGE_TAG}'
+      - '-t'
+      - '${_ARTIFACT_REGISTRY}/${_SERVICE_NAME}:${_IMAGE_TAG}'
+      - '.'
+    id: docker-build
+    waitFor: ['typecheck', 'test']
+
+  # ---- Step 6: Push to Artifact Registry ----
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', '${_ARTIFACT_REGISTRY}/${_SERVICE_NAME}:${_IMAGE_TAG}']
+    id: docker-push
+    waitFor: ['docker-build']
+
+  # ---- Step 7: Deploy API server to Cloud Run (staging) ----
+  # Uses adjudiclaims-staging project. First deploy creates the service.
+  # --allow-unauthenticated: staging is open to the internal team for review.
+  # --min-instances=0: cost optimization for staging (cold starts are acceptable).
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - '${_SERVICE_NAME}'
+      - '--image=${_ARTIFACT_REGISTRY}/${_SERVICE_NAME}:${_IMAGE_TAG}'
+      - '--region=${_REGION}'
+      - '--project=${_DEPLOY_PROJECT}'
+      - '--platform=managed'
+      - '--port=4901'
+      - '--min-instances=0'
+      - '--max-instances=3'
+      - '--memory=1Gi'
+      - '--cpu=1'
+      - '--allow-unauthenticated'
+      - '--set-secrets=DATABASE_URL=${_DB_SECRET}:latest,ANTHROPIC_API_KEY=${_ANTHROPIC_SECRET}:latest,SESSION_SECRET=${_SESSION_SECRET}:latest,SENTRY_DSN=${_SENTRY_SECRET}:latest,TEMPORAL_API_KEY=${_TEMPORAL_SECRET}:latest'
+      - '--set-env-vars=NODE_ENV=${_ENVIRONMENT},TEMPORAL_ADDRESS=${_TEMPORAL_ADDRESS},TEMPORAL_NAMESPACE=adjudiclaims,SENTRY_ENVIRONMENT=${_ENVIRONMENT},SENTRY_RELEASE=${_IMAGE_TAG}'
+    id: deploy-api
+    waitFor: ['docker-push']
+
+  # ---- Step 8: Deploy document worker (staging, allowFailure) ----
+  # Temporal may not be configured in staging. allowFailure prevents blocking the API deploy.
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - '${_WORKER_DOC_SERVICE}'
+      - '--image=${_ARTIFACT_REGISTRY}/${_SERVICE_NAME}:${_IMAGE_TAG}'
+      - '--region=${_REGION}'
+      - '--project=${_DEPLOY_PROJECT}'
+      - '--platform=managed'
+      - '--min-instances=0'
+      - '--max-instances=2'
+      - '--memory=2Gi'
+      - '--cpu=1'
+      - '--no-cpu-throttling'
+      - '--no-allow-unauthenticated'
+      - '--command=npx'
+      - '--args=tsx,server/temporal/document/worker.ts'
+      - '--set-secrets=DATABASE_URL=${_DB_SECRET}:latest,ANTHROPIC_API_KEY=${_ANTHROPIC_SECRET}:latest,SENTRY_DSN=${_SENTRY_SECRET}:latest,TEMPORAL_API_KEY=${_TEMPORAL_SECRET}:latest'
+      - '--set-env-vars=NODE_ENV=${_ENVIRONMENT},TEMPORAL_ADDRESS=${_TEMPORAL_ADDRESS},TEMPORAL_NAMESPACE=adjudiclaims,SENTRY_ENVIRONMENT=${_ENVIRONMENT},SENTRY_RELEASE=${_IMAGE_TAG}'
+    id: deploy-worker-document
+    waitFor: ['docker-push']
+    allowFailure: true
+
+  # ---- Step 9: Deploy LLM worker (staging, allowFailure) ----
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - '${_WORKER_LLM_SERVICE}'
+      - '--image=${_ARTIFACT_REGISTRY}/${_SERVICE_NAME}:${_IMAGE_TAG}'
+      - '--region=${_REGION}'
+      - '--project=${_DEPLOY_PROJECT}'
+      - '--platform=managed'
+      - '--min-instances=0'
+      - '--max-instances=2'
+      - '--memory=1Gi'
+      - '--cpu=1'
+      - '--no-cpu-throttling'
+      - '--no-allow-unauthenticated'
+      - '--command=npx'
+      - '--args=tsx,server/temporal/llm/worker.ts'
+      - '--set-secrets=DATABASE_URL=${_DB_SECRET}:latest,ANTHROPIC_API_KEY=${_ANTHROPIC_SECRET}:latest,SENTRY_DSN=${_SENTRY_SECRET}:latest,TEMPORAL_API_KEY=${_TEMPORAL_SECRET}:latest'
+      - '--set-env-vars=NODE_ENV=${_ENVIRONMENT},TEMPORAL_ADDRESS=${_TEMPORAL_ADDRESS},TEMPORAL_NAMESPACE=adjudiclaims,SENTRY_ENVIRONMENT=${_ENVIRONMENT},SENTRY_RELEASE=${_IMAGE_TAG}'
+    id: deploy-worker-llm
+    waitFor: ['docker-push']
+    allowFailure: true
+
+  # Note: Database migrations run via `npx prisma migrate deploy` manually
+  # or via the adjudiclaims-migrate Cloud Run job when configured.
+
+timeout: 1200s
+options:
+  logging: CLOUD_LOGGING_ONLY

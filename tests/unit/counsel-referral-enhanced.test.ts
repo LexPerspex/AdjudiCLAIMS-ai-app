@@ -189,6 +189,19 @@ vi.mock('../../server/lib/llm/index.js', () => ({
   }),
 }));
 
+// Mock the email helper so we can assert how it was called
+const mockSendCounselReferralNotification = vi.fn().mockResolvedValue({
+  sent: true,
+  messageId: 'msg_test',
+});
+
+vi.mock('../../server/services/email.service.js', () => ({
+  sendCounselReferralNotification: (...args: unknown[]) =>
+    mockSendCounselReferralNotification(...args) as unknown,
+  sendEmail: vi.fn().mockResolvedValue({ sent: true, messageId: 'msg_test' }),
+  isEmailConfigured: vi.fn().mockReturnValue(false),
+}));
+
 // Mock storage and document pipeline services (imported transitively by server)
 vi.mock('../../server/services/storage.service.js', () => ({
   storageService: {
@@ -481,6 +494,71 @@ describe('Counsel Referral Service — updateReferralStatus', () => {
     await expect(
       updateReferralStatus('ref-nonexistent', 'SENT', mockRequest),
     ).rejects.toThrow('Referral not found: ref-nonexistent');
+  });
+
+  it('passes the requesting examiner email as CC when transitioning to SENT', async () => {
+    mockCounselReferralFindUnique.mockResolvedValueOnce(MOCK_REFERRAL_PENDING);
+    mockCounselReferralUpdate.mockResolvedValueOnce({
+      ...MOCK_REFERRAL_PENDING,
+      status: 'SENT',
+      counselEmail: 'attorney@firm.test',
+    });
+    // The service does a follow-up claim lookup for the claim number
+    mockClaimFindUnique.mockResolvedValueOnce({
+      claimNumber: 'WC-2025-00123',
+    });
+
+    await updateReferralStatus(
+      'ref-1',
+      'SENT',
+      mockRequest,
+      undefined,
+      'attorney@firm.test',
+    );
+
+    // The fire-and-forget email is awaited internally via void; allow microtasks
+    await new Promise((resolve) => setImmediate(resolve));
+
+    expect(mockSendCounselReferralNotification).toHaveBeenCalledTimes(1);
+    const callArg = mockSendCounselReferralNotification.mock.calls[0]?.[0] as {
+      counselEmail: string;
+      cc?: string;
+      claimNumber: string;
+      legalIssue: string;
+      referralSummary: string;
+    };
+    expect(callArg.counselEmail).toBe('attorney@firm.test');
+    expect(callArg.cc).toBe(MOCK_USER.email);
+    expect(callArg.claimNumber).toBe('WC-2025-00123');
+    expect(callArg.legalIssue).toBe(MOCK_REFERRAL_PENDING.legalIssue);
+    expect(callArg.referralSummary).toBe(MOCK_REFERRAL_PENDING.summary);
+  });
+
+  it('does NOT send email when transitioning to non-SENT statuses', async () => {
+    mockCounselReferralFindUnique.mockResolvedValueOnce(MOCK_REFERRAL_PENDING);
+    mockCounselReferralUpdate.mockResolvedValueOnce({
+      ...MOCK_REFERRAL_PENDING,
+      status: 'CLOSED',
+    });
+
+    await updateReferralStatus('ref-1', 'CLOSED', mockRequest);
+    await new Promise((resolve) => setImmediate(resolve));
+
+    expect(mockSendCounselReferralNotification).not.toHaveBeenCalled();
+  });
+
+  it('does NOT send email when transitioning to SENT without a counsel email', async () => {
+    mockCounselReferralFindUnique.mockResolvedValueOnce(MOCK_REFERRAL_PENDING);
+    mockCounselReferralUpdate.mockResolvedValueOnce({
+      ...MOCK_REFERRAL_PENDING,
+      status: 'SENT',
+      counselEmail: null,
+    });
+
+    await updateReferralStatus('ref-1', 'SENT', mockRequest);
+    await new Promise((resolve) => setImmediate(resolve));
+
+    expect(mockSendCounselReferralNotification).not.toHaveBeenCalled();
   });
 });
 

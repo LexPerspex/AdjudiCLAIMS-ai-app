@@ -9,12 +9,16 @@ import {
   Send,
   ChevronRight,
   X,
+  Download,
+  Printer,
 } from 'lucide-react';
 import { cn } from '~/lib/utils';
 import {
   useClaimLetters,
   useLetterTemplates,
   useGenerateLetter,
+  letterPrintUrl,
+  letterDownloadUrl,
   type Letter,
   type LetterTemplate,
 } from '~/hooks/api/use-letters';
@@ -316,6 +320,24 @@ export default function ClaimLettersTab() {
                 {previewLetter.letterType.replace(/_/g, ' ')}
               </h3>
               <div className="flex items-center gap-2">
+                <a
+                  href={letterPrintUrl(previewLetter.id)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-1.5 bg-surface-container text-on-surface rounded-lg text-xs font-bold hover:bg-surface-container-high transition-all flex items-center gap-1.5"
+                  aria-label="Open printable letter in a new tab"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  Print
+                </a>
+                <a
+                  href={letterDownloadUrl(previewLetter.id)}
+                  className="px-3 py-1.5 bg-surface-container text-on-surface rounded-lg text-xs font-bold hover:bg-surface-container-high transition-all flex items-center gap-1.5"
+                  aria-label="Download the letter as an HTML file (use browser Print > Save as PDF for PDF)"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  Download
+                </a>
                 <button className="px-3 py-1.5 bg-secondary text-white rounded-lg text-xs font-bold hover:opacity-90 transition-all flex items-center gap-1.5">
                   <Send className="w-3.5 h-3.5" />
                   Send

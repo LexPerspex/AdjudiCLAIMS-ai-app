@@ -342,6 +342,218 @@ Claims Examiner`,
 };
 
 // ---------------------------------------------------------------------------
+// AJC-16 — Per-payment benefit letter + LC 3761 ongoing notifications
+// ---------------------------------------------------------------------------
+
+const BENEFIT_PAYMENT_LETTER: LetterTemplate = {
+  id: 'benefit-payment-letter',
+  letterType: 'BENEFIT_PAYMENT_LETTER',
+  title: 'Benefit Payment Letter',
+  description:
+    'Per-payment notification of an issued benefit payment (TD, PD, death benefit, ' +
+    "or SJDB voucher). Addresses the claimant and CCs the employer per LC 3761. " +
+    'Includes payment amount, period covered, payment date, and statutory authority.',
+  requiredFields: [
+    'claimNumber',
+    'claimantName',
+    'paymentType',
+    'paymentAmount',
+    'periodStart',
+    'periodEnd',
+    'paymentDate',
+    'employer',
+    'insurer',
+    'examinerName',
+  ],
+  statutoryAuthority: 'LC 4650 (TD); LC 4658 (PD); LC 4700 (death benefit); LC 4658.7 (SJDB); LC 3761 (employer cc)',
+  template: `# Benefit Payment Letter
+
+**Date:** {{currentDate}}
+**Claim Number:** {{claimNumber}}
+
+**To:** {{claimantName}}
+**Cc:** {{employer}} (per LC 3761)
+**From:** {{insurer}}
+
+---
+
+## Payment Issued
+
+This letter confirms that a workers' compensation benefit payment has been issued on your claim.
+
+| Detail | Value |
+|--------|-------|
+| Payment Type | {{paymentType}} |
+| Payment Amount | \${{paymentAmount}} |
+| Period Covered | {{periodStart}} through {{periodEnd}} |
+| Payment Date | {{paymentDate}} |
+
+## Statutory Authority
+
+This payment is issued pursuant to the following provisions of the California Labor Code:
+
+- **Temporary Disability (TD):** LC 4650 (payment timing — 14-day cycle); LC 4653 (rate — 2/3 of AWE).
+- **Permanent Disability (PD):** LC 4658 (rate and payment schedule).
+- **Death Benefit:** LC 4700 (statutory amount and payment schedule).
+- **Supplemental Job Displacement Benefit (SJDB):** LC 4658.7 (voucher amount and use).
+
+## Late Payment Penalty
+
+Per **LC 4650(c)**, if a TD payment is not made within 14 days of the due date, a self-imposed 10% increase is automatically added to the late payment.
+
+## Employer Notification
+
+A copy of this letter is provided to the employer of record pursuant to **LC 3761**, which requires the insurer to notify the employer of material developments in the claim.
+
+## Contact
+
+If you have questions about this payment:
+**Examiner:** {{examinerName}}
+**Claim Number:** {{claimNumber}}
+
+---
+
+*This letter is a factual notification of a benefit payment issued on the claim. It does not constitute legal advice. If you have questions about your rights or wish to dispute any aspect of your claim, you may consult with an attorney of your choice.*
+
+**{{insurer}}**
+{{examinerName}}
+Claims Examiner`,
+};
+
+const EMPLOYER_NOTIFICATION_BENEFIT_AWARD: LetterTemplate = {
+  id: 'employer-notification-benefit-award',
+  letterType: 'EMPLOYER_NOTIFICATION_BENEFIT_AWARD',
+  title: 'Employer Notification of Benefit Award (LC 3761)',
+  description:
+    'Notification to the employer of record that a benefit award has been issued ' +
+    'on the claim. Required under LC 3761 — the employer is entitled to notice of ' +
+    'material developments including benefit awards. Factual recitation only.',
+  requiredFields: [
+    'claimNumber',
+    'claimantName',
+    'dateOfInjury',
+    'employer',
+    'insurer',
+    'benefitType',
+    'benefitAmount',
+    'effectiveDate',
+    'examinerName',
+  ],
+  statutoryAuthority: 'LC 3761',
+  template: `# Employer Notification of Benefit Award
+
+**Date:** {{currentDate}}
+**To:** {{employer}}
+**From:** {{insurer}}
+**Re:** Workers' Compensation Claim — {{claimantName}}
+**Claim Number:** {{claimNumber}}
+**Date of Injury:** {{dateOfInjury}}
+
+---
+
+## Notice Pursuant to LC 3761
+
+Per **California Labor Code Section 3761**, this letter notifies you that the following benefit award has been determined on the above-referenced claim:
+
+| Detail | Value |
+|--------|-------|
+| Benefit Type | {{benefitType}} |
+| Benefit Amount | \${{benefitAmount}} |
+| Effective Date | {{effectiveDate}} |
+
+## Reason for This Notice
+
+LC 3761 requires the insurer to keep the employer informed of material developments in workers' compensation claims, including benefit awards. This notice is provided so that you may maintain accurate records of the claim activity and review reserve impacts on your experience modification.
+
+## Employer Reminders
+
+- **No Discrimination (LC 132a):** It remains unlawful to discriminate against an employee for filing or pursuing a workers' compensation claim.
+- **Modified Duty:** If you are able to offer modified or light-duty work consistent with any medical restrictions, please notify the insurer.
+- **Contact:** Direct any questions about this claim to the assigned examiner below.
+
+## Contact
+
+**Examiner:** {{examinerName}}
+**Claim Number:** {{claimNumber}}
+
+---
+
+*This notification is a factual record of a benefit determination on the claim. It does not constitute legal advice or a coverage determination on any other issue. The employer's rights and obligations under LC 3761 are factual matters set by statute.*
+
+**{{insurer}}**
+{{examinerName}}
+Claims Examiner`,
+};
+
+const EMPLOYER_NOTIFICATION_CLAIM_DECISION: LetterTemplate = {
+  id: 'employer-notification-claim-decision',
+  letterType: 'EMPLOYER_NOTIFICATION_CLAIM_DECISION',
+  title: 'Employer Notification of Claim Decision (LC 3761)',
+  description:
+    'Notification to the employer of record of the coverage determination on the ' +
+    'claim (accepted, denied, or delayed). Required under LC 3761. Factual recitation ' +
+    'of the determination only — no legal analysis.',
+  requiredFields: [
+    'claimNumber',
+    'claimantName',
+    'dateOfInjury',
+    'employer',
+    'insurer',
+    'decisionType',
+    'decisionDate',
+    'decisionBasis',
+    'examinerName',
+  ],
+  statutoryAuthority: 'LC 3761; LC 5402',
+  template: `# Employer Notification of Claim Decision
+
+**Date:** {{currentDate}}
+**To:** {{employer}}
+**From:** {{insurer}}
+**Re:** Workers' Compensation Claim — {{claimantName}}
+**Claim Number:** {{claimNumber}}
+**Date of Injury:** {{dateOfInjury}}
+
+---
+
+## Notice Pursuant to LC 3761
+
+Per **California Labor Code Section 3761**, this letter notifies you of the coverage determination on the above-referenced claim.
+
+| Detail | Value |
+|--------|-------|
+| Decision | {{decisionType}} |
+| Decision Date | {{decisionDate}} |
+
+## Stated Basis
+
+{{decisionBasis}}
+
+## Statutory Framework
+
+The 90-day investigation period under **LC 5402(b)** governs the timing of coverage determinations. A decision must be issued within 90 days of receipt of the claim form, or the claim is presumed compensable. This notice is provided to the employer pursuant to **LC 3761**.
+
+## Employer Reminders
+
+- **No Discrimination (LC 132a):** Filing or pursuing a claim, regardless of outcome, is a protected activity.
+- **Recordkeeping:** Please update your internal records to reflect this determination.
+- **Contact:** Direct any questions about this claim to the assigned examiner below.
+
+## Contact
+
+**Examiner:** {{examinerName}}
+**Claim Number:** {{claimNumber}}
+
+---
+
+*This notification is a factual record of the coverage determination. It does not constitute legal advice. The legal effects of acceptance, denial, or delay are matters of statute and regulation; specific legal questions should be directed to licensed counsel.*
+
+**{{insurer}}**
+{{examinerName}}
+Claims Examiner`,
+};
+
+// ---------------------------------------------------------------------------
 // Export
 // ---------------------------------------------------------------------------
 
@@ -351,4 +563,8 @@ export const LETTER_TEMPLATES: LetterTemplate[] = [
   WAITING_PERIOD_NOTICE,
   EMPLOYER_NOTIFICATION_LC3761,
   BENEFIT_ADJUSTMENT_NOTICE,
+  // AJC-16
+  BENEFIT_PAYMENT_LETTER,
+  EMPLOYER_NOTIFICATION_BENEFIT_AWARD,
+  EMPLOYER_NOTIFICATION_CLAIM_DECISION,
 ];

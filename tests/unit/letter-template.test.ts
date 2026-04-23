@@ -238,9 +238,17 @@ async function loginAs(
 
 describe('Letter Template Service — unit tests', () => {
   describe('getTemplates', () => {
-    it('returns all 5 letter templates', () => {
+    it('returns all 8 letter templates (5 original + 3 AJC-16)', () => {
       const templates = getTemplates();
-      expect(templates).toHaveLength(5);
+      expect(templates).toHaveLength(8);
+    });
+
+    it('includes the 3 AJC-16 benefit-payment + LC 3761 templates', () => {
+      const templates = getTemplates();
+      const ids = templates.map((t) => t.id);
+      expect(ids).toContain('benefit-payment-letter');
+      expect(ids).toContain('employer-notification-benefit-award');
+      expect(ids).toContain('employer-notification-claim-decision');
     });
 
     it('each template has required properties', () => {
@@ -465,7 +473,7 @@ describe('Letter Routes — API tests', () => {
   // -----------------------------------------------------------------------
 
   describe('GET /api/letters/templates', () => {
-    it('returns 200 and list of 5 templates', async () => {
+    it('returns 200 and list of 8 templates (5 original + 3 AJC-16)', async () => {
       const response = await server.inject({
         method: 'GET',
         url: '/api/letters/templates',
@@ -475,7 +483,7 @@ describe('Letter Routes — API tests', () => {
       expect(response.statusCode).toBe(200);
 
       const body = JSON.parse(response.payload) as { templates: Array<{ id: string }> };
-      expect(body.templates).toHaveLength(5);
+      expect(body.templates).toHaveLength(8);
     });
 
     it('returns 401 without auth', async () => {

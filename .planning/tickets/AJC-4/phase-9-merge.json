@@ -1,0 +1,6 @@
+{
+  "merge_sha": "92ab1e40c5d2180b6634de7c5cc50d8ad2a95678",
+  "merged_into": "staging",
+  "conflict_files_resolved": [".github/workflows/ci.yml"],
+  "conflict_resolution": "Additive merge — feature branch ci.yml had GBS header + typecheck + test + playwright jobs; staging ci.yml had typecheck + test jobs only. Resolved by keeping feature branch version (already contained the combined set). Merged staging into feature branch with -X ours strategy."
+}

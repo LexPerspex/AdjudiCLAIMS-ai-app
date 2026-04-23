@@ -1,0 +1,5 @@
+{
+  "branch_name": "chore/AJC-4-run-playwright-e2e-suite-against-stag",
+  "base_branch": "main",
+  "is_resume": false
+}

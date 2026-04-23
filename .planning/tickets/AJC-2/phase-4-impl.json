@@ -1,0 +1,13 @@
+{
+  "team_structure": "solo",
+  "domain_scope": "Prisma migrations and schema — git housekeeping to commit new 20260419_init baseline migration, remove old superseded migrations, and record schema upgrade",
+  "files_changed": [
+    "prisma/migrations/20260330_add_auth_and_soft_delete_fields/migration.sql (deleted)",
+    "prisma/migrations/20260330_init_postgresql/migration.sql (deleted, replaced by 20260419063906_init)",
+    "prisma/migrations/20260419063906_init/migration.sql (added)",
+    "prisma/migrations/migration_lock.toml (modified)",
+    "prisma/schema.prisma (modified)"
+  ],
+  "commit_sha": "d83f7c4",
+  "test_result": "passing — 3161/3161 tests"
+}

@@ -1,0 +1,17 @@
+{
+  "id": "AJC-2",
+  "title": "Apply Prisma 20260419_init migration to staging and production databases",
+  "description": "No description provided. Derived from context: The 20260419063906_init migration is the single clean baseline migration replacing previous broken duplicate init migrations. It needs to be tracked in git and applied to staging (adjudiclaims-staging on PlanetScale PostgreSQL) and production databases. The migration SQL file exists at prisma/migrations/20260419063906_init/migration.sql. This migration establishes 34 tables with pgvector 0.8.1 support. Staging already has the schema applied (per STATE.md: 'adjudiclaims-staging reset + migrated (33 tables, pgvector 0.8.1)'). This ticket likely covers: (1) ensuring the migration files are properly committed to git (currently untracked as '?? prisma/migrations/20260419063906_init/'), (2) documenting the migration application process, and (3) creating any necessary deployment tooling.",
+  "acceptance_criteria": [
+    "The prisma/migrations/20260419063906_init/ directory and migration.sql are committed to git on main",
+    "The migration_lock.toml reflects postgresql provider",
+    "Staging database (adjudiclaims-staging) has migration applied and tracked by Prisma migrate history",
+    "Production database migration apply process is documented or scripted",
+    "All existing tests continue to pass after changes",
+    "No credentials or connection strings committed to git"
+  ],
+  "priority": "Urgent (1)",
+  "labels": [],
+  "linked_issues": [],
+  "team": "AdjudiCLAIMS"
+}

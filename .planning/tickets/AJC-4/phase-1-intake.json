@@ -1,0 +1,17 @@
+{
+  "id": "AJC-4",
+  "uuid": "56028872-b90b-43d2-96ff-d5fd029969b4",
+  "title": "Run Playwright E2E suite against staging URL (post-deployment gate)",
+  "description": "Wire the Playwright E2E suite to run against the staging URL in CI. Add a playwright job to .github/workflows/ci.yml that runs on merge to staging branch. Document the manual steps needed before it can fire live. The deliverable is a code change (wiring Playwright into CI against staging), not actually running the suite against a live server right now (since the Cloud Build trigger hasn't been created yet).",
+  "acceptance_criteria": [
+    "Playwright E2E job added to .github/workflows/ci.yml that triggers on push/merge to staging branch",
+    "Job configures BASE_URL from staging Cloud Run URL",
+    "Job documents (via comments or README note) what manual pre-requisites are needed before it fires live",
+    "Existing 4 Playwright specs in tests/e2e/ are the target suite",
+    "CI job does not break existing main branch CI pipeline"
+  ],
+  "priority": 1,
+  "labels": [],
+  "linked_issues": ["AJC-1 (deploy)", "AJC-2 (DB migration)"],
+  "team": "AdjudiCLAIMS"
+}

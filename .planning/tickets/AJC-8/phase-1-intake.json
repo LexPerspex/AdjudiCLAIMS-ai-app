@@ -1,0 +1,16 @@
+{
+  "id": "AJC-8",
+  "title": "Phase 8: Wire document access control to authenticated sessions",
+  "description": "Wire document access control to authenticated sessions. The auth system is fully built (argon2id, MFA, sessions via cookies). The gap is that document-access.service.ts and routes that serve documents are not calling requireAuth() or checking session.userId against document ownership. Deliverable: audit every route in server/routes/documents.ts (and any other document-serving routes) to confirm requireAuth() middleware is applied; wire document-access.service.ts to use the authenticated userId from the session (not a passed-in parameter that could be spoofed); add integration tests proving unauthenticated requests to document endpoints return 401. All tests must pass (currently 3,208). Branch off main.",
+  "acceptance_criteria": [
+    "Every route in server/routes/documents.ts (and any other document-serving routes) has requireAuth() middleware applied",
+    "document-access.service.ts uses the authenticated userId from the session (not a passed-in parameter that could be spoofed)",
+    "Integration tests prove unauthenticated requests to document endpoints return 401",
+    "All existing 3,208 tests continue to pass",
+    "Direct API calls without valid session are blocked — 401 returned"
+  ],
+  "priority": "urgent",
+  "labels": [],
+  "linked_issues": [],
+  "team": "AJC"
+}

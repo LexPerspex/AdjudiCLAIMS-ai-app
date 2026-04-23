@@ -20,6 +20,12 @@
 export interface EmailPayload {
   /** Recipient email address. */
   to: string;
+  /**
+   * Optional CC recipient(s). Accepts a single address or an array.
+   * Used to copy the requesting examiner on outbound counsel referrals
+   * so they retain a record of what was sent.
+   */
+  cc?: string | string[];
   /** Email subject line. */
   subject: string;
   /** Plain-text email body. */
@@ -59,14 +65,30 @@ export function isEmailConfigured(): boolean {
 // ---------------------------------------------------------------------------
 
 /**
+ * Normalize an optional CC field to an array of addresses.
+ * Drops empty strings and undefined entries so downstream code can
+ * treat the result uniformly.
+ */
+function normalizeCc(cc: string | string[] | undefined): string[] {
+  if (cc === undefined) return [];
+  const list = Array.isArray(cc) ? cc : [cc];
+  return list.filter((addr): addr is string => typeof addr === 'string' && addr.length > 0);
+}
+
+/**
  * Log an email to the console in development mode.
  * Only logs recipient domain (not full address) and subject — never body content.
  */
 function logEmailToConsole(payload: EmailPayload, messageId: string): void {
   const recipientDomain = payload.to.split('@')[1] ?? 'unknown';
+  const ccDomains = normalizeCc(payload.cc)
+    .map((addr) => addr.split('@')[1] ?? 'unknown')
+    .map((domain) => `*@${domain}`)
+    .join(',');
+  const ccSegment = ccDomains.length > 0 ? ` cc=${ccDomains}` : '';
   console.info(
     `[email.service] DEV MODE — email not sent. ` +
-    `to=*@${recipientDomain} subject="${payload.subject}" messageId=${messageId}`,
+    `to=*@${recipientDomain}${ccSegment} subject="${payload.subject}" messageId=${messageId}`,
   );
   console.info(`[email.service] Text body preview: ${payload.textBody.slice(0, 120)}...`);
 }
@@ -96,8 +118,18 @@ export async function sendEmail(payload: EmailPayload): Promise<EmailResult> {
   try {
     const apiKey = process.env['SENDGRID_API_KEY']!;
 
+    const ccList = normalizeCc(payload.cc);
+    const personalization: {
+      to: { email: string }[];
+      cc?: { email: string }[];
+    } = { to: [{ email: payload.to }] };
+
+    if (ccList.length > 0) {
+      personalization.cc = ccList.map((email) => ({ email }));
+    }
+
     const body = {
-      personalizations: [{ to: [{ email: payload.to }] }],
+      personalizations: [personalization],
       from: { email: process.env['SENDGRID_FROM_EMAIL'] ?? 'noreply@adjudiclaims.com' },
       reply_to: payload.replyTo ? { email: payload.replyTo } : undefined,
       subject: payload.subject,
@@ -153,55 +185,151 @@ export async function sendEmail(payload: EmailPayload): Promise<EmailResult> {
 // ---------------------------------------------------------------------------
 
 /**
+ * Options for sending a counsel referral notification email.
+ *
+ * The email body is built deterministically from these fields — there is no
+ * LLM call at the email layer. The caller is responsible for ensuring
+ * `referralSummary` has already passed UPL output validation, and for passing
+ * the verbatim `legalIssue` text the examiner submitted (no characterization).
+ */
+export interface CounselReferralEmailOptions {
+  /** Defense counsel's email address (primary recipient). */
+  counselEmail: string;
+  /** Optional CC recipient — typically the requesting examiner's email. */
+  cc?: string | string[];
+  /** Claim number for the subject line (not PHI). */
+  claimNumber: string;
+  /**
+   * The legal issue text the examiner submitted, included verbatim.
+   * Optional for backwards compatibility with callers that only have
+   * the generated summary.
+   */
+  legalIssue?: string;
+  /** The UPL-validated factual summary text from generateCounselReferral(). */
+  referralSummary: string;
+  /** Optional examiner display name (rendered as "Submitted by ..."). */
+  examinerName?: string;
+}
+
+/**
+ * Build the plain-text body for a counsel referral notification.
+ *
+ * Pure function — exported only for unit testing of UPL safety. Callers
+ * should use {@link sendCounselReferralNotification} which builds the
+ * payload, sends, and audits.
+ */
+export function buildCounselReferralTextBody(opts: CounselReferralEmailOptions): string {
+  const lines: string[] = [
+    `Defense Counsel Referral — Claim ${opts.claimNumber}`,
+    '',
+    'You have received a factual claim summary for your review from AdjudiCLAIMS.',
+    '',
+  ];
+
+  if (opts.examinerName) {
+    lines.push(`Submitted by: ${opts.examinerName}`);
+    lines.push('');
+  }
+
+  if (opts.legalIssue) {
+    lines.push('Legal issue identified by the examiner (verbatim):');
+    lines.push(opts.legalIssue);
+    lines.push('');
+  }
+
+  lines.push(
+    '---',
+    '',
+    opts.referralSummary,
+    '',
+    '---',
+    '',
+    'This summary contains factual claim information only. No legal analysis or',
+    'conclusions have been made by the claims examiner. All legal determinations',
+    'are deferred to licensed counsel.',
+    '',
+    'Please log in to the claims system to respond to this referral.',
+  );
+
+  return lines.join('\n');
+}
+
+/**
+ * Build the HTML body for a counsel referral notification.
+ *
+ * All caller-supplied text is HTML-escaped to prevent injection.
+ */
+export function buildCounselReferralHtmlBody(opts: CounselReferralEmailOptions): string {
+  const lines: string[] = [
+    '<html><body>',
+    `<h2>Defense Counsel Referral — Claim ${escapeHtml(opts.claimNumber)}</h2>`,
+    '<p>You have received a factual claim summary for your review from AdjudiCLAIMS.</p>',
+  ];
+
+  if (opts.examinerName) {
+    lines.push(`<p><strong>Submitted by:</strong> ${escapeHtml(opts.examinerName)}</p>`);
+  }
+
+  if (opts.legalIssue) {
+    lines.push('<p><strong>Legal issue identified by the examiner (verbatim):</strong></p>');
+    lines.push(
+      `<blockquote style="border-left: 3px solid #ccc; padding-left: 12px; margin: 8px 0;">` +
+      `${escapeHtml(opts.legalIssue)}</blockquote>`,
+    );
+  }
+
+  lines.push(
+    '<hr/>',
+    `<pre style="font-family: monospace; white-space: pre-wrap;">${escapeHtml(opts.referralSummary)}</pre>`,
+    '<hr/>',
+    '<p><em>This summary contains factual claim information only. No legal analysis or ',
+    'conclusions have been made by the claims examiner. All legal determinations ',
+    'are deferred to licensed counsel.</em></p>',
+    '<p>Please log in to the claims system to respond to this referral.</p>',
+    '</body></html>',
+  );
+
+  return lines.join('\n');
+}
+
+/**
  * Send a counsel referral notification to defense counsel.
  *
  * The email contains a factual summary of the referral — no legal analysis.
- * The referralSummary should be the output of generateCounselReferral(),
+ * The `referralSummary` should be the output of generateCounselReferral(),
  * which has already passed UPL output validation.
  *
- * @param counselEmail - Defense counsel's email address.
- * @param referralSummary - The UPL-validated factual summary text.
- * @param claimNumber - Claim number for the subject line (not PHI).
+ * Supports two call shapes for backwards compatibility:
+ *   1. Positional: `(counselEmail, referralSummary, claimNumber)`
+ *   2. Options object: `{ counselEmail, referralSummary, claimNumber, legalIssue?, cc?, examinerName? }`
+ *
+ * The options form is preferred for new callers — it supports CC'ing the
+ * requesting examiner and including the verbatim legal issue.
  */
 export async function sendCounselReferralNotification(
-  counselEmail: string,
-  referralSummary: string,
-  claimNumber: string,
+  counselEmailOrOptions: string | CounselReferralEmailOptions,
+  referralSummary?: string,
+  claimNumber?: string,
 ): Promise<EmailResult> {
+  const opts: CounselReferralEmailOptions =
+    typeof counselEmailOrOptions === 'string'
+      ? {
+          counselEmail: counselEmailOrOptions,
+          referralSummary: referralSummary ?? '',
+          claimNumber: claimNumber ?? '',
+        }
+      : counselEmailOrOptions;
+
   const payload: EmailPayload = {
-    to: counselEmail,
-    subject: `Defense Counsel Referral — Claim ${claimNumber}`,
-    textBody: [
-      `Defense Counsel Referral — Claim ${claimNumber}`,
-      '',
-      'You have received a factual claim summary for your review from AdjudiCLAIMS.',
-      '',
-      '---',
-      '',
-      referralSummary,
-      '',
-      '---',
-      '',
-      'This summary contains factual claim information only. No legal analysis or',
-      'conclusions have been made by the claims examiner. All legal determinations',
-      'are deferred to licensed counsel.',
-      '',
-      'Please log in to the claims system to respond to this referral.',
-    ].join('\n'),
-    htmlBody: [
-      '<html><body>',
-      `<h2>Defense Counsel Referral — Claim ${claimNumber}</h2>`,
-      '<p>You have received a factual claim summary for your review from AdjudiCLAIMS.</p>',
-      '<hr/>',
-      `<pre style="font-family: monospace; white-space: pre-wrap;">${escapeHtml(referralSummary)}</pre>`,
-      '<hr/>',
-      '<p><em>This summary contains factual claim information only. No legal analysis or ',
-      'conclusions have been made by the claims examiner. All legal determinations ',
-      'are deferred to licensed counsel.</em></p>',
-      '<p>Please log in to the claims system to respond to this referral.</p>',
-      '</body></html>',
-    ].join('\n'),
+    to: opts.counselEmail,
+    subject: `Defense Counsel Referral — Claim ${opts.claimNumber}`,
+    textBody: buildCounselReferralTextBody(opts),
+    htmlBody: buildCounselReferralHtmlBody(opts),
   };
+
+  if (opts.cc !== undefined) {
+    payload.cc = opts.cc;
+  }
 
   return sendEmail(payload);
 }

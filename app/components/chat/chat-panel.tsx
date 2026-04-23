@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Lock, Info, ChevronDown, ChevronUp, Gavel, Bot, Network } from 'lucide-react';
+import { Send, Lock, Info, ChevronDown, ChevronUp, Gavel, Bot, Network, X, AlertTriangle, CheckCircle } from 'lucide-react';
 import { cn } from '~/lib/utils';
 import {
   useChatMessages,
@@ -11,6 +11,7 @@ import {
   type GraphTrustEntity,
   type GraphTrustSource,
 } from '~/hooks/api/use-chat';
+import { useCreateReferral } from '~/hooks/api/use-referrals';
 import { ConfidenceBadge } from '~/components/graph/confidence-badge';
 import { ProvenanceCard } from '~/components/graph/provenance-card';
 
@@ -50,7 +51,33 @@ export function ChatPanel({
   const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // "Refer to Counsel" modal state — opened from a RED-zone assistant message.
+  // The message that triggered the referral is captured here; we use the most
+  // recent user message before it as the suggested legal issue text.
+  const [referralContext, setReferralContext] = useState<{
+    suggestedIssue: string;
+  } | null>(null);
+
   const messages = messagesQuery.data ?? [];
+
+  /**
+   * Open the referral modal, seeding the legal-issue field with the most
+   * recent user message before the given assistant message.
+   */
+  function openReferralModalFor(assistantMessage: ChatMessage) {
+    const idx = messages.findIndex((m) => m.id === assistantMessage.id);
+    let suggested = '';
+    if (idx > 0) {
+      for (let i = idx - 1; i >= 0; i--) {
+        const m = messages[i];
+        if (m && m.role === 'user') {
+          suggested = m.content;
+          break;
+        }
+      }
+    }
+    setReferralContext({ suggestedIssue: suggested });
+  }
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -89,7 +116,7 @@ export function ChatPanel({
           <select
             className="text-xs bg-transparent border border-outline-variant/20 rounded px-2 py-1"
             value={activeSessionId}
-            onChange={(e) => onSessionChange(e.target.value)}
+            onChange={(e) => { onSessionChange(e.target.value); }}
           >
             {sessions.map((s) => (
               <option key={s.id} value={s.id}>
@@ -107,13 +134,26 @@ export function ChatPanel({
         )}
         {messages.map((msg) =>
           msg.role === 'assistant' ? (
-            <AssistantMessage key={msg.id} message={msg} />
+            <AssistantMessage
+              key={msg.id}
+              message={msg}
+              onReferToCounsel={() => { openReferralModalFor(msg); }}
+            />
           ) : (
             <UserMessage key={msg.id} message={msg} />
           ),
         )}
         {sendMessage.isPending && <TypingIndicator />}
       </div>
+
+      {/* Refer to Counsel modal */}
+      {referralContext && (
+        <ReferToCounselModal
+          claimId={claimId}
+          suggestedIssue={referralContext.suggestedIssue}
+          onClose={() => { setReferralContext(null); }}
+        />
+      )}
 
       {/* Input */}
       <div className="p-4 bg-surface-container-low/30 backdrop-blur-md">
@@ -122,7 +162,7 @@ export function ChatPanel({
             className="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-3 pr-10 text-xs resize-none focus:ring-1 focus:ring-primary focus:border-primary min-h-[80px] shadow-sm"
             placeholder="Ask about claim status or regulations..."
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => { setInput(e.target.value); }}
             onKeyDown={handleKeyDown}
           />
           <button
@@ -149,7 +189,13 @@ export function ChatPanel({
 /*  Message components                                                 */
 /* ------------------------------------------------------------------ */
 
-function AssistantMessage({ message }: { message: ChatMessage }) {
+function AssistantMessage({
+  message,
+  onReferToCounsel,
+}: {
+  message: ChatMessage;
+  onReferToCounsel?: () => void;
+}) {
   const zone = message.uplZone ? zoneConfig[message.uplZone] : undefined;
   const isRed = message.uplZone === 'RED';
   const isYellow = message.uplZone === 'YELLOW';
@@ -187,7 +233,12 @@ function AssistantMessage({ message }: { message: ChatMessage }) {
               This question requires legal analysis and cannot be answered by the AI
               assistant. Please consult with defense counsel for guidance on this matter.
             </p>
-            <button className="self-start flex items-center gap-2 px-3 py-1.5 bg-error/10 text-error text-xs font-bold rounded-lg hover:bg-error/20 transition-colors">
+            <button
+              type="button"
+              onClick={onReferToCounsel}
+              disabled={!onReferToCounsel}
+              className="self-start flex items-center gap-2 px-3 py-1.5 bg-error/10 text-error text-xs font-bold rounded-lg hover:bg-error/20 transition-colors disabled:opacity-50"
+            >
               <Gavel className="w-3 h-3" />
               Refer to Counsel
             </button>
@@ -252,7 +303,7 @@ function CitationsList({ citations }: { citations: Citation[] }) {
     <div className="mt-3 pt-3 border-t border-primary/5">
       <button
         className="text-[9px] font-bold text-primary flex items-center gap-1"
-        onClick={() => setExpanded((v) => !v)}
+        onClick={() => { setExpanded((v) => !v); }}
       >
         {citations.length} citation{citations.length !== 1 ? 's' : ''}
         {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
@@ -293,7 +344,7 @@ function EntitySummarySection({ entities }: { entities: GraphTrustEntity[] }) {
     <div className="mt-3 pt-3 border-t border-primary/5">
       <button
         className="text-[9px] font-bold text-primary flex items-center gap-1"
-        onClick={() => setExpanded((v) => !v)}
+        onClick={() => { setExpanded((v) => !v); }}
         aria-expanded={expanded}
         aria-label={`Graph entities (${entities.length})`}
       >
@@ -342,7 +393,7 @@ function GraphProvenanceSection({ provenance }: { provenance: GraphTrustSource[]
     <div className="mt-3 pt-3 border-t border-primary/5">
       <button
         className="text-[9px] font-bold text-primary flex items-center gap-1"
-        onClick={() => setExpanded((v) => !v)}
+        onClick={() => { setExpanded((v) => !v); }}
         aria-expanded={expanded}
       >
         Source documents ({provenance.length})
@@ -388,7 +439,7 @@ function ProvenanceSection({ citations }: { citations: Citation[] }) {
     <div className="mt-3 pt-3 border-t border-primary/5">
       <button
         className="text-[9px] font-bold text-primary flex items-center gap-1"
-        onClick={() => setExpanded((v) => !v)}
+        onClick={() => { setExpanded((v) => !v); }}
       >
         Source documents ({uniqueSources.length})
         {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
@@ -417,6 +468,126 @@ function TypingIndicator() {
       <div className="w-2 h-2 bg-primary/40 rounded-full animate-bounce [animation-delay:0ms]" />
       <div className="w-2 h-2 bg-primary/40 rounded-full animate-bounce [animation-delay:150ms]" />
       <div className="w-2 h-2 bg-primary/40 rounded-full animate-bounce [animation-delay:300ms]" />
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Refer to Counsel modal                                             */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Modal triggered from a RED-zone assistant message. Lets the examiner
+ * confirm/edit the legal-issue text before posting a tracked counsel
+ * referral via POST /api/claims/:claimId/referrals.
+ *
+ * The referral is created in PENDING status — a separate "Send to Counsel"
+ * action on the Referrals tab transitions it to SENT (with email + CC).
+ */
+function ReferToCounselModal({
+  claimId,
+  suggestedIssue,
+  onClose,
+}: {
+  claimId: string;
+  suggestedIssue: string;
+  onClose: () => void;
+}) {
+  const [legalIssue, setLegalIssue] = useState(suggestedIssue);
+  const createReferral = useCreateReferral(claimId);
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const trimmed = legalIssue.trim();
+    if (!trimmed) return;
+    createReferral.mutate(
+      { legalIssue: trimmed },
+      {
+        onSuccess: () => {
+          // Auto-close after a short pause so the user sees confirmation
+          window.setTimeout(onClose, 1200);
+        },
+      },
+    );
+  }
+
+  const isSuccess = createReferral.isSuccess;
+  const isError = createReferral.isError;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+      <div className="bg-surface-container-lowest rounded-2xl shadow-2xl w-full max-w-md p-6 flex flex-col gap-5 m-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-bold text-on-surface flex items-center gap-2">
+            <Gavel className="w-4 h-4 text-error" />
+            Refer to Defense Counsel
+          </h3>
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors"
+          >
+            <X className="w-4 h-4 text-on-surface-variant" />
+          </button>
+        </div>
+
+        <div className="bg-error/5 border border-error/20 rounded-lg px-4 py-3">
+          <div className="flex items-start gap-2">
+            <AlertTriangle className="w-4 h-4 text-error flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-on-surface">
+              This question requires legal analysis. AdjudiCLAIMS will create a
+              tracked referral with a factual claim summary. The legal issue text
+              below is forwarded verbatim — no AI characterization is added.
+            </p>
+          </div>
+        </div>
+
+        {isSuccess ? (
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary/10 text-secondary text-xs">
+            <CheckCircle className="w-4 h-4" />
+            Referral created. View it on the Referrals tab to send to counsel.
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                Legal Issue *
+              </label>
+              <textarea
+                value={legalIssue}
+                onChange={(e) => { setLegalIssue(e.target.value); }}
+                required
+                rows={5}
+                placeholder="Describe the legal issue requiring counsel review..."
+                className="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg px-3 py-2.5 text-xs text-on-surface placeholder:text-slate-400 focus:outline-none focus:border-primary resize-none"
+              />
+            </div>
+
+            {isError && (
+              <p className="text-xs text-error">
+                Failed to create referral. Please try again.
+              </p>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 px-4 py-2.5 bg-surface-container-high text-on-surface-variant rounded-lg text-xs font-bold hover:bg-surface-container-highest transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={!legalIssue.trim() || createReferral.isPending}
+                className="flex-1 primary-gradient text-white px-4 py-2.5 rounded-lg text-xs font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:scale-100"
+              >
+                {createReferral.isPending ? 'Creating...' : 'Create Referral'}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
     </div>
   );
 }

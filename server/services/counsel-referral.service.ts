@@ -481,15 +481,40 @@ export async function updateReferralStatus(
     data: updateData,
   });
 
+  const user = request.session.user;
+
   // When transitioning to SENT, notify defense counsel via email if an
-  // email address is available. Fire-and-forget — email failure does not
-  // block the status update.
+  // email address is available. The requesting examiner is CC'd so they
+  // retain a record of what was sent. The verbatim `legalIssue` text is
+  // included in the body — there is no LLM call at the email layer.
+  // Fire-and-forget — email failure does not block the status update.
   if (status === 'SENT' && updated.counselEmail) {
-    void sendCounselReferralNotification(
-      updated.counselEmail,
-      updated.summary,
-      existing.claimId,
-    ).catch((err: unknown) => {
+    // Look up the claim number to use in the subject/body. Fall back to the
+    // claim ID if the lookup fails — never block the status update on this.
+    let claimNumberForEmail = existing.claimId;
+    try {
+      const claim = await prisma.claim.findUnique({
+        where: { id: existing.claimId },
+        select: { claimNumber: true },
+      });
+      if (claim?.claimNumber) {
+        claimNumberForEmail = claim.claimNumber;
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error(
+        `[counsel-referral] Failed to resolve claim number for referral ` +
+        `${referralId}: ${message}`,
+      );
+    }
+
+    void sendCounselReferralNotification({
+      counselEmail: updated.counselEmail,
+      cc: user?.email,
+      claimNumber: claimNumberForEmail,
+      legalIssue: existing.legalIssue,
+      referralSummary: updated.summary,
+    }).catch((err: unknown) => {
       const message = err instanceof Error ? err.message : String(err);
       console.error(
         `[counsel-referral] Failed to send email notification for referral ` +
@@ -497,8 +522,6 @@ export async function updateReferralStatus(
       );
     });
   }
-
-  const user = request.session.user;
 
   void logAuditEvent({
     userId: user?.id ?? 'unknown',
@@ -509,6 +532,7 @@ export async function updateReferralStatus(
       previousStatus: existing.status,
       newStatus: status,
       emailNotificationSent: status === 'SENT' && !!updated.counselEmail,
+      examinerCcd: status === 'SENT' && !!updated.counselEmail && !!user?.email,
     },
     request,
   });

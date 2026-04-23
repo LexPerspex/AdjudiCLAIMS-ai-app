@@ -311,6 +311,7 @@ enum WorkflowStepStatus {
   PENDING
   COMPLETED
   SKIPPED
+
   @@map("workflow_step_status")
 }
 
@@ -483,16 +484,22 @@ model User {
   isActive       Boolean  @default(true) @map("is_active")
 
   // Sprint 2: Auth fields
-  passwordHash              String?   @map("password_hash")
-  emailVerified             Boolean   @default(false) @map("email_verified")
-  emailVerificationToken    String?   @map("email_verification_token")
-  emailVerificationExpiry   DateTime? @map("email_verification_expiry")
-  mfaSecret                 String?   @map("mfa_secret")
-  mfaEnabled                Boolean   @default(false) @map("mfa_enabled")
-  failedLoginAttempts       Int       @default(0) @map("failed_login_attempts")
-  lockedUntil               DateTime? @map("locked_until")
-  lastLoginAt               DateTime? @map("last_login_at")
-  passwordChangedAt         DateTime? @map("password_changed_at")
+  passwordHash            String?   @map("password_hash")
+  emailVerified           Boolean   @default(false) @map("email_verified")
+  emailVerificationToken  String?   @map("email_verification_token")
+  emailVerificationExpiry DateTime? @map("email_verification_expiry")
+  mfaSecret               String?   @map("mfa_secret")
+  mfaEnabled              Boolean   @default(false) @map("mfa_enabled")
+  failedLoginAttempts     Int       @default(0) @map("failed_login_attempts")
+  lockedUntil             DateTime? @map("locked_until")
+  lastLoginAt             DateTime? @map("last_login_at")
+  passwordChangedAt       DateTime? @map("password_changed_at")
+
+  // Phase 10.7 — Training Sandbox
+  /// When true, the user is in training-sandbox mode. Synthetic claims are
+  /// scoped to this user via Claim.syntheticOwnerId. Set/cleared via the
+  /// /api/training/sandbox/{enable,disable} routes.
+  trainingModeEnabled Boolean @default(false) @map("training_mode_enabled")
 
   // Soft-delete
   deletedAt DateTime? @map("deleted_at")
@@ -504,6 +511,7 @@ model User {
   // Relations
   organization     Organization      @relation(fields: [organizationId], references: [id])
   assignedClaims   Claim[]           @relation("AssignedExaminer")
+  syntheticClaims  Claim[]           @relation("SyntheticOwner")
   chatSessions     ChatSession[]
   auditEvents      AuditEvent[]
   educationProfile EducationProfile?
@@ -514,8 +522,8 @@ model User {
   workflowProgress WorkflowProgress[]
 
   // Phase 10 relations
-  generatedLetters  GeneratedLetter[]
-  counselReferrals  CounselReferral[]
+  generatedLetters GeneratedLetter[]
+  counselReferrals CounselReferral[]
 
   // AOE/COE relations
   coverageDeterminations CoverageDetermination[] @relation("DeterminedBy")
@@ -562,6 +570,14 @@ model Claim {
   hasApplicantAttorney Boolean @default(false) @map("has_applicant_attorney")
   isCumulativeTrauma   Boolean @default(false) @map("is_cumulative_trauma")
 
+  // Phase 10.7 — Training Sandbox
+  /// When true, this is synthetic training data and must never be mixed with
+  /// real claims in reports, analytics, or AI training feedback. Always paired
+  /// with `syntheticOwnerId` to scope visibility to the trainee that seeded it.
+  isSynthetic      Boolean @default(false) @map("is_synthetic")
+  /// User ID of the trainee who owns this synthetic claim. Null for real claims.
+  syntheticOwnerId String? @map("synthetic_owner_id")
+
   // Soft-delete
   deletedAt DateTime? @map("deleted_at")
   deletedBy String?   @map("deleted_by")
@@ -572,6 +588,7 @@ model Claim {
   // Relations
   organization       Organization         @relation(fields: [organizationId], references: [id])
   assignedExaminer   User                 @relation("AssignedExaminer", fields: [assignedExaminerId], references: [id])
+  syntheticOwner     User?                @relation("SyntheticOwner", fields: [syntheticOwnerId], references: [id])
   documents          Document[]
   chatSessions       ChatSession[]
   deadlines          RegulatoryDeadline[]
@@ -582,9 +599,9 @@ model Claim {
   workflowProgress   WorkflowProgress[]
 
   // Phase 10 relations
-  generatedLetters  GeneratedLetter[]
-  counselReferrals  CounselReferral[]
-  liens             Lien[]
+  generatedLetters GeneratedLetter[]
+  counselReferrals CounselReferral[]
+  liens            Lien[]
 
   // AOE/COE + Medical Billing relations
   bodyPartRecords        ClaimBodyPart[]
@@ -592,12 +609,12 @@ model Claim {
   medicalPayments        MedicalPayment[]
 
   // Graph RAG relations
-  graphNodes          GraphNode[]
-  graphEdges          GraphEdge[]
-  graphSummaries      GraphSummary[]
-  graphMaturity       GraphMaturity?
-  graphStatusChanges  GraphStatusChange[]
-  graphQuerySignals   GraphQuerySignal[]
+  graphNodes         GraphNode[]
+  graphEdges         GraphEdge[]
+  graphSummaries     GraphSummary[]
+  graphMaturity      GraphMaturity?
+  graphStatusChanges GraphStatusChange[]
+  graphQuerySignals  GraphQuerySignal[]
 
   @@index([organizationId], map: "idx_claims_organization_id")
   @@index([assignedExaminerId], map: "idx_claims_assigned_examiner_id")
@@ -607,6 +624,8 @@ model Claim {
   @@index([isLitigated], map: "idx_claims_is_litigated")
   @@index([organizationId, status], map: "idx_claims_org_status")
   @@index([organizationId, assignedExaminerId], map: "idx_claims_org_examiner")
+  @@index([syntheticOwnerId], map: "idx_claims_synthetic_owner")
+  @@index([isSynthetic], map: "idx_claims_is_synthetic")
   @@map("claims")
 }
 
@@ -670,13 +689,13 @@ model Document {
 model DocumentChunk {
   id         String @id @default(cuid()) @map("id")
   documentId String @map("document_id")
-  content    String @map("content") 
+  content    String @map("content")
   chunkIndex Int    @map("chunk_index")
 
   // 3-level heading structure
-  headingL1 String? @map("heading_l1") 
-  headingL2 String? @map("heading_l2") 
-  headingL3 String? @map("heading_l3") 
+  headingL1 String? @map("heading_l1")
+  headingL2 String? @map("heading_l2")
+  headingL3 String? @map("heading_l3")
 
   // Atomic preservation flags
   pageNumbers       Json?   @map("page_numbers")
@@ -686,18 +705,18 @@ model DocumentChunk {
   containsProcedure Boolean @default(false) @map("contains_procedure")
 
   // Parent-child indexing
-  parentChunkId String?  @map("parent_chunk_id")
-  isParent      Boolean  @default(false) @map("is_parent")
+  parentChunkId String? @map("parent_chunk_id")
+  isParent      Boolean @default(false) @map("is_parent")
 
   // Contextual prefix (included in embedding, excluded from LLM generation)
-  contextPrefix String? @map("context_prefix") 
+  contextPrefix String? @map("context_prefix")
 
   // Token-based metadata
   tokenCount Int? @map("token_count")
 
   // Relations
-  document    Document       @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  parentChunk DocumentChunk? @relation("ChunkParent", fields: [parentChunkId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  document    Document        @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  parentChunk DocumentChunk?  @relation("ChunkParent", fields: [parentChunkId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   childChunks DocumentChunk[] @relation("ChunkParent")
 
   @@index([documentId], map: "idx_document_chunks_document_id")
@@ -770,7 +789,7 @@ model ChatMessage {
   id        String   @id @default(cuid()) @map("id")
   sessionId String   @map("session_id")
   role      ChatRole @map("role")
-  content   String   @map("content") 
+  content   String   @map("content")
 
   /// UPL zone classification: GREEN (factual), YELLOW (needs disclaimer), RED (blocked).
   uplZone           UplZone? @map("upl_zone")
@@ -805,11 +824,11 @@ model RegulatoryDeadline {
   // Relations
   claim Claim @relation(fields: [claimId], references: [id])
 
+  @@unique([claimId, deadlineType])
   @@index([claimId], map: "idx_regulatory_deadlines_claim_id")
   @@index([dueDate], map: "idx_regulatory_deadlines_due_date")
   @@index([status], map: "idx_regulatory_deadlines_status")
   @@index([claimId, status], map: "idx_regulatory_deadlines_claim_status")
-  @@unique([claimId, deadlineType])
   @@index([status, dueDate], map: "idx_regulatory_deadlines_status_due")
   @@map("regulatory_deadlines")
 }
@@ -831,9 +850,9 @@ model InvestigationItem {
   completedBy User?     @relation("CompletedBy", fields: [completedById], references: [id])
   document    Document? @relation("SatisfiedByDocument", fields: [documentId], references: [id])
 
+  @@unique([claimId, itemType])
   @@index([claimId], map: "idx_investigation_items_claim_id")
   @@index([isComplete], map: "idx_investigation_items_is_complete")
-  @@unique([claimId, itemType])
   @@index([claimId, isComplete], map: "idx_investigation_items_claim_complete")
   @@index([completedById], map: "idx_investigation_items_completed_by_id")
   @@index([documentId], map: "idx_investigation_items_document_id")
@@ -978,7 +997,7 @@ model GeneratedLetter {
   claimId       String     @map("claim_id")
   userId        String     @map("user_id")
   letterType    LetterType @map("letter_type")
-  content       String     @map("content") 
+  content       String     @map("content")
   templateId    String     @map("template_id")
   populatedData Json       @map("populated_data")
 
@@ -999,7 +1018,7 @@ model CounselReferral {
   claimId         String         @map("claim_id")
   userId          String         @map("user_id")
   legalIssue      String         @map("legal_issue")
-  summary         String         @map("summary") 
+  summary         String         @map("summary")
   status          ReferralStatus @default(PENDING) @map("status")
   counselEmail    String?        @map("counsel_email")
   counselResponse String?        @map("counsel_response")
@@ -1020,20 +1039,20 @@ model CounselReferral {
 
 /// Lien filed against a workers' compensation claim.
 model Lien {
-  id                  String          @id @default(cuid()) @map("id")
-  claimId             String          @map("claim_id")
-  lienClaimant        String          @map("lien_claimant")
-  lienType            LienType        @map("lien_type")
-  totalAmountClaimed  Decimal         @map("total_amount_claimed") @db.Decimal(12, 2)
-  totalOmfsAllowed    Decimal?        @map("total_omfs_allowed") @db.Decimal(12, 2)
-  discrepancyAmount   Decimal?        @map("discrepancy_amount") @db.Decimal(12, 2)
-  filingDate          DateTime        @map("filing_date") @db.Date
-  filingFeeStatus     FilingFeeStatus @default(UNKNOWN) @map("filing_fee_status")
-  status              LienStatus      @default(RECEIVED) @map("status")
-  resolvedAmount      Decimal?        @map("resolved_amount") @db.Decimal(12, 2)
-  resolvedAt          DateTime?       @map("resolved_at")
-  wcabCaseNumber      String?         @map("wcab_case_number")
-  notes               String?         @map("notes")
+  id                 String          @id @default(cuid()) @map("id")
+  claimId            String          @map("claim_id")
+  lienClaimant       String          @map("lien_claimant")
+  lienType           LienType        @map("lien_type")
+  totalAmountClaimed Decimal         @map("total_amount_claimed") @db.Decimal(12, 2)
+  totalOmfsAllowed   Decimal?        @map("total_omfs_allowed") @db.Decimal(12, 2)
+  discrepancyAmount  Decimal?        @map("discrepancy_amount") @db.Decimal(12, 2)
+  filingDate         DateTime        @map("filing_date") @db.Date
+  filingFeeStatus    FilingFeeStatus @default(UNKNOWN) @map("filing_fee_status")
+  status             LienStatus      @default(RECEIVED) @map("status")
+  resolvedAmount     Decimal?        @map("resolved_amount") @db.Decimal(12, 2)
+  resolvedAt         DateTime?       @map("resolved_at")
+  wcabCaseNumber     String?         @map("wcab_case_number")
+  notes              String?         @map("notes")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -1164,28 +1183,28 @@ model MedicalPayment {
 /// Per-claim graph node — entities extracted from documents.
 /// Nodes are scoped to a single claim and typed by the 13-value ontology.
 model GraphNode {
-  id              String        @id @default(cuid()) @map("id")
-  claimId         String        @map("claim_id")
-  nodeType        GraphNodeType @map("node_type")
-  canonicalName   String        @map("canonical_name") 
-  aliases         Json          @default("[]") @map("aliases")
-  properties      Json          @default("{}") @map("properties")
+  id            String        @id @default(cuid()) @map("id")
+  claimId       String        @map("claim_id")
+  nodeType      GraphNodeType @map("node_type")
+  canonicalName String        @map("canonical_name")
+  aliases       Json          @default("[]") @map("aliases")
+  properties    Json          @default("{}") @map("properties")
 
   // Person/Org subtype (stored as JSON since PersonRole/OrgType are domain-specific)
-  personRole      PersonRole?   @map("person_role")
-  orgType         OrgType?      @map("org_type")
+  personRole PersonRole? @map("person_role")
+  orgType    OrgType?    @map("org_type")
 
   // Provenance
-  sourceDocumentIds Json        @default("[]") @map("source_document_ids")
-  confidence        Float       @default(0) @map("confidence")
+  sourceDocumentIds Json  @default("[]") @map("source_document_ids")
+  confidence        Float @default(0) @map("confidence")
 
   // Embedding (model-agnostic — dimension stored per-model, not per-schema)
-  embeddingModel  String?       @map("embedding_model")
+  embeddingModel String? @map("embedding_model")
 
   // Human verification
-  humanVerified   Boolean       @default(false) @map("human_verified")
-  humanVerifiedBy String?       @map("human_verified_by")
-  locked          Boolean       @default(false) @map("locked")
+  humanVerified   Boolean @default(false) @map("human_verified")
+  humanVerifiedBy String? @map("human_verified_by")
+  locked          Boolean @default(false) @map("locked")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -1220,19 +1239,19 @@ model GraphEdge {
   sourceConfidences Json  @default("[]") @map("source_confidences")
 
   // Neuro-plastic weight (Hebbian strengthening / lazy decay)
-  weight          Float    @default(1.0) @map("weight")
-  traversalCount  Int      @default(0) @map("traversal_count")
+  weight          Float     @default(1.0) @map("weight")
+  traversalCount  Int       @default(0) @map("traversal_count")
   lastTraversedAt DateTime? @map("last_traversed_at")
 
   // Contradiction tracking
-  contradictionStatus    ContradictionStatus @default(NONE) @map("contradiction_status")
-  contradictedByEdgeIds  Json                @default("[]") @map("contradicted_by_edge_ids")
-  contradictionType      String?             @map("contradiction_type")
+  contradictionStatus   ContradictionStatus @default(NONE) @map("contradiction_status")
+  contradictedByEdgeIds Json                @default("[]") @map("contradicted_by_edge_ids")
+  contradictionType     String?             @map("contradiction_type")
 
   // Human verification
-  humanVerified   Boolean  @default(false) @map("human_verified")
-  humanVerifiedBy String?  @map("human_verified_by")
-  locked          Boolean  @default(false) @map("locked")
+  humanVerified   Boolean @default(false) @map("human_verified")
+  humanVerifiedBy String? @map("human_verified_by")
+  locked          Boolean @default(false) @map("locked")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -1252,12 +1271,12 @@ model GraphEdge {
 
 /// Subgraph summary — consolidated natural language summary of a node cluster.
 model GraphSummary {
-  id       String  @id @default(cuid()) @map("id")
-  claimId  String  @map("claim_id")
-  nodeIds  Json    @default("[]") @map("node_ids")
-  edgeIds  Json    @default("[]") @map("edge_ids")
-  summary  String  @map("summary") 
-  isValid  Boolean @default(true) @map("is_valid")
+  id      String  @id @default(cuid()) @map("id")
+  claimId String  @map("claim_id")
+  nodeIds Json    @default("[]") @map("node_ids")
+  edgeIds Json    @default("[]") @map("edge_ids")
+  summary String  @map("summary")
+  isValid Boolean @default(true) @map("is_valid")
 
   // Embedding
   embeddingModel String? @map("embedding_model")
@@ -1277,12 +1296,12 @@ model GraphMaturity {
   id      String @id @default(cuid()) @map("id")
   claimId String @unique @map("claim_id")
 
-  overallScore          Float        @default(0) @map("overall_score")
-  medicalScore          Float        @default(0) @map("medical_score")
-  insuranceBenefitScore Float        @default(0) @map("insurance_benefit_score")
-  employmentScore       Float        @default(0) @map("employment_score")
-  regulatoryScore       Float        @default(0) @map("regulatory_score")
-  evidentialScore       Float        @default(0) @map("evidential_score")
+  overallScore          Float         @default(0) @map("overall_score")
+  medicalScore          Float         @default(0) @map("medical_score")
+  insuranceBenefitScore Float         @default(0) @map("insurance_benefit_score")
+  employmentScore       Float         @default(0) @map("employment_score")
+  regulatoryScore       Float         @default(0) @map("regulatory_score")
+  evidentialScore       Float         @default(0) @map("evidential_score")
   maturityLabel         MaturityLabel @default(NASCENT) @map("maturity_label")
 
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -1295,15 +1314,15 @@ model GraphMaturity {
 
 /// Tracks property changes on graph nodes for audit/timeline purposes.
 model GraphStatusChange {
-  id            String   @id @default(cuid()) @map("id")
-  claimId       String   @map("claim_id")
-  targetNodeId  String   @map("target_node_id")
-  field         String   @map("field")
-  oldValue      String?  @map("old_value") 
-  newValue      String?  @map("new_value") 
+  id            String    @id @default(cuid()) @map("id")
+  claimId       String    @map("claim_id")
+  targetNodeId  String    @map("target_node_id")
+  field         String    @map("field")
+  oldValue      String?   @map("old_value")
+  newValue      String?   @map("new_value")
   effectiveDate DateTime? @map("effective_date")
-  documentId    String?  @map("document_id")
-  confidence    Float    @default(0) @map("confidence")
+  documentId    String?   @map("document_id")
+  confidence    Float     @default(0) @map("confidence")
 
   createdAt DateTime @default(now()) @map("created_at")
 
@@ -1319,7 +1338,7 @@ model GraphStatusChange {
 model GraphQuerySignal {
   id              String   @id @default(cuid()) @map("id")
   claimId         String   @map("claim_id")
-  queryText       String   @map("query_text") 
+  queryText       String   @map("query_text")
   queryPattern    String?  @map("query_pattern")
   observeSnapshot Json?    @map("observe_snapshot")
   tierSelected    String?  @map("tier_selected")

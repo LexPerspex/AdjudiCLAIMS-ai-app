@@ -201,6 +201,7 @@ export async function authRoutes(server: FastifyInstance): Promise<void> {
           failedLoginAttempts: true,
           lockedUntil: true,
           mfaEnabled: true,
+          trainingModeEnabled: true,
         },
       });
 
@@ -299,6 +300,7 @@ export async function authRoutes(server: FastifyInstance): Promise<void> {
         role: user.role as UserRole,
         organizationId: user.organizationId,
         isTrainingComplete: educationProfile?.isTrainingComplete ?? false,
+        trainingModeEnabled: user.trainingModeEnabled,
       };
       request.session.lastActivity = Date.now();
 
@@ -491,7 +493,7 @@ export async function authRoutes(server: FastifyInstance): Promise<void> {
 
     const dbUser = await prisma.user.findUnique({
       where: { id: pending.userId },
-      select: { mfaSecret: true },
+      select: { mfaSecret: true, trainingModeEnabled: true },
     });
 
     if (!dbUser?.mfaSecret) {
@@ -518,6 +520,7 @@ export async function authRoutes(server: FastifyInstance): Promise<void> {
       role: pending.role,
       organizationId: pending.organizationId,
       isTrainingComplete: educationProfile?.isTrainingComplete ?? false,
+      trainingModeEnabled: dbUser.trainingModeEnabled,
     };
     request.session.lastActivity = Date.now();
     delete request.session.mfaPending;

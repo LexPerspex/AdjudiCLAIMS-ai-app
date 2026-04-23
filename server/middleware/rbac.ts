@@ -19,6 +19,13 @@ export interface SessionUser {
   role: UserRole;
   organizationId: string;
   isTrainingComplete?: boolean;  // Set during login from EducationProfile
+  /**
+   * AJC-19 — true when the user is in training-sandbox mode. Mirrored from
+   * `User.trainingModeEnabled` at login and updated in-place when the
+   * /api/training/sandbox/{enable,disable} routes flip the flag. Drives the
+   * "TRAINING SANDBOX" banner in the app shell.
+   */
+  trainingModeEnabled?: boolean;
 }
 
 // Extend Fastify session type so `request.session.user` is recognized.

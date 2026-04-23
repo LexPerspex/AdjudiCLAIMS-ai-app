@@ -33,6 +33,7 @@ import { coverageRoutes } from './routes/coverage.js';
 import { medicalBillingRoutes } from './routes/medical-billing.js';
 import { dataManagementRoutes } from './routes/data-management.js';
 import { sandboxRoutes } from './routes/sandbox.js';
+import { trainingSandboxRoutes } from './routes/training-sandbox.js';
 import { comparableClaimsRoutes } from './routes/comparable-claims.js';
 
 export async function buildServer() {
@@ -111,6 +112,7 @@ export async function buildServer() {
   await server.register(medicalBillingRoutes, { prefix: '/api' });
   await server.register(dataManagementRoutes, { prefix: '/api' });
   await server.register(sandboxRoutes, { prefix: '/api' });
+  await server.register(trainingSandboxRoutes, { prefix: '/api' });
   await server.register(comparableClaimsRoutes, { prefix: '/api' });
 
   // WI-2: Global error handler — registered after all routes

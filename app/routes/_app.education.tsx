@@ -11,10 +11,19 @@ import {
   X,
   AlertCircle,
   RefreshCw,
+  FlaskConical,
+  RotateCw,
+  Power,
 } from 'lucide-react';
 import { cn } from '~/lib/utils';
 import { PageHeader } from '~/components/layout/page-header';
 import { apiFetch } from '~/services/api';
+import {
+  useTrainingSandboxStatus,
+  useEnableTrainingMode,
+  useDisableTrainingMode,
+  useResetSandbox,
+} from '~/hooks/api/use-training-sandbox';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -431,6 +440,136 @@ function TrainingTab() {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Sandbox Tab — per-user training sandbox toggle (AJC-19)            */
+/* ------------------------------------------------------------------ */
+
+function SandboxTab() {
+  const statusQuery = useTrainingSandboxStatus();
+  const enableMutation = useEnableTrainingMode();
+  const disableMutation = useDisableTrainingMode();
+  const resetMutation = useResetSandbox();
+
+  const isBusy =
+    enableMutation.isPending || disableMutation.isPending || resetMutation.isPending;
+
+  if (statusQuery.isLoading) {
+    return <p className="text-sm text-slate-400 py-12 text-center">Loading sandbox status...</p>;
+  }
+
+  const status = statusQuery.data;
+  const enabled = status?.trainingModeEnabled ?? false;
+
+  return (
+    <div className="flex flex-col gap-4 max-w-3xl">
+      {/* Status card */}
+      <section className="bg-surface-container-lowest rounded-2xl ambient-shadow p-6 flex items-start gap-4">
+        <div
+          className={cn(
+            'w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0',
+            enabled ? 'bg-yellow-100 text-yellow-700' : 'bg-surface-container text-on-surface-variant',
+          )}
+        >
+          <FlaskConical className="w-6 h-6" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-lg font-bold text-on-surface">Training Sandbox</h3>
+          <p className="text-sm text-on-surface-variant mt-1">
+            Practice with synthetic claims that look and behave like real ones — without ever
+            touching real PHI/PII. The same UPL Green/Yellow/Red zone rules apply, so what you
+            learn here transfers directly to production work.
+          </p>
+          <div className="mt-3 flex items-center gap-3 flex-wrap">
+            <span
+              className={cn(
+                'px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider',
+                enabled
+                  ? 'bg-yellow-100 text-yellow-800'
+                  : 'bg-surface-container-high text-on-surface-variant',
+              )}
+            >
+              {enabled ? 'Active' : 'Off'}
+            </span>
+            {status && (
+              <span className="text-xs text-on-surface-variant">
+                {status.syntheticClaimCount} of {status.availableScenarios} practice claims loaded
+              </span>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Controls */}
+      <section className="bg-surface-container-lowest rounded-2xl ambient-shadow p-6 flex flex-col gap-3">
+        {!enabled && (
+          <button
+            type="button"
+            onClick={() => {
+              enableMutation.mutate();
+            }}
+            disabled={isBusy}
+            className="self-start px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            <Power className="w-4 h-4" />
+            {enableMutation.isPending ? 'Enabling...' : 'Enable Training Sandbox'}
+          </button>
+        )}
+
+        {enabled && (
+          <div className="flex items-center gap-3 flex-wrap">
+            <button
+              type="button"
+              onClick={() => {
+                resetMutation.mutate();
+              }}
+              disabled={isBusy}
+              className="px-4 py-2 bg-surface-container-high text-on-surface rounded-lg text-sm font-bold hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              <RotateCw className={cn('w-4 h-4', resetMutation.isPending && 'animate-spin')} />
+              {resetMutation.isPending ? 'Resetting...' : 'Reset to Baseline'}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                disableMutation.mutate();
+              }}
+              disabled={isBusy}
+              className="px-4 py-2 bg-error/10 text-error rounded-lg text-sm font-bold hover:bg-error/20 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              <X className="w-4 h-4" />
+              {disableMutation.isPending ? 'Exiting...' : 'Exit Training Mode'}
+            </button>
+          </div>
+        )}
+
+        <p className="text-xs text-on-surface-variant mt-2">
+          <strong>Reset</strong> wipes your synthetic claims and re-seeds the catalog.{' '}
+          <strong>Exit</strong> turns off training mode but preserves your synthetic claims so you
+          can resume later.
+        </p>
+      </section>
+
+      {/* Scenario catalog hint */}
+      <section className="bg-surface-container-low rounded-2xl p-5">
+        <h4 className="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-3">
+          What You Will Practice
+        </h4>
+        <ul className="text-sm text-on-surface-variant space-y-1.5 list-disc list-inside">
+          <li>Simple slip-and-fall (acknowledgment + 40-day determination)</li>
+          <li>Cumulative trauma with applicant attorney + lien tracking</li>
+          <li>Accepted claim with active TD payments + RTW assessment</li>
+          <li>Lien-heavy claim with OMFS comparison + WCAB filing fees</li>
+          <li>MMI / PD calculation with WPI extraction</li>
+          <li>UR dispute with MTUS lookup + IMR filing</li>
+          <li>Complex AOE/COE with apportionment + counsel referral</li>
+          <li>Medical billing review with payment ledger reconciliation</li>
+          <li>Missed-deadline remediation + penalty exposure analysis</li>
+        </ul>
+      </section>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /*  Education Page                                                     */
 /* ------------------------------------------------------------------ */
 
@@ -438,6 +577,7 @@ const TABS = [
   { id: 'glossary', label: 'Glossary', icon: BookOpen },
   { id: 'regulatory', label: 'Regulatory Education', icon: Shield },
   { id: 'training', label: 'Training Modules', icon: GraduationCap },
+  { id: 'sandbox', label: 'Training Sandbox', icon: FlaskConical },
 ] as const;
 
 type TabId = (typeof TABS)[number]['id'];
@@ -478,6 +618,7 @@ export default function EducationPage() {
       {activeTab === 'glossary' && <GlossaryTab />}
       {activeTab === 'regulatory' && <RegulatoryTab />}
       {activeTab === 'training' && <TrainingTab />}
+      {activeTab === 'sandbox' && <SandboxTab />}
     </>
   );
 }

@@ -1,7 +1,9 @@
 import { Outlet, Link } from 'react-router';
 import { Bell, Clock, Search, User } from 'lucide-react';
 import { Sidebar } from './sidebar';
+import { TrainingSandboxBanner } from './training-sandbox-banner';
 import { useSidebarStore } from '~/stores/sidebar.store';
+import { useTrainingSandboxStatus } from '~/hooks/api/use-training-sandbox';
 import { cn } from '~/lib/utils';
 
 /**
@@ -11,15 +13,22 @@ import { cn } from '~/lib/utils';
  */
 export function AppLayout() {
   const { collapsed, toggle } = useSidebarStore();
+  // Probe sandbox status so the banner mounts (banner reads its own query;
+  // this hook call ensures the QueryClient prefetches early on layout mount).
+  const { data: sandboxStatus } = useTrainingSandboxStatus();
+  const trainingActive = sandboxStatus?.trainingModeEnabled ?? false;
 
   return (
     <div className="min-h-screen bg-surface text-on-surface font-sans antialiased">
+      <TrainingSandboxBanner />
       <Sidebar collapsed={collapsed} onToggle={toggle} />
 
       {/* Header bar */}
       <header
         className={cn(
-          'bg-surface sticky top-0 z-40 transition-all duration-200',
+          'bg-surface sticky z-40 transition-all duration-200',
+          // When the training banner is showing, push the header below it (~36px).
+          trainingActive ? 'top-9' : 'top-0',
           collapsed ? 'ml-16' : 'ml-60',
         )}
       >

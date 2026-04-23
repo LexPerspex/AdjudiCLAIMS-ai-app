@@ -104,6 +104,26 @@ export async function chatRoutes(server: FastifyInstance): Promise<void> {
           documentName: c.documentName,
           snippet: c.content.substring(0, 200),
         })),
+        // G5 Trust UX (AJC-14): confidence badge, entity panel, source provenance
+        graphTrust: {
+          overallConfidence: response.graphTrust.overallConfidence,
+          graphContextUsed: response.graphTrust.graphContextUsed,
+          entities: response.graphTrust.entities.map((e) => ({
+            id: e.id,
+            name: e.name,
+            nodeType: e.nodeType,
+            confidence: e.confidence,
+            confidenceBadge: e.confidenceBadge,
+            aliases: e.aliases ?? [],
+            sourceCount: e.sourceCount,
+          })),
+          provenance: response.graphTrust.provenance.map((p) => ({
+            documentName: p.documentName,
+            documentType: p.documentType,
+            confidence: p.confidence,
+            extractedAt: p.extractedAt,
+          })),
+        },
       };
     },
   );

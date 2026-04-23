@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Lock, Info, ChevronDown, ChevronUp, Gavel, Bot } from 'lucide-react';
+import { Send, Lock, Info, ChevronDown, ChevronUp, Gavel, Bot, Network } from 'lucide-react';
 import { cn } from '~/lib/utils';
 import {
   useChatMessages,
@@ -7,7 +7,11 @@ import {
   type ChatMessage,
   type ChatSession,
   type Citation,
+  type GraphTrustData,
+  type GraphTrustEntity,
+  type GraphTrustSource,
 } from '~/hooks/api/use-chat';
+import { ConfidenceBadge } from '~/components/graph/confidence-badge';
 import { ProvenanceCard } from '~/components/graph/provenance-card';
 
 /* ------------------------------------------------------------------ */
@@ -158,9 +162,9 @@ function AssistantMessage({ message }: { message: ChatMessage }) {
           isRed ? 'bg-error/5 border-error/20' : 'bg-primary/5 border-primary/10',
         )}
       >
-        {/* UPL zone badge */}
-        {zone && (
-          <div className="flex items-center gap-2 mb-2">
+        {/* Header row: UPL zone badge + Graph RAG confidence badge */}
+        <div className="flex items-center gap-2 mb-2 flex-wrap">
+          {zone && (
             <span
               className={cn(
                 'px-2 py-0.5 rounded text-[8px] font-bold uppercase',
@@ -169,8 +173,12 @@ function AssistantMessage({ message }: { message: ChatMessage }) {
             >
               {zone.label}
             </span>
-          </div>
-        )}
+          )}
+          {/* G5 Trust UX: confidence badge — factual display only, GREEN zone */}
+          {message.graphTrust && !isRed && (
+            <ConfidenceBadge confidence={message.graphTrust.overallConfidence} size="sm" />
+          )}
+        </div>
 
         {/* Message content */}
         {isRed ? (
@@ -201,9 +209,18 @@ function AssistantMessage({ message }: { message: ChatMessage }) {
           <CitationsList citations={message.citations} />
         )}
 
-        {/* Provenance — source document cards extracted from citations */}
-        {message.citations && message.citations.length > 0 && (
-          <ProvenanceSection citations={message.citations} />
+        {/* G5 Trust UX: Entity panel — which graph entities were referenced */}
+        {message.graphTrust && message.graphTrust.entities.length > 0 && !isRed && (
+          <EntitySummarySection entities={message.graphTrust.entities} />
+        )}
+
+        {/* G5 Trust UX: Provenance — source documents with real confidence scores */}
+        {message.graphTrust && message.graphTrust.provenance.length > 0 && !isRed ? (
+          <GraphProvenanceSection provenance={message.graphTrust.provenance} />
+        ) : (
+          message.citations && message.citations.length > 0 && (
+            <ProvenanceSection citations={message.citations} />
+          )
         )}
       </div>
       <div className="flex justify-end">
@@ -251,6 +268,98 @@ function CitationsList({ citations }: { citations: Citation[] }) {
               <p className="text-slate-500">{c.source}</p>
               <p className="mt-1 italic">{c.excerpt}</p>
             </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  G5 Trust UX: Entity Summary Section                               */
+/* ------------------------------------------------------------------ */
+
+/**
+ * EntitySummarySection — collapsible list of graph entities referenced in response.
+ *
+ * Shows the examiner exactly which named entities (claimant, physician, body parts,
+ * etc.) were pulled from the knowledge graph to generate this answer.
+ * Factual display only — GREEN zone. No legal conclusions.
+ */
+function EntitySummarySection({ entities }: { entities: GraphTrustEntity[] }) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div className="mt-3 pt-3 border-t border-primary/5">
+      <button
+        className="text-[9px] font-bold text-primary flex items-center gap-1"
+        onClick={() => setExpanded((v) => !v)}
+        aria-expanded={expanded}
+        aria-label={`Graph entities (${entities.length})`}
+      >
+        <Network className="w-3 h-3" aria-hidden />
+        {entities.length} graph {entities.length === 1 ? 'entity' : 'entities'} referenced
+        {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+      </button>
+      {expanded && (
+        <div className="mt-2 space-y-1.5">
+          {entities.map((entity) => (
+            <div
+              key={entity.id}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-surface-container-low border border-outline-variant/10"
+            >
+              <span className="text-[10px] font-semibold text-on-surface truncate flex-1">
+                {entity.name}
+              </span>
+              <span className="text-[9px] text-slate-400 uppercase tracking-wide shrink-0">
+                {entity.nodeType.toLowerCase().replace(/_/g, ' ')}
+              </span>
+              <ConfidenceBadge confidence={entity.confidence} size="sm" />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  G5 Trust UX: Graph Provenance Section                              */
+/* ------------------------------------------------------------------ */
+
+/**
+ * GraphProvenanceSection — source documents with real graph confidence scores.
+ *
+ * Replaces the legacy ProvenanceSection when graphTrust data is available.
+ * Uses actual similarity/confidence scores from the graph traversal + RAG retrieval.
+ */
+function GraphProvenanceSection({ provenance }: { provenance: GraphTrustSource[] }) {
+  const [expanded, setExpanded] = useState(false);
+
+  if (provenance.length === 0) return null;
+
+  return (
+    <div className="mt-3 pt-3 border-t border-primary/5">
+      <button
+        className="text-[9px] font-bold text-primary flex items-center gap-1"
+        onClick={() => setExpanded((v) => !v)}
+        aria-expanded={expanded}
+      >
+        Source documents ({provenance.length})
+        {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+      </button>
+      {expanded && (
+        <div className="mt-2 space-y-2">
+          {provenance.map((src, i) => (
+            <ProvenanceCard
+              key={`${src.documentName}-${i}`}
+              source={{
+                documentName: src.documentName,
+                documentType: src.documentType,
+                confidence: src.confidence,
+                extractedAt: src.extractedAt,
+              }}
+            />
           ))}
         </div>
       )}

@@ -14,6 +14,45 @@ export interface ChatSession {
   messageCount: number;
 }
 
+/**
+ * A single entity referenced during graph traversal for this response.
+ * Surfaced in the entity panel (G5 Trust UX).
+ */
+export interface GraphTrustEntity {
+  id: string;
+  name: string;
+  nodeType: string;
+  confidence: number;
+  confidenceBadge: 'verified' | 'confident' | 'suggested' | 'ai_generated';
+  aliases: string[];
+  sourceCount: number;
+}
+
+/**
+ * A source document that contributed to this response.
+ * Surfaced in the provenance panel (G5 Trust UX).
+ */
+export interface GraphTrustSource {
+  documentName: string;
+  documentType?: string;
+  confidence: number;
+  extractedAt: string;
+}
+
+/**
+ * Graph RAG trust transparency data (G5 Trust UX — AJC-14).
+ *
+ * Surfaces which graph entities and source documents contributed to the
+ * AI response so the examiner can see exactly why the answer was given.
+ * Factual display only — no legal analysis.
+ */
+export interface GraphTrustData {
+  overallConfidence: number;
+  entities: GraphTrustEntity[];
+  provenance: GraphTrustSource[];
+  graphContextUsed: boolean;
+}
+
 export interface ChatMessage {
   id: string;
   sessionId: string;
@@ -23,6 +62,8 @@ export interface ChatMessage {
   citations?: Citation[];
   disclaimer?: string;
   createdAt: string;
+  /** G5 Trust UX: confidence badge, entity panel, source provenance. */
+  graphTrust?: GraphTrustData;
 }
 
 export interface Citation {

@@ -244,6 +244,29 @@ describe('Chat routes', () => {
         citations: [
           { documentId: 'doc-1', documentName: 'report.pdf', content: 'Some content from the document' },
         ],
+        graphTrust: {
+          overallConfidence: 0.87,
+          graphContextUsed: true,
+          entities: [
+            {
+              id: 'node-1',
+              name: 'John Smith',
+              nodeType: 'PERSON',
+              confidence: 0.9,
+              confidenceBadge: 'verified',
+              aliases: [],
+              sourceCount: 2,
+            },
+          ],
+          provenance: [
+            {
+              documentName: 'report.pdf',
+              documentType: 'MEDICAL_REPORT',
+              confidence: 0.87,
+              extractedAt: '2024-03-01T00:00:00.000Z',
+            },
+          ],
+        },
       });
 
       const response = await server.inject({
@@ -262,6 +285,12 @@ describe('Chat routes', () => {
         wasBlocked: boolean;
         disclaimer: string;
         citations: Array<{ documentId: string; documentName: string; snippet: string }>;
+        graphTrust: {
+          overallConfidence: number;
+          graphContextUsed: boolean;
+          entities: Array<{ id: string; name: string; nodeType: string; confidence: number; confidenceBadge: string; aliases: string[]; sourceCount: number }>;
+          provenance: Array<{ documentName: string; confidence: number; extractedAt: string }>;
+        };
       }>();
 
       expect(body.sessionId).toBe('session-1');
@@ -269,6 +298,60 @@ describe('Chat routes', () => {
       expect(body.wasBlocked).toBe(false);
       expect(body.citations).toHaveLength(1);
       expect(body.citations[0]?.documentName).toBe('report.pdf');
+
+      // G5 Trust UX (AJC-14): verify graphTrust field in response
+      expect(body.graphTrust).toBeDefined();
+      expect(typeof body.graphTrust.overallConfidence).toBe('number');
+      expect(body.graphTrust.overallConfidence).toBeGreaterThanOrEqual(0);
+      expect(body.graphTrust.overallConfidence).toBeLessThanOrEqual(1);
+      expect(body.graphTrust.graphContextUsed).toBe(true);
+      expect(Array.isArray(body.graphTrust.entities)).toBe(true);
+      expect(Array.isArray(body.graphTrust.provenance)).toBe(true);
+      expect(body.graphTrust.entities).toHaveLength(1);
+      expect(body.graphTrust.entities[0]?.name).toBe('John Smith');
+      expect(body.graphTrust.entities[0]?.confidenceBadge).toBe('verified');
+      expect(body.graphTrust.provenance).toHaveLength(1);
+      expect(body.graphTrust.provenance[0]?.documentName).toBe('report.pdf');
+    });
+
+    it('graphTrust has overallConfidence in [0, 1] when graph not used', async () => {
+      const cookie = await loginAs(server, MOCK_USER);
+      mockClaimFindUnique.mockResolvedValueOnce(MOCK_CLAIM);
+
+      mockProcessExaminerChat.mockResolvedValueOnce({
+        sessionId: 'session-rag-only',
+        messageId: 'msg-rag',
+        content: 'Based on RAG retrieval only.',
+        classification: { zone: 'GREEN' },
+        wasBlocked: false,
+        disclaimer: { disclaimer: '' },
+        citations: [],
+        graphTrust: {
+          overallConfidence: 0.5,
+          graphContextUsed: false,
+          entities: [],
+          provenance: [],
+        },
+      });
+
+      const response = await server.inject({
+        method: 'POST',
+        url: '/api/claims/claim-1/chat',
+        headers: { cookie },
+        payload: { message: 'Simple factual question' },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = response.json<{
+        graphTrust: { overallConfidence: number; graphContextUsed: boolean; entities: unknown[]; provenance: unknown[] };
+      }>();
+
+      expect(body.graphTrust).toBeDefined();
+      expect(body.graphTrust.graphContextUsed).toBe(false);
+      expect(body.graphTrust.entities).toHaveLength(0);
+      expect(body.graphTrust.provenance).toHaveLength(0);
+      expect(body.graphTrust.overallConfidence).toBeGreaterThanOrEqual(0);
+      expect(body.graphTrust.overallConfidence).toBeLessThanOrEqual(1);
     });
 
     it('passes sessionId to service when provided', async () => {
@@ -283,6 +366,12 @@ describe('Chat routes', () => {
         wasBlocked: false,
         disclaimer: { disclaimer: '' },
         citations: [],
+        graphTrust: {
+          overallConfidence: 0.5,
+          graphContextUsed: false,
+          entities: [],
+          provenance: [],
+        },
       });
 
       const response = await server.inject({

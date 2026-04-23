@@ -21,7 +21,11 @@ import { getLLMAdapter } from '../lib/llm/index.js';
 import { EXAMINER_CASE_CHAT_PROMPT } from '../prompts/adjudiclaims-chat.prompts.js';
 import { logAuditEvent } from '../middleware/audit.js';
 import { hybridSearch } from './hybrid-search.service.js';
-import { queryGraphForExaminer, formatGraphContext } from './graph/examiner-graph-access.service.js';
+import {
+  queryGraphForExaminer,
+  formatGraphContext,
+  type GraphQueryResult,
+} from './graph/examiner-graph-access.service.js';
 import { getClaimGraphSummary } from './graph/graph-traversal.service.js';
 import { EXAMINER_TOOLS, executeTool } from './chat-tools.service.js';
 
@@ -62,6 +66,80 @@ export interface Citation {
   headingBreadcrumb?: string;
 }
 
+// ---------------------------------------------------------------------------
+// Graph Trust UX types — G5 Trust UX (AJC-14)
+// ---------------------------------------------------------------------------
+
+/**
+ * A single entity referenced during graph traversal for this response.
+ *
+ * Surfaced in the entity panel so the examiner can see exactly which
+ * graph nodes informed the answer. Factual display only — no legal conclusions.
+ */
+export interface GraphTrustEntity {
+  /** Graph node ID */
+  id: string;
+  /** Canonical entity name (e.g. "John Smith", "Lumbar Spine") */
+  name: string;
+  /** Node type for icon/label display */
+  nodeType: string;
+  /**
+   * Extraction confidence from graph node — numeric in [0, 1].
+   * Maps to HIGH (>0.8), MEDIUM (0.5–0.8), LOW (<0.5) for badge display.
+   */
+  confidence: number;
+  /** Human-readable confidence label */
+  confidenceBadge: 'verified' | 'confident' | 'suggested' | 'ai_generated';
+  /** Alternate names this entity was found under */
+  aliases?: string[];
+  /** Number of source documents this entity was extracted from */
+  sourceCount: number;
+}
+
+/**
+ * A source document that contributed to this response via graph traversal.
+ *
+ * Surfaced in the provenance panel so the examiner can see which
+ * documents the AI used. Includes relevance score (not legal analysis).
+ */
+export interface GraphTrustSource {
+  /** Document file name */
+  documentName: string;
+  /** Document category for label display */
+  documentType?: string;
+  /**
+   * Relevance score in [0, 1] — derived from citation similarity or
+   * graph edge confidence, whichever is available.
+   */
+  confidence: number;
+  /** ISO timestamp of when this document was processed */
+  extractedAt: string;
+}
+
+/**
+ * Graph RAG trust transparency data attached to each assistant message.
+ *
+ * This is the "Glass Box" layer: instead of showing the examiner a black-box
+ * answer, we surface the exact entities and documents that contributed to it.
+ *
+ * All fields are factual (GREEN zone). No legal analysis or conclusions exposed.
+ */
+export interface GraphTrustData {
+  /**
+   * Composite confidence score for this response in [0, 1].
+   *
+   * Calculated as the mean confidence of all traversed graph nodes.
+   * Falls back to mean citation similarity if no graph context was used.
+   */
+  overallConfidence: number;
+  /** Graph entities referenced during traversal (empty if graph not used) */
+  entities: GraphTrustEntity[];
+  /** Source documents that contributed to the response */
+  provenance: GraphTrustSource[];
+  /** True if graph context was used; false if RAG-only response */
+  graphContextUsed: boolean;
+}
+
 /**
  * Response from the examiner chat pipeline.
  *
@@ -90,6 +168,8 @@ export interface ChatResponse {
   citations: Citation[];
   /** Whether graph context was included in the LLM prompt. */
   graphContextIncluded?: boolean;
+  /** G5 Trust UX: confidence badge, entity panel, and source provenance data. */
+  graphTrust: GraphTrustData;
 }
 
 // ---------------------------------------------------------------------------
@@ -159,6 +239,73 @@ async function retrieveContext(
     content: chunk.content,
     similarity: 1.0,
   }));
+}
+
+// ---------------------------------------------------------------------------
+// Graph Trust UX builder — G5 (AJC-14)
+// ---------------------------------------------------------------------------
+
+/**
+ * Build the GraphTrustData for the G5 Trust UX from the graph query result
+ * and RAG citation list.
+ *
+ * Why separate from the main pipeline: trust UX is a transparency layer on top
+ * of existing graph + RAG data. Keeping it isolated ensures it cannot affect
+ * UPL enforcement or LLM generation.
+ *
+ * @param graphResult - UPL-filtered graph query result, or null if graph not used.
+ * @param citations - RAG citations with similarity scores.
+ * @returns Fully populated GraphTrustData for the response.
+ */
+function buildGraphTrustData(
+  graphResult: GraphQueryResult | null,
+  citations: Citation[],
+): GraphTrustData {
+  // Build entity list from graph nodes (only what the examiner is allowed to see)
+  const entities: GraphTrustEntity[] = graphResult?.nodes.slice(0, 10).map((node) => ({
+    id: node.id,
+    name: node.canonicalName,
+    nodeType: node.nodeType as string,
+    confidence: node.confidence,
+    confidenceBadge: node.confidenceBadge,
+    aliases: [],
+    sourceCount: node.sourceCount,
+  })) ?? [];
+
+  // Build provenance from citations (deduplicated by documentName)
+  const seenDocs = new Set<string>();
+  const provenance: GraphTrustSource[] = citations
+    .filter((c) => {
+      if (seenDocs.has(c.documentName)) return false;
+      seenDocs.add(c.documentName);
+      return true;
+    })
+    .map((c) => ({
+      documentName: c.documentName,
+      confidence: c.similarity,
+      extractedAt: new Date().toISOString(),
+    }));
+
+  // Overall confidence: mean of graph node confidences if available,
+  // else mean of citation similarities, else 0.5 (neutral/unknown)
+  let overallConfidence: number;
+  if (entities.length > 0) {
+    overallConfidence = entities.reduce((acc, e) => acc + e.confidence, 0) / entities.length;
+  } else if (provenance.length > 0) {
+    overallConfidence = provenance.reduce((acc, p) => acc + p.confidence, 0) / provenance.length;
+  } else {
+    overallConfidence = 0.5;
+  }
+
+  // Clamp to [0, 1]
+  overallConfidence = Math.min(Math.max(overallConfidence, 0), 1);
+
+  return {
+    overallConfidence,
+    entities,
+    provenance,
+    graphContextUsed: graphResult !== null,
+  };
 }
 
 /**
@@ -297,11 +444,14 @@ export async function processExaminerChat(
       validation: { result: 'PASS', violations: [] },
       wasBlocked: true,
       citations: [],
+      graphTrust: buildGraphTrustData(null, []),
     };
   }
 
   // --- Stage 1.5: Graph Context ---
   let graphContext = '';
+  // Captured for G5 Trust UX — null means graph was not used
+  let capturedGraphResult: GraphQueryResult | null = null;
   try {
     const maturity = await getClaimGraphSummary(claimId);
     // Only query graph if maturity is GROWING or higher
@@ -312,6 +462,8 @@ export async function processExaminerChat(
         { maxNodes: 20, maxEdges: 30 },
       );
       graphContext = formatGraphContext(graphResult);
+      // Capture for G5 Trust UX transparency layer
+      capturedGraphResult = graphResult;
     }
   } catch (err) {
     // Graph context failure is non-fatal — chat continues with RAG only
@@ -415,6 +567,7 @@ export async function processExaminerChat(
       validation,
       wasBlocked: true,
       citations,
+      graphTrust: buildGraphTrustData(capturedGraphResult, citations),
     };
   }
 
@@ -474,5 +627,6 @@ export async function processExaminerChat(
     wasBlocked: false,
     citations,
     graphContextIncluded: graphContext.length > 0,
+    graphTrust: buildGraphTrustData(capturedGraphResult, citations),
   };
 }

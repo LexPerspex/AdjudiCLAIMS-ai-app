@@ -1,0 +1,15 @@
+{
+  "team_structure": "solo",
+  "domain_scope": "Backend service types + API serialization + Frontend types + Chat panel wiring + Tests",
+  "files_changed": [
+    "server/services/examiner-chat.service.ts",
+    "server/routes/chat.ts",
+    "app/hooks/api/use-chat.ts",
+    "app/components/chat/chat-panel.tsx",
+    "tests/unit/graph/graph-trust-ux.test.ts",
+    "tests/unit/chat-routes.test.ts"
+  ],
+  "commit_sha": "8254313",
+  "test_result": "passing",
+  "test_count": 3310
+}

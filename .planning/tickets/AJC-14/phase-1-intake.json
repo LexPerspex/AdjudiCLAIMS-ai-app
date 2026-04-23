@@ -1,0 +1,17 @@
+{
+  "id": "AJC-14",
+  "linear_uuid": "1a43f2d4-d172-4e51-8526-d77581c0c6b1",
+  "title": "Phase 10: Graph RAG G5 Trust UX — confidence badges, entity panel, source provenance",
+  "description": "Confidence badges on citations, entity panel (showing which entities were used in the graph traversal), source provenance (which documents/nodes contributed to the answer). All UI is examiner-facing — must maintain UPL compliance (factual display only, no legal conclusions).",
+  "acceptance_criteria": [
+    "Confidence badges: visual indicator on each chat response showing the graph RAG confidence (high/medium/low) — GREEN zone factual data only",
+    "Entity panel: collapsible sidebar or drawer showing which graph entities were referenced in generating the response",
+    "Source provenance: list of source documents and their relevance scores that contributed to the response",
+    "All UI maintains UPL compliance (factual display only, no legal conclusions)",
+    "Tests for new components and any new API endpoints"
+  ],
+  "priority": 3,
+  "labels": [],
+  "linked_issues": [],
+  "team": "AdjudiCLAIMS"
+}

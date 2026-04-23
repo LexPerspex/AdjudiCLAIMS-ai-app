@@ -800,12 +800,12 @@ Per GBS DEFINITION_OF_HOW.md, every phase must satisfy ALL gates before advancin
 **Depends on:** Phase 9 (MVP launch) — ❌ NOT MET
 **Estimated effort:** 3-4 months
 
-## 10.1 — MTUS Guideline Matching — 🟡 PARTIAL
+## 10.1 — MTUS Guideline Matching — ✅ COMPLETE (AJC-15)
 
 - [x] `server/services/mtus-matcher.service.ts` exists
 - [x] `server/routes/mtus.ts` exists
-- [ ] Integration with real MTUS guidelines data (41 KB records)
-- [ ] Treatment-to-guideline matching tested with real data
+- [x] Integration with real MTUS guidelines data (41 KB records — 8 CCR §9792.20–§9792.27)
+- [x] Treatment-to-guideline matching tested with real data (52 tests passing)
 
 ## 10.2 — Comparable Claims Data — ❌ NOT STARTED
 

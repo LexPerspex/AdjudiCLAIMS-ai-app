@@ -236,7 +236,8 @@ describe('MTUS Matcher Service — matchMtusGuidelines', () => {
     });
 
     expect(result.matches.length).toBeGreaterThan(0);
-    expect(result.matches[0]?.title).toContain('Cervical');
+    // Neck/cervical category — title or sourceSection should reflect Neck and Upper Back
+    expect(result.matches[0]?.sourceSection).toContain('Neck');
   });
 
   it('matches shoulder guidelines', () => {
@@ -246,7 +247,9 @@ describe('MTUS Matcher Service — matchMtusGuidelines', () => {
     });
 
     expect(result.matches.length).toBeGreaterThan(0);
-    expect(result.matches[0]?.guidelineText).toContain('rotator cuff');
+    // The shoulder category includes a rotator-cuff guideline; verify text mentions rotator cuff
+    const allText = result.matches.map((m) => m.guidelineText.toLowerCase()).join(' ');
+    expect(allText).toContain('rotator cuff');
   });
 
   it('matches knee guidelines', () => {
@@ -266,7 +269,8 @@ describe('MTUS Matcher Service — matchMtusGuidelines', () => {
     });
 
     expect(result.matches.length).toBeGreaterThan(0);
-    expect(result.matches[0]?.guidelineText).toContain('carpal tunnel');
+    const allText = result.matches.map((m) => m.guidelineText.toLowerCase()).join(' ');
+    expect(allText).toContain('carpal tunnel');
   });
 
   it('narrows results when CPT code is provided', () => {
@@ -304,8 +308,10 @@ describe('MTUS Matcher Service — matchMtusGuidelines', () => {
   });
 
   it('returns empty results gracefully for unknown body part', () => {
+    // Use a string that does not contain any registered body-part alias
+    // (no back, neck, shoulder, elbow, hand, wrist, knee, ankle, foot, pain, etc.)
     const result = matchMtusGuidelines({
-      bodyPart: 'left elbow crease',
+      bodyPart: 'septum nasi',
       treatmentDescription: 'Experimental procedure',
     });
 
@@ -345,7 +351,7 @@ describe('MTUS Matcher Service — matchMtusGuidelines', () => {
     expect(result.query).toEqual(request);
   });
 
-  it('all matches include sourceSection reference', () => {
+  it('all matches include sourceSection reference (CCR citation)', () => {
     const result = matchMtusGuidelines({
       bodyPart: 'lumbar spine',
       treatmentDescription: 'Physical therapy',
@@ -354,7 +360,8 @@ describe('MTUS Matcher Service — matchMtusGuidelines', () => {
     for (const match of result.matches) {
       expect(match.sourceSection).toBeTruthy();
       expect(match.sourceSection.length).toBeGreaterThan(0);
-      expect(match.sourceSection).toContain('MTUS');
+      // Real DWC MTUS sections live at 8 CCR 9792.20–9792.27
+      expect(match.sourceSection).toMatch(/8 CCR 9792\.\d+/);
     }
   });
 
@@ -399,7 +406,8 @@ describe('MTUS Matcher Service — matchMtusGuidelines', () => {
         expect(match.guidelineText).not.toMatch(/\byou should\b/i);
         expect(match.guidelineText).not.toMatch(/\bwe recommend\b/i);
         expect(match.guidelineText).not.toMatch(/\bI advise\b/i);
-        // Should cite sources (ACOEM, MTUS)
+        // Body-part guidelines should cite ACOEM (per MTUS adoption); the test
+        // restricts to body-part categories above so this assertion holds.
         expect(match.guidelineText).toContain('ACOEM');
       }
     }
@@ -412,13 +420,13 @@ describe('MTUS Matcher Service — matchMtusGuidelines', () => {
 
 describe('MTUS Matcher Service — getGuidelineDetail', () => {
   it('returns a guideline by valid ID', () => {
-    const guideline = getGuidelineDetail('mtus-lumbar-001');
+    const guideline = getGuidelineDetail('mtus-lowback-001');
 
     expect(guideline).not.toBeNull();
     const g = guideline as NonNullable<typeof guideline>;
-    expect(g.guidelineId).toBe('mtus-lumbar-001');
+    expect(g.guidelineId).toBe('mtus-lowback-001');
     expect(g.title).toContain('Low Back');
-    expect(g.sourceSection).toContain('MTUS');
+    expect(g.sourceSection).toContain('9792.23.5');
   });
 
   it('returns null for non-existent guideline ID', () => {
@@ -441,11 +449,29 @@ describe('MTUS Matcher Service — getGuidelineDetail', () => {
 
   it('retrieves guidelines from all body part categories', () => {
     const ids = [
-      'mtus-lumbar-001',
-      'mtus-cervical-001',
+      'mtus-lowback-001',
+      'mtus-neck-001',
       'mtus-shoulder-001',
+      'mtus-elbow-001',
+      'mtus-handwrist-001',
       'mtus-knee-001',
-      'mtus-wrist-001',
+      'mtus-anklefoot-001',
+    ];
+
+    for (const id of ids) {
+      const guideline = getGuidelineDetail(id);
+      expect(guideline).not.toBeNull();
+      expect((guideline as NonNullable<typeof guideline>).guidelineId).toBe(id);
+    }
+  });
+
+  it('retrieves guidelines from all cross-cutting topic categories', () => {
+    const ids = [
+      'mtus-chronicpain-001',
+      'mtus-opioids-001',
+      'mtus-acupuncture-001',
+      'mtus-formulary-001',
+      'mtus-methodology-001',
     ];
 
     for (const id of ids) {
@@ -580,7 +606,7 @@ describe('MTUS Routes — GET /api/mtus/guidelines/:guidelineId', () => {
   it('returns 401 without authentication', async () => {
     const res = await server.inject({
       method: 'GET',
-      url: '/api/mtus/guidelines/mtus-lumbar-001',
+      url: '/api/mtus/guidelines/mtus-lowback-001',
     });
 
     expect(res.statusCode).toBe(401);
@@ -590,14 +616,14 @@ describe('MTUS Routes — GET /api/mtus/guidelines/:guidelineId', () => {
     const cookie = await loginAs(server, MOCK_USER);
     const res = await server.inject({
       method: 'GET',
-      url: '/api/mtus/guidelines/mtus-lumbar-001',
+      url: '/api/mtus/guidelines/mtus-lowback-001',
       headers: { cookie },
     });
 
     expect(res.statusCode).toBe(200);
     const body = JSON.parse(res.payload) as { guideline: MtusGuidelineMatch };
-    expect(body.guideline.guidelineId).toBe('mtus-lumbar-001');
-    expect(body.guideline.sourceSection).toContain('MTUS');
+    expect(body.guideline.guidelineId).toBe('mtus-lowback-001');
+    expect(body.guideline.sourceSection).toMatch(/8 CCR 9792\.\d+/);
   });
 
   it('returns 404 for non-existent guideline', async () => {

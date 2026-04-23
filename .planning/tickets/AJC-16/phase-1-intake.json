@@ -1,0 +1,21 @@
+{
+  "id": "AJC-16",
+  "uuid": "1b8a5498-25ad-4f5a-b577-0d0fd05229e5",
+  "title": "Phase 10: Benefit payment letter PDF export + employer notification templates (LC 3761)",
+  "description": "Generate benefit payment letters as PDFs (TD/PD/advance) for examiners to download/send when benefits are issued, AND build employer notification templates required by California Labor Code section 3761 (employer's right to be notified of claim/benefit decisions). Outputs are factual GREEN-zone (citing regulation, listing payment amounts, dates, recipients). Must NOT contain legal advice or analysis.",
+  "acceptance_criteria": [
+    "Benefit payment letter PDF generator (TD, PD, advance) — sent to claimant with cc to employer",
+    "Employer LC 3761 notification template (claim decision, benefit award, material development)",
+    "Backend route(s) to generate letter/notification PDFs for a given Payment/BenefitAward and Claim event",
+    "Frontend Download Letter button in relevant claim tab",
+    "Unit tests for letter content generators (assert text/structure passed to PDF lib)",
+    "Unit tests for LC 3761 notification builder (citation present, employer addressed correctly, claim/payment data populated)",
+    "Integration test for routes (auth, RBAC, returns PDF MIME type)",
+    "Coverage >=80% on new code",
+    "UPL compliance: factual recitations only, no legal advice"
+  ],
+  "priority": 3,
+  "labels": [],
+  "linked_issues": [],
+  "team": "AJC"
+}

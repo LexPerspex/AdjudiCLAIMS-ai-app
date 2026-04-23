@@ -1,0 +1,1 @@
+{"current_phase": 9, "ticket_id": "AJC-2", "pm_context_pct": "~47%", "handoff_count": 0, "status": "waiting_merge_decision", "blocker": "staging branch requires CI status checks (typecheck, test) that have no .github/workflows — cannot merge without resolution"}

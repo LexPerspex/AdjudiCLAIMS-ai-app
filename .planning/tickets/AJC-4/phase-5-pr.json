@@ -1,0 +1,6 @@
+{
+  "pr_number": 11,
+  "pr_url": "https://github.com/LexPerspex/AdjudiCLAIMS-ai-app/pull/11",
+  "pr_title": "AJC-4: Wire Playwright E2E suite to GitHub Actions staging gate",
+  "target_branch": "staging"
+}

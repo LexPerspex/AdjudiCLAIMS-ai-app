@@ -1,0 +1,7 @@
+{
+  "team_structure": "solo",
+  "domain_scope": "Infrastructure / CI-CD: Cloud Run staging deployment pipeline",
+  "files_changed": ["cloudbuild-staging.yaml", ".dockerignore"],
+  "commit_sha": "af12d88",
+  "test_result": "passing — 3161 tests, 92 test files"
+}

@@ -1,0 +1,18 @@
+{
+  "id": "AJC-1",
+  "title": "Deploy unified Fastify+RR7 server to Cloud Run staging",
+  "description": null,
+  "acceptance_criteria": [
+    "Unified Fastify+RR7 server (server/production.ts) is deployed to Cloud Run staging (adjudiclaims-api)",
+    "Cloud Run service returns healthy /api/health response",
+    "cloudbuild.yaml (or a staging-specific trigger config) deploys from main branch to staging environment",
+    "Docker image builds successfully with @adjudica/document-classifier stub",
+    "All CI checks pass before deployment",
+    "Staging service URL is accessible and returns React Router frontend for non-API routes",
+    "GCP project is adjudica-internal (per cloudbuild.yaml artifact registry)"
+  ],
+  "priority": 1,
+  "labels": [],
+  "linked_issues": [],
+  "team": "AdjudiCLAIMS"
+}

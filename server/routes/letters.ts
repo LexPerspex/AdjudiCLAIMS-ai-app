@@ -34,6 +34,12 @@ import {
 import {
   generateLetterHtml,
 } from '../services/document-generation.service.js';
+import {
+  generateBenefitPaymentLetter,
+  generateEmployerNotification,
+  type EmployerNotificationEvent,
+} from '../services/benefit-letter.service.js';
+import { prisma } from '../db.js';
 
 // ---------------------------------------------------------------------------
 // Zod schemas
@@ -53,6 +59,22 @@ const GenerateDraftBodySchema = z.object({
 const RefineDraftBodySchema = z.object({
   instruction: z.string().min(1, 'instruction is required'),
 });
+
+// AJC-16 — LC 3761 employer notification event payloads
+const EmployerNotificationEventSchema = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal('BENEFIT_AWARD'),
+    benefitType: z.enum(['TD', 'PD', 'DEATH_BENEFIT', 'SJDB_VOUCHER']),
+    benefitAmount: z.number().nonnegative(),
+    effectiveDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'effectiveDate must be YYYY-MM-DD'),
+  }),
+  z.object({
+    type: z.literal('CLAIM_DECISION'),
+    decisionType: z.enum(['ACCEPTED', 'DENIED', 'DELAYED']),
+    decisionDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'decisionDate must be YYYY-MM-DD'),
+    decisionBasis: z.string().min(1, 'decisionBasis is required'),
+  }),
+]);
 
 // ---------------------------------------------------------------------------
 // Plugin
@@ -267,9 +289,9 @@ export async function letterRoutes(server: FastifyInstance): Promise<void> {
         return reply.code(404).send({ error: 'Letter not found' });
       }
 
-      // Extract claim number from populatedData (set during generation)
-      const claimNumber =
-        (letter.populatedData as Record<string, string>)?.claimNumber ?? 'N/A';
+      // Extract claim number from populatedData (set during generation).
+      // Default to 'N/A' if the template did not populate this token.
+      const claimNumber = letter.populatedData.claimNumber || 'N/A';
 
       const html = generateLetterHtml(letter.content, {
         claimNumber,
@@ -281,6 +303,175 @@ export async function letterRoutes(server: FastifyInstance): Promise<void> {
       return reply
         .code(200)
         .header('Content-Type', 'text/html; charset=utf-8')
+        .send(html);
+    },
+  );
+
+  // -------------------------------------------------------------------------
+  // AJC-16 — Per-payment benefit letter + LC 3761 employer notification
+  // -------------------------------------------------------------------------
+
+  /**
+   * POST /api/payments/:paymentId/letters/benefit-payment
+   *
+   * Generate a benefit-payment letter for a specific BenefitPayment row.
+   * Verifies the caller has access to the payment's parent claim.
+   * Returns the persisted GeneratedLetter record.
+   */
+  server.post(
+    '/payments/:paymentId/letters/benefit-payment',
+    { preHandler: [requireAuth()] },
+    async (request, reply) => {
+      const user = request.session.user;
+
+      if (!user) {
+        return reply.code(401).send({ error: 'Authentication required' });
+      }
+
+      const { paymentId } = request.params as { paymentId: string };
+
+      // Look up the payment to find its parent claim, then verify access.
+      const payment = await prisma.benefitPayment.findUnique({
+        where: { id: paymentId },
+        select: { id: true, claimId: true },
+      });
+
+      if (!payment) {
+        return reply.code(404).send({ error: 'Benefit payment not found' });
+      }
+
+      const access = await verifyClaimAccess(
+        payment.claimId,
+        user.id,
+        user.role,
+        user.organizationId,
+      );
+
+      if (!access.authorized) {
+        return reply.code(403).send({ error: 'Access denied to this claim' });
+      }
+
+      try {
+        const letter = await generateBenefitPaymentLetter(user.id, paymentId, request);
+
+        return await reply.code(201).send({ letter });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Benefit payment letter generation failed';
+        request.log.error({ err, paymentId }, 'Benefit payment letter generation failed');
+        return await reply.code(500).send({ error: message });
+      }
+    },
+  );
+
+  /**
+   * POST /api/claims/:claimId/letters/employer-notification
+   *
+   * Generate an LC 3761 employer notification for a claim event
+   * (BENEFIT_AWARD or CLAIM_DECISION). Body must be a valid
+   * EmployerNotificationEvent.
+   */
+  server.post(
+    '/claims/:claimId/letters/employer-notification',
+    { preHandler: [requireAuth()] },
+    async (request, reply) => {
+      const user = request.session.user;
+
+      if (!user) {
+        return reply.code(401).send({ error: 'Authentication required' });
+      }
+
+      const { claimId } = request.params as { claimId: string };
+
+      const access = await verifyClaimAccess(claimId, user.id, user.role, user.organizationId);
+
+      if (!access.authorized) {
+        return reply.code(403).send({ error: 'Access denied to this claim' });
+      }
+
+      const parsed = EmployerNotificationEventSchema.safeParse(request.body);
+
+      if (!parsed.success) {
+        return reply.code(400).send({
+          error: 'Invalid employer notification event payload',
+          details: parsed.error.issues,
+        });
+      }
+
+      try {
+        const event = parsed.data as EmployerNotificationEvent;
+        const letter = await generateEmployerNotification(user.id, claimId, event, request);
+
+        return await reply.code(201).send({ letter });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Employer notification generation failed';
+        request.log.error({ err, claimId }, 'Employer notification generation failed');
+        return await reply.code(500).send({ error: message });
+      }
+    },
+  );
+
+  /**
+   * GET /api/letters/:letterId/pdf
+   *
+   * Returns the same printable HTML as `/letters/:letterId/html` but with
+   * `Content-Disposition: attachment` so the browser triggers a download
+   * dialog (filename is `<claim>-<letterType>-<id>.html`). The user's
+   * browser handles Print → Save as PDF for the actual PDF artifact.
+   *
+   * This avoids a server-side PDF library dependency (puppeteer/headless
+   * Chromium) while still giving examiners a one-click "Download Letter"
+   * affordance from the UI.
+   */
+  server.get(
+    '/letters/:letterId/pdf',
+    { preHandler: [requireAuth()] },
+    async (request, reply) => {
+      const user = request.session.user;
+
+      if (!user) {
+        return reply.code(401).send({ error: 'Authentication required' });
+      }
+
+      const { letterId } = request.params as { letterId: string };
+
+      const letter = await getLetter(letterId);
+
+      if (!letter) {
+        return reply.code(404).send({ error: 'Letter not found' });
+      }
+
+      // Enforce org-scoped access on the parent claim before serving the
+      // letter. This is the download endpoint examiners hit from the UI;
+      // unlike a same-tab navigation it can be triggered cross-origin via
+      // a signed link, so we must not assume the session alone authorizes.
+      const access = await verifyClaimAccess(
+        letter.claimId,
+        user.id,
+        user.role,
+        user.organizationId,
+      );
+
+      if (!access.authorized) {
+        return reply.code(403).send({ error: 'Access denied to this letter' });
+      }
+
+      const claimNumber = letter.populatedData.claimNumber || 'N-A';
+
+      const html = generateLetterHtml(letter.content, {
+        claimNumber,
+        letterType: letter.letterType,
+        generatedAt: new Date(letter.createdAt),
+        generatedBy: user.email,
+      });
+
+      // Sanitize filename — strip path separators and quotes.
+      const safeClaim = claimNumber.replace(/[^A-Za-z0-9._-]/g, '_');
+      const filename = `${safeClaim}-${letter.letterType}-${letter.id}.html`;
+
+      return reply
+        .code(200)
+        .header('Content-Type', 'text/html; charset=utf-8')
+        .header('Content-Disposition', `attachment; filename="${filename}"`)
         .send(html);
     },
   );

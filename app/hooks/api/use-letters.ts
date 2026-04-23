@@ -59,3 +59,25 @@ export function useGenerateLetter(claimId: string) {
     },
   });
 }
+
+/* ------------------------------------------------------------------ */
+/*  AJC-16 — PDF / HTML print export helpers                            */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Build the print-ready HTML URL for a letter. Open this URL in a new tab
+ * and the user can use the browser's Print → Save as PDF function to
+ * produce a PDF without a server-side PDF library dependency.
+ */
+export function letterPrintUrl(letterId: string): string {
+  return `/api/letters/${letterId}/html`;
+}
+
+/**
+ * Build the download URL for a letter (same HTML body but served with
+ * Content-Disposition: attachment, so the browser triggers a download
+ * dialog).
+ */
+export function letterDownloadUrl(letterId: string): string {
+  return `/api/letters/${letterId}/pdf`;
+}

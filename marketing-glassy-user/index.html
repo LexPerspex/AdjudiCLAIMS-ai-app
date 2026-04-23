@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Glassy User - Professional AI for CA Workers' Comp Defense</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            DEFAULT: '#00288e',
+                            dark: '#001e6c',
+                        },
+                        secondary: {
+                            DEFAULT: '#1e40af',
+                        },
+                        accent: {
+                            DEFAULT: '#3b82f6',
+                        },
+                        success: {
+                            DEFAULT: '#10b981',
+                        }
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    fontFamily: {
+                        headline: ["Inter", "sans-serif"],
+                        body: ["Inter", "sans-serif"],
+                        label: ["Inter", "sans-serif"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .step-active { font-variation-settings: 'FILL' 1; }
+    </style>
+</head>
+<body class="bg-white text-slate-900 font-body antialiased">
+<!-- TopNavBar -->
+<header class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md text-slate-700 dark:text-slate-300 font-['Inter'] font-medium docked full-width top-0 sticky border-b border-slate-200 dark:border-slate-800 shadow-sm z-50">
+<nav class="max-w-7xl mx-auto flex justify-between items-center px-6 py-4 w-full">
+<div class="flex items-center gap-8">
+<span class="text-xl font-extrabold tracking-tighter text-blue-900 dark:text-white">Glassy User</span>
+<div class="hidden md:flex items-center gap-6">
+<a class="text-blue-700 dark:text-blue-400 border-b-2 border-blue-900 dark:border-blue-400 pb-1 transition-colors" href="index.html">Home</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors" href="how-it-works.html">How It Works</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors" href="skills.html">Skills</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors" href="security.html">Security</a>
+</div>
+</div>
+<div>
+<a href="#" onclick="openDemoModal(); return false;" class="bg-[#00288e] text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-blue-800 transition-all duration-150 shadow-md no-underline">Request Demo</a>
+</div>
+</nav>
+</header>
+<!-- Hero Section -->
+<section class="relative bg-gradient-to-br from-[#00288e] via-[#1e40af] to-[#00288e] py-20 lg:py-32 overflow-hidden">
+<div class="absolute inset-0 opacity-10" data-alt="Subtle geometric circuit line patterns on a deep navy background suggesting digital transparency and complex connectivity"></div>
+<div class="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center relative z-10">
+<div>
+<h1 class="text-white text-5xl lg:text-7xl font-bold font-headline tracking-tighter leading-tight mb-6">
+                    From Black Box<br/>to Glass Box.
+                </h1>
+<p class="text-blue-100 text-xl lg:text-2xl mb-10 max-w-xl leading-relaxed">
+                    Production-grade AI purpose-built for California Workers' Compensation defense. Explainable, auditable, and built for legal scrutiny.
+                </p>
+<div class="flex flex-wrap gap-4">
+<a href="#" onclick="openDemoModal(); return false;" class="bg-white text-[#00288e] px-8 py-4 rounded-lg font-bold text-lg hover:bg-blue-50 transition-all no-underline">Request Demo</a>
+<button class="border-2 border-white/30 text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-white/10 transition-all backdrop-blur-sm">See How It Works</button>
+</div>
+</div>
+<!-- PAI Algorithm Card -->
+<div class="glass-panel rounded-xl p-8 shadow-2xl">
+<div class="flex items-center gap-3 mb-8 border-b border-white/10 pb-4">
+<span class="material-symbols-outlined text-blue-400" data-icon="account_tree">account_tree</span>
+<h3 class="text-white font-bold text-xl tracking-tight">PAI Algorithm: 7-Phase Cycle</h3>
+</div>
+<div class="space-y-6">
+<div class="flex gap-4 items-start relative">
+<div class="flex flex-col items-center">
+<div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-bold shadow-lg shadow-blue-500/50">1</div>
+<div class="w-0.5 h-6 bg-white/20"></div>
+</div>
+<div>
+<p class="text-white font-bold">Observe</p>
+<p class="text-blue-200/70 text-xs">Multi-modal data ingestion</p>
+</div>
+</div>
+<div class="flex gap-4 items-start relative">
+<div class="flex flex-col items-center">
+<div class="w-8 h-8 rounded-full bg-blue-400 flex items-center justify-center text-white text-sm font-bold">2</div>
+<div class="w-0.5 h-6 bg-white/20"></div>
+</div>
+<div>
+<p class="text-white font-bold">Think</p>
+<p class="text-blue-200/70 text-xs">Probabilistic reasoning engine</p>
+</div>
+</div>
+<div class="flex gap-4 items-start relative">
+<div class="flex flex-col items-center">
+<div class="w-8 h-8 rounded-full bg-blue-400 flex items-center justify-center text-white text-sm font-bold">3</div>
+<div class="w-0.5 h-6 bg-white/20"></div>
+</div>
+<div>
+<p class="text-white font-bold">Plan</p>
+<p class="text-blue-200/70 text-xs">DAG-based workflow orchestration</p>
+</div>
+</div>
+<div class="flex gap-4 items-start relative">
+<div class="flex flex-col items-center">
+<div class="w-8 h-8 rounded-full bg-blue-400 flex items-center justify-center text-white text-sm font-bold">4</div>
+<div class="w-0.5 h-6 bg-white/20"></div>
+</div>
+<div>
+<p class="text-white font-bold">Build</p>
+<p class="text-blue-200/70 text-xs">Contextual synthesis</p>
+</div>
+</div>
+<div class="flex gap-4 items-start relative">
+<div class="flex flex-col items-center">
+<div class="w-8 h-8 rounded-full bg-blue-400 flex items-center justify-center text-white text-sm font-bold">5</div>
+<div class="w-0.5 h-6 bg-white/20"></div>
+</div>
+<div>
+<p class="text-white font-bold">Execute</p>
+<p class="text-blue-200/70 text-xs">Legal document generation</p>
+</div>
+</div>
+<div class="flex gap-4 items-start relative">
+<div class="flex flex-col items-center">
+<div class="w-8 h-8 rounded-full bg-blue-400 flex items-center justify-center text-white text-sm font-bold">6</div>
+<div class="w-0.5 h-6 bg-white/20"></div>
+</div>
+<div>
+<p class="text-white font-bold">Verify</p>
+<p class="text-blue-200/70 text-xs">Compliance &amp; citation check</p>
+</div>
+</div>
+<div class="flex gap-4 items-start">
+<div class="w-8 h-8 rounded-full bg-success flex items-center justify-center text-white text-sm font-bold">7</div>
+<div>
+<p class="text-white font-bold">Learn</p>
+<p class="text-blue-200/70 text-xs">Continuous model refinement</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Value Props (4 cols) -->
+<section class="py-24 bg-slate-50">
+<div class="max-w-7xl mx-auto px-6">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+<div class="bg-white p-8 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+<div class="w-12 h-12 bg-blue-50 text-[#00288e] rounded-lg flex items-center justify-center mb-6">
+<span class="material-symbols-outlined" data-icon="psychology">psychology</span>
+</div>
+<h4 class="text-slate-900 font-bold text-lg mb-3">Cognitive AI</h4>
+<p class="text-slate-600 text-sm leading-relaxed">Closed-loop 7-phase reasoning system that simulates senior associate workflow.</p>
+</div>
+<div class="bg-white p-8 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+<div class="w-12 h-12 bg-blue-50 text-[#00288e] rounded-lg flex items-center justify-center mb-6">
+<span class="material-symbols-outlined" data-icon="gavel">gavel</span>
+</div>
+<h4 class="text-slate-900 font-bold text-lg mb-3">33 Domain Skills</h4>
+<p class="text-slate-600 text-sm leading-relaxed">Expertise spanning Rating, UR, QME, and complex P&amp;S reporting.</p>
+</div>
+<div class="bg-white p-8 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+<div class="w-12 h-12 bg-green-50 text-success rounded-lg flex items-center justify-center mb-6">
+<span class="material-symbols-outlined" data-icon="encrypted">encrypted</span>
+</div>
+<h4 class="text-slate-900 font-bold text-lg mb-3">HIPAA Compliant</h4>
+<p class="text-slate-600 text-sm leading-relaxed">Enterprise-grade security with SHA-256 encryption and SOC2 readiness.</p>
+</div>
+<div class="bg-white p-8 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+<div class="w-12 h-12 bg-blue-50 text-[#00288e] rounded-lg flex items-center justify-center mb-6">
+<span class="material-symbols-outlined" data-icon="hub">hub</span>
+</div>
+<h4 class="text-slate-900 font-bold text-lg mb-3">Glass Box Connect</h4>
+<p class="text-slate-600 text-sm leading-relaxed">Deep native integrations with AdjudiCLAIMS and MerusCase.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Feature Blocks -->
+<section class="py-24 bg-white overflow-hidden">
+<div class="max-w-7xl mx-auto px-6 space-y-32">
+<!-- Block 1: Purpose-built -->
+<div class="flex flex-col lg:flex-row items-center gap-16">
+<div class="lg:w-1/2">
+<div class="inline-block px-3 py-1 bg-blue-100 text-[#1e40af] text-xs font-bold rounded-full uppercase tracking-widest mb-6">Vertical Specialist</div>
+<h2 class="text-4xl font-bold text-slate-900 mb-6 tracking-tight">Purpose-built for CA Workers' Comp</h2>
+<p class="text-slate-600 text-lg mb-8 leading-relaxed">The only AI built specifically for California's complex statutory framework. From Rating Schedules to Labor Code compliance, Glassy handles the nuances that general models miss.</p>
+<ul class="space-y-4">
+<li class="flex items-center gap-3 text-slate-700">
+<span class="material-symbols-outlined text-success" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                            Case Evaluation &amp; Strategic Forecasting
+                        </li>
+<li class="flex items-center gap-3 text-slate-700">
+<span class="material-symbols-outlined text-success" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                            Comprehensive Deposition Preparation
+                        </li>
+<li class="flex items-center gap-3 text-slate-700">
+<span class="material-symbols-outlined text-success" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                            Automated IME &amp; QME Report Analysis
+                        </li>
+</ul>
+</div>
+<div class="lg:w-1/2 bg-slate-100 rounded-2xl p-4 lg:p-8">
+<img class="rounded-xl shadow-lg w-full h-auto object-cover" data-alt="Close-up of legal documents and a wooden gavel on a desk in a modern law office with soft natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDjB1rv5GxN9O37nWgCfxMSkwZJ3Krg_3vW6XZPJjtQ7yC4VJanqodWBCeWoaIsU0fdCnOph2gnS_lLsJ9z7eEOQUVQVz0k0h0S_3l1RkjUtO-SI8fKPJeXVTyTCOA0frv9azQHQP6Dr2WJ-C6oEfY5Vv31jdcoSpFoOQcumPstNhd7yN_FUnEnSwb5FljYZSG4gVevLWLQotpbZuFkv-yh8ShAb88292F3klyvibUnhuOBhOnOqDR8tHIlDbFH01clK9bquTj2rx60nA"/>
+</div>
+</div>
+<!-- Block 2: Agent Swarm -->
+<div class="flex flex-col lg:flex-row-reverse items-center gap-16">
+<div class="lg:w-1/2">
+<div class="inline-block px-3 py-1 bg-blue-100 text-[#1e40af] text-xs font-bold rounded-full uppercase tracking-widest mb-6">Advanced Orchestration</div>
+<h2 class="text-4xl font-bold text-slate-900 mb-6 tracking-tight">Agent Swarm Coordination</h2>
+<p class="text-slate-600 text-lg mb-8 leading-relaxed">Complex workflows require multiple specialized AI agents working in tandem. Our DAG-based system ensures every task is executed with perfect logical sequence.</p>
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+<p class="font-bold text-[#00288e]">Parallel Logic</p>
+<p class="text-sm text-slate-500">Processing multiple records simultaneously.</p>
+</div>
+<div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+<p class="font-bold text-[#00288e]">Chain-of-Thought</p>
+<p class="text-sm text-slate-500">Verifiable reasoning steps for every output.</p>
+</div>
+</div>
+</div>
+<div class="lg:w-1/2 bg-slate-900 rounded-2xl p-4 lg:p-12 relative">
+<div class="absolute inset-0 opacity-20" data-alt="Abstract blue digital network connection nodes showing data flow between multiple points on a dark background"></div>
+<div class="relative flex justify-center py-10">
+<div class="grid grid-cols-3 gap-6">
+<div class="w-16 h-16 rounded-full bg-blue-600/30 border border-blue-400 flex items-center justify-center text-blue-400">
+<span class="material-symbols-outlined" data-icon="smart_toy">smart_toy</span>
+</div>
+<div class="w-16 h-16 rounded-full bg-blue-600/30 border border-blue-400 flex items-center justify-center text-blue-400">
+<span class="material-symbols-outlined" data-icon="psychology_alt">psychology_alt</span>
+</div>
+<div class="w-16 h-16 rounded-full bg-blue-600/30 border border-blue-400 flex items-center justify-center text-blue-400">
+<span class="material-symbols-outlined" data-icon="robot_2">robot_2</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Block 3: Memory -->
+<div class="flex flex-col lg:flex-row items-center gap-16">
+<div class="lg:w-1/2">
+<div class="inline-block px-3 py-1 bg-blue-100 text-[#1e40af] text-xs font-bold rounded-full uppercase tracking-widest mb-6">Persistent Knowledge</div>
+<h2 class="text-4xl font-bold text-slate-900 mb-6 tracking-tight">Multi-Tier Memory Engine</h2>
+<p class="text-slate-600 text-lg mb-8 leading-relaxed">Unlike standard chat tools, Glassy maintains a persistent context of your cases using a high-performance three-tier memory architecture.</p>
+<div class="space-y-4">
+<div class="flex items-center gap-4 p-4 rounded-lg bg-blue-50 border border-blue-100">
+<span class="px-2 py-1 bg-[#00288e] text-white text-[10px] font-bold rounded uppercase">Hot</span>
+<span class="text-slate-700 font-semibold">Immediate Context (Current session data)</span>
+</div>
+<div class="flex items-center gap-4 p-4 rounded-lg bg-slate-50 border border-slate-200">
+<span class="px-2 py-1 bg-blue-400 text-white text-[10px] font-bold rounded uppercase">Warm</span>
+<span class="text-slate-700 font-semibold">Active Case History (30-day lookback)</span>
+</div>
+<div class="flex items-center gap-4 p-4 rounded-lg bg-slate-50 border border-slate-200 opacity-70">
+<span class="px-2 py-1 bg-slate-400 text-white text-[10px] font-bold rounded uppercase">Cold</span>
+<span class="text-slate-700 font-semibold">Archive &amp; Precedents (Long-term storage)</span>
+</div>
+</div>
+</div>
+<div class="lg:w-1/2">
+<div class="bg-gradient-to-br from-slate-800 to-slate-950 rounded-2xl p-10 shadow-xl overflow-hidden relative">
+<div class="absolute -right-20 -bottom-20 w-64 h-64 bg-blue-600/10 rounded-full blur-3xl"></div>
+<div class="space-y-6 relative">
+<div class="h-2 w-full bg-slate-700 rounded-full overflow-hidden">
+<div class="h-full bg-blue-500 w-3/4"></div>
+</div>
+<div class="h-2 w-full bg-slate-700 rounded-full overflow-hidden">
+<div class="h-full bg-blue-500 w-1/2"></div>
+</div>
+<div class="h-2 w-full bg-slate-700 rounded-full overflow-hidden">
+<div class="h-full bg-blue-500 w-4/5"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Stats Section -->
+<section class="py-16 bg-[#00288e] text-white">
+<div class="max-w-7xl mx-auto px-6">
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-12 text-center">
+<div>
+<p class="text-5xl font-extrabold tracking-tight mb-2">33</p>
+<p class="text-blue-300 font-medium">Domain Skills</p>
+</div>
+<div>
+<p class="text-5xl font-extrabold tracking-tight mb-2">7</p>
+<p class="text-blue-300 font-medium">PAI Phases</p>
+</div>
+<div>
+<p class="text-5xl font-extrabold tracking-tight mb-2">20</p>
+<p class="text-blue-300 font-medium">Event Types</p>
+</div>
+<div>
+<p class="text-5xl font-extrabold tracking-tight mb-2">100%</p>
+<p class="text-blue-300 font-medium">Auditable</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Integrations -->
+<section class="py-24 bg-white border-b border-slate-100">
+<div class="max-w-7xl mx-auto px-6 text-center">
+<h3 class="text-slate-400 font-bold text-sm uppercase tracking-[0.2em] mb-12">Seamless Ecosystem Integration</h3>
+<div class="flex flex-wrap justify-center items-center gap-12 lg:gap-24 opacity-60 grayscale hover:grayscale-0 transition-all">
+<span class="text-2xl font-bold text-slate-800 tracking-tighter">AdjudiCLAIMS</span>
+<span class="text-2xl font-bold text-slate-800 tracking-tighter">File-Reviewer</span>
+<span class="text-2xl font-bold text-slate-800 tracking-tighter">Merus Billing</span>
+<span class="text-2xl font-bold text-slate-800 tracking-tighter">MerusCase</span>
+</div>
+</div>
+</section>
+<!-- Final CTA -->
+<section class="py-24 bg-slate-50">
+<div class="max-w-4xl mx-auto px-6 text-center">
+<h2 class="text-4xl lg:text-5xl font-bold text-slate-900 mb-8 tracking-tight">Bring transparency to your firm's AI.</h2>
+<p class="text-slate-600 text-xl mb-12">Move away from unstable black-box models and deploy precision legal tech designed for workers' compensation defense.</p>
+<a href="#" onclick="openDemoModal(); return false;" class="bg-[#00288e] text-white px-10 py-5 rounded-lg font-bold text-xl hover:bg-blue-800 transition-all shadow-xl shadow-blue-900/20 no-underline">Request Demo</a>
+</div>
+</section>
+<!-- Footer -->
+<footer class="bg-slate-950 dark:bg-black text-blue-400 dark:text-blue-300 font-['Inter'] text-sm leading-relaxed full-width rounded-none border-t border-slate-800 flat no shadows">
+<div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 px-6 py-16">
+<div>
+<span class="text-lg font-bold text-white mb-6 block">Glass Box Solutions</span>
+<p class="text-slate-400 dark:text-slate-500 mb-6">Professional legal tech for CA Workers' Compensation defense. Every decision is explainable, auditable, and traceable.</p>
+<p class="text-slate-400 dark:text-slate-500">© 2024 Glass Box Solutions. From Black Box to Glass Box. Live at glassy.adjudica.ai</p>
+</div>
+<div>
+<h4 class="text-white font-semibold mb-6">Product</h4>
+<div class="grid grid-cols-2 gap-4">
+<a class="text-slate-400 dark:text-slate-500 hover:text-blue-300 dark:hover:text-blue-200 transition-all duration-300" href="index.html">Home</a>
+<a class="text-slate-400 dark:text-slate-500 hover:text-blue-300 dark:hover:text-blue-200 transition-all duration-300" href="how-it-works.html">How It Works</a>
+<a class="text-slate-400 dark:text-slate-500 hover:text-blue-300 dark:hover:text-blue-200 transition-all duration-300" href="skills.html">Skills</a>
+<a class="text-slate-400 dark:text-slate-500 hover:text-blue-300 dark:hover:text-blue-200 transition-all duration-300" href="security.html">Security</a>
+<a class="text-slate-400 dark:text-slate-500 hover:text-blue-300 dark:hover:text-blue-200 transition-all duration-300" href="#">Demo</a>
+<a class="text-slate-400 dark:text-slate-500 hover:text-blue-300 dark:hover:text-blue-200 transition-all duration-300" href="#">About</a>
+</div>
+</div>
+<div>
+<h4 class="text-white font-semibold mb-6">Legal &amp; Contact</h4>
+<div class="grid grid-cols-2 gap-4">
+<a class="text-slate-400 dark:text-slate-500 hover:text-blue-300 dark:hover:text-blue-200 transition-all duration-300" href="#">Privacy</a>
+<a class="text-slate-400 dark:text-slate-500 hover:text-blue-300 dark:hover:text-blue-200 transition-all duration-300" href="#">Terms</a>
+<a class="text-slate-400 dark:text-slate-500 hover:text-blue-300 dark:hover:text-blue-200 transition-all duration-300" href="#">BAA</a>
+<a class="text-slate-400 dark:text-slate-500 hover:text-blue-300 dark:hover:text-blue-200 transition-all duration-300" href="#">Contact</a>
+</div>
+</div>
+</div>
+</footer>
+
+<!-- Demo Request Modal -->
+<div id="demo-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4" style="background:rgba(0,0,0,0.6); backdrop-filter:blur(4px);">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto" style="border:1px solid #e2e8f0;">
+    <!-- Header -->
+    <div class="flex items-center justify-between px-6 py-4 border-b" style="background:linear-gradient(135deg,#00288e 0%,#1e40af 100%); border-radius:1rem 1rem 0 0;">
+      <div>
+        <div class="text-xs font-bold uppercase tracking-widest text-blue-200 mb-0.5">Glassy User</div>
+        <h2 class="text-lg font-extrabold text-white">Request a Demo</h2>
+      </div>
+      <button onclick="closeDemoModal()" class="text-white/70 hover:text-white text-2xl leading-none font-light" aria-label="Close">&times;</button>
+    </div>
+    <!-- Body -->
+    <div class="px-6 py-6">
+      <div id="modal-success" class="hidden text-center py-8">
+        <div class="text-4xl mb-3">&#10003;</div>
+        <h3 class="text-lg font-extrabold mb-2" style="color:#059669;">Request received.</h3>
+        <p class="text-slate-600 text-sm">We'll be in touch within one business day. Check your email for a confirmation.</p>
+      </div>
+      <form id="modal-form" class="space-y-4">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold mb-1">First Name <span class="text-red-600">*</span></label>
+            <input id="m-firstName" required type="text" placeholder="Jane"
+              class="w-full px-3 py-2 rounded-lg border text-sm" style="border:1px solid #cbd5e1;" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold mb-1">Last Name <span class="text-red-600">*</span></label>
+            <input id="m-lastName" required type="text" placeholder="Smith"
+              class="w-full px-3 py-2 rounded-lg border text-sm" style="border:1px solid #cbd5e1;" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold mb-1">Law Firm <span class="text-red-600">*</span></label>
+          <input id="m-firm" required type="text" placeholder="Pacific Defense Group, LLP"
+            class="w-full px-3 py-2 rounded-lg border text-sm" style="border:1px solid #cbd5e1;" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold mb-1">Work Email <span class="text-red-600">*</span></label>
+            <input id="m-email" required type="email" placeholder="jane@firm.com"
+              class="w-full px-3 py-2 rounded-lg border text-sm" style="border:1px solid #cbd5e1;" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold mb-1">Phone <span class="text-xs font-normal text-slate-400">(optional)</span></label>
+            <input id="m-phone" type="tel" placeholder="(415) 555-0100"
+              class="w-full px-3 py-2 rounded-lg border text-sm" style="border:1px solid #cbd5e1;" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold mb-1">Practice Size</label>
+          <select id="m-practiceSize" class="w-full px-3 py-2 rounded-lg border text-sm" style="border:1px solid #cbd5e1;">
+            <option value="">Select range</option>
+            <option value="Solo">Solo practitioner</option>
+            <option value="2-5">2–5 attorneys</option>
+            <option value="6-20">6–20 attorneys</option>
+            <option value="21-50">21–50 attorneys</option>
+            <option value="50+">50+ attorneys</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold mb-1">Message <span class="text-xs font-normal text-slate-400">(optional)</span></label>
+          <textarea id="m-message" rows="3" placeholder="Tell us about your practice or what you'd like to see in the demo..."
+            class="w-full px-3 py-2 rounded-lg border text-sm" style="border:1px solid #cbd5e1;"></textarea>
+        </div>
+        <div id="modal-error" class="hidden px-3 py-2 rounded-lg text-xs" style="background:#fff1f2; border:1px solid #fecdd3; color:#991b1b;"></div>
+        <button type="submit" id="modal-submit"
+          class="w-full text-white font-bold py-3 rounded-lg text-sm hover:opacity-90 transition-opacity disabled:opacity-60"
+          style="background:linear-gradient(135deg,#00288e 0%,#1e40af 100%);">
+          Request Demo &rarr;
+        </button>
+        <p class="text-center text-xs text-slate-400">By submitting you agree to be contacted by Glass Box Solutions. We don't sell your data.</p>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  const GLASSY_API = 'https://adjudiclaims-marketing-915841834222.us-west1.run.app/api/glassy-contact';
+
+  function openDemoModal() {
+    const m = document.getElementById('demo-modal');
+    m.classList.remove('hidden');
+    m.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeDemoModal() {
+    const m = document.getElementById('demo-modal');
+    m.classList.add('hidden');
+    m.classList.remove('flex');
+    document.body.style.overflow = '';
+  }
+
+  document.getElementById('demo-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeDemoModal();
+  });
+
+  document.getElementById('modal-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('modal-submit');
+    const errEl = document.getElementById('modal-error');
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+    errEl.classList.add('hidden');
+
+    const payload = {
+      firstName:    document.getElementById('m-firstName').value.trim(),
+      lastName:     document.getElementById('m-lastName').value.trim(),
+      firm:         document.getElementById('m-firm').value.trim(),
+      email:        document.getElementById('m-email').value.trim(),
+      phone:        document.getElementById('m-phone').value.trim(),
+      practiceSize: document.getElementById('m-practiceSize').value,
+      message:      document.getElementById('m-message').value.trim(),
+    };
+
+    try {
+      const res = await fetch(GLASSY_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        document.getElementById('modal-form').classList.add('hidden');
+        document.getElementById('modal-success').classList.remove('hidden');
+      } else {
+        const data = await res.json().catch(() => ({}));
+        errEl.textContent = data.error ?? 'Something went wrong. Please try again.';
+        errEl.classList.remove('hidden');
+        btn.disabled = false;
+        btn.textContent = 'Request Demo →';
+      }
+    } catch {
+      errEl.textContent = 'Network error. Please check your connection and try again.';
+      errEl.classList.remove('hidden');
+      btn.disabled = false;
+      btn.textContent = 'Request Demo →';
+    }
+  });
+</script>
+
+</body></html>

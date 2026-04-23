@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html class="scroll-smooth" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Request a Demo — Glassy User</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          primary: { DEFAULT: '#00288e', dark: '#001e6c' },
+          secondary: { DEFAULT: '#1e40af' },
+          accent: { DEFAULT: '#3b82f6' },
+          success: { DEFAULT: '#10b981' }
+        },
+        borderRadius: {
+          DEFAULT: '0.25rem', lg: '0.5rem', xl: '0.75rem', full: '9999px'
+        },
+        fontFamily: {
+          headline: ['Inter', 'sans-serif'],
+          body: ['Inter', 'sans-serif']
+        }
+      }
+    }
+  }
+</script>
+<style>
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+</style>
+</head>
+<body class="bg-white text-slate-900 font-body antialiased">
+
+<!-- Nav -->
+<header class="bg-white/80 backdrop-blur-md text-slate-700 font-['Inter'] font-medium sticky top-0 border-b border-slate-200 shadow-sm z-50">
+  <nav class="max-w-7xl mx-auto flex justify-between items-center px-6 py-4 w-full">
+    <div class="flex items-center gap-8">
+      <a href="index.html" class="text-xl font-extrabold tracking-tighter text-blue-900 no-underline">Glassy User</a>
+      <div class="hidden md:flex items-center gap-6">
+        <a class="text-slate-600 hover:text-blue-800 transition-colors no-underline" href="index.html">Home</a>
+        <a class="text-slate-600 hover:text-blue-800 transition-colors no-underline" href="how-it-works.html">How It Works</a>
+        <a class="text-slate-600 hover:text-blue-800 transition-colors no-underline" href="skills.html">Skills</a>
+        <a class="text-slate-600 hover:text-blue-800 transition-colors no-underline" href="security.html">Security</a>
+      </div>
+    </div>
+    <div>
+      <a href="contact.html" class="bg-[#00288e] text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-blue-800 transition-all duration-150 shadow-md no-underline">Request Demo</a>
+    </div>
+  </nav>
+</header>
+
+<!-- Hero -->
+<section class="bg-gradient-to-br from-[#00288e] via-[#1e40af] to-[#00288e] py-20 px-6 text-center text-white">
+  <div class="max-w-2xl mx-auto">
+    <div class="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-widest mb-6"
+         style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);">
+      Request a Demo
+    </div>
+    <h1 class="font-extrabold tracking-tight mb-4" style="font-size: clamp(2rem,4vw,3rem);">
+      See Glassy User in Action
+    </h1>
+    <p class="text-lg" style="color: rgba(255,255,255,0.85);">
+      Tell us about your practice and we'll schedule a live walkthrough — a real claim, your questions, your team.
+    </p>
+  </div>
+</section>
+
+<!-- Form + Sidebar -->
+<section class="py-16 px-6" style="background: #f8fafc;">
+  <div class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-12">
+
+    <!-- Sidebar -->
+    <div class="lg:col-span-1">
+      <h2 class="text-lg font-extrabold mb-6">What to expect</h2>
+      <div class="flex flex-col gap-6">
+        <div class="flex gap-3 items-start">
+          <span class="material-symbols-outlined text-blue-700 shrink-0" style="font-size:20px">play_circle</span>
+          <div>
+            <div class="font-bold mb-1 text-sm">Live demo on a real matter</div>
+            <p class="text-sm text-slate-600">We'll walk through the PAI algorithm, WC legal skills, and Glass Box integrations using actual case documents.</p>
+          </div>
+        </div>
+        <div class="flex gap-3 items-start">
+          <span class="material-symbols-outlined text-blue-700 shrink-0" style="font-size:20px">verified_user</span>
+          <div>
+            <div class="font-bold mb-1 text-sm">HIPAA & compliance walkthrough</div>
+            <p class="text-sm text-slate-600">We'll show you the audit trail, BAA register, and PHI controls — bring your compliance team.</p>
+          </div>
+        </div>
+        <div class="flex gap-3 items-start">
+          <span class="material-symbols-outlined text-blue-700 shrink-0" style="font-size:20px">bolt</span>
+          <div>
+            <div class="font-bold mb-1 text-sm">Fast turnaround</div>
+            <p class="text-sm text-slate-600">We typically schedule demos within 48 hours. No 6-week sales cycle.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-10 pt-8 border-t border-slate-200">
+        <div class="text-xs font-bold uppercase tracking-widest mb-3 text-slate-500">Other Ways to Reach Us</div>
+        <div class="flex flex-col gap-2">
+          <a href="mailto:support@adjudica.ai" class="text-sm font-medium no-underline" style="color:#00288e;">support@adjudica.ai</a>
+          <a href="mailto:security@adjudica.ai" class="text-sm text-slate-600 no-underline">security@adjudica.ai</a>
+          <a href="mailto:legal@adjudica.ai" class="text-sm text-slate-600 no-underline">legal@adjudica.ai</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <div class="lg:col-span-2">
+
+      <!-- Success state (hidden by default) -->
+      <div id="success-state" class="hidden rounded-xl p-10 text-center border" style="background:#f0fdf4; border:1px solid #a7f3d0;">
+        <div class="text-4xl mb-4">✓</div>
+        <h2 class="text-xl font-extrabold mb-2" style="color:#059669;">Request received.</h2>
+        <p class="text-slate-600">We'll be in touch within one business day to schedule your demo. Check your email for a confirmation.</p>
+      </div>
+
+      <!-- Form (shown by default) -->
+      <form id="demo-form" class="bg-white rounded-xl p-8 border" style="border:1px solid #e2e8f0; box-shadow:0 20px 40px rgba(15,23,42,0.06);">
+        <h2 class="text-lg font-extrabold mb-6">Demo Request</h2>
+
+        <!-- Name -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-sm font-semibold mb-1.5">First Name <span class="text-red-600">*</span></label>
+            <input id="firstName" required type="text" placeholder="Jane"
+              class="w-full px-4 py-2.5 rounded-lg border text-sm outline-none transition-all"
+              style="border:1px solid #cbd5e1; color:#131b2e; background:#fff;" />
+          </div>
+          <div>
+            <label class="block text-sm font-semibold mb-1.5">Last Name <span class="text-red-600">*</span></label>
+            <input id="lastName" required type="text" placeholder="Smith"
+              class="w-full px-4 py-2.5 rounded-lg border text-sm outline-none transition-all"
+              style="border:1px solid #cbd5e1; color:#131b2e; background:#fff;" />
+          </div>
+        </div>
+
+        <!-- Firm -->
+        <div class="mb-4">
+          <label class="block text-sm font-semibold mb-1.5">Law Firm / Organization <span class="text-red-600">*</span></label>
+          <input id="firm" required type="text" placeholder="Pacific Defense Group, LLP"
+            class="w-full px-4 py-2.5 rounded-lg border text-sm outline-none transition-all"
+            style="border:1px solid #cbd5e1; color:#131b2e; background:#fff;" />
+        </div>
+
+        <!-- Email + Phone -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-sm font-semibold mb-1.5">Work Email <span class="text-red-600">*</span></label>
+            <input id="email" required type="email" placeholder="jane@firm.com"
+              class="w-full px-4 py-2.5 rounded-lg border text-sm outline-none transition-all"
+              style="border:1px solid #cbd5e1; color:#131b2e; background:#fff;" />
+          </div>
+          <div>
+            <label class="block text-sm font-semibold mb-1.5">Phone <span class="text-xs font-normal text-slate-500">(optional)</span></label>
+            <input id="phone" type="tel" placeholder="(415) 555-0100"
+              class="w-full px-4 py-2.5 rounded-lg border text-sm outline-none transition-all"
+              style="border:1px solid #cbd5e1; color:#131b2e; background:#fff;" />
+          </div>
+        </div>
+
+        <!-- Practice size -->
+        <div class="mb-4">
+          <label class="block text-sm font-semibold mb-1.5">Practice Size</label>
+          <select id="practiceSize"
+            class="w-full px-4 py-2.5 rounded-lg border text-sm outline-none transition-all"
+            style="border:1px solid #cbd5e1; color:#131b2e; background:#fff;">
+            <option value="">Select range</option>
+            <option value="Solo">Solo practitioner</option>
+            <option value="2-5">2–5 attorneys</option>
+            <option value="6-20">6–20 attorneys</option>
+            <option value="21-50">21–50 attorneys</option>
+            <option value="50+">50+ attorneys</option>
+          </select>
+        </div>
+
+        <!-- Message -->
+        <div class="mb-6">
+          <label class="block text-sm font-semibold mb-1.5">How can we help? <span class="text-xs font-normal text-slate-500">(optional)</span></label>
+          <textarea id="message" rows="4"
+            placeholder="Tell us about your practice, current tools, or what you're hoping Glassy User can do for your team..."
+            class="w-full px-4 py-2.5 rounded-lg border text-sm outline-none transition-all"
+            style="border:1px solid #cbd5e1; color:#131b2e; background:#fff;"></textarea>
+        </div>
+
+        <!-- Error state -->
+        <div id="error-msg" class="hidden mb-4 px-4 py-3 rounded-lg text-sm"
+             style="background:#fff1f2; border:1px solid #fecdd3; color:#991b1b;"></div>
+
+        <button type="submit" id="submit-btn"
+          class="w-full text-white font-bold py-3 rounded-lg text-base transition-opacity hover:opacity-90 disabled:opacity-60"
+          style="background:linear-gradient(135deg,#00288e 0%,#1e40af 100%);">
+          Request Demo →
+        </button>
+
+        <p class="text-xs text-center mt-4 text-slate-500">
+          By submitting this form you agree to be contacted by Glass Box Solutions about Glassy User.
+          We don't sell your information.
+        </p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="bg-slate-950 text-blue-400 font-['Inter'] text-sm leading-relaxed border-t border-slate-800">
+  <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 px-6 py-16">
+    <div>
+      <span class="text-lg font-bold text-white mb-6 block">Glass Box Solutions</span>
+      <p class="text-slate-400 mb-6">Professional legal tech for CA Workers' Compensation defense. Every decision is explainable, auditable, and traceable.</p>
+      <p class="text-slate-400">© 2025 Glass Box Solutions. From Black Box to Glass Box. Live at glassy.adjudica.ai</p>
+    </div>
+    <div>
+      <h4 class="text-white font-semibold mb-6">Product</h4>
+      <div class="grid grid-cols-2 gap-4">
+        <a class="text-slate-400 hover:text-blue-300 transition-all no-underline" href="index.html">Home</a>
+        <a class="text-slate-400 hover:text-blue-300 transition-all no-underline" href="how-it-works.html">How It Works</a>
+        <a class="text-slate-400 hover:text-blue-300 transition-all no-underline" href="skills.html">Skills</a>
+        <a class="text-slate-400 hover:text-blue-300 transition-all no-underline" href="security.html">Security</a>
+        <a class="text-slate-400 hover:text-blue-300 transition-all no-underline" href="contact.html">Demo</a>
+      </div>
+    </div>
+    <div>
+      <h4 class="text-white font-semibold mb-6">Contact</h4>
+      <div class="flex flex-col gap-3">
+        <a href="mailto:support@adjudica.ai" class="text-slate-400 hover:text-blue-300 transition-all no-underline">support@adjudica.ai</a>
+        <a href="mailto:security@adjudica.ai" class="text-slate-400 hover:text-blue-300 transition-all no-underline">security@adjudica.ai</a>
+        <a href="mailto:legal@adjudica.ai" class="text-slate-400 hover:text-blue-300 transition-all no-underline">legal@adjudica.ai</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Update this URL to match wherever the Next.js marketing app is deployed.
+  // In production: https://adjudiclaims.com/api/glassy-contact
+  const API_URL = 'https://adjudiclaims-marketing-915841834222.us-west1.run.app/api/glassy-contact';
+
+  const form = document.getElementById('demo-form');
+  const submitBtn = document.getElementById('submit-btn');
+  const errorMsg = document.getElementById('error-msg');
+  const successState = document.getElementById('success-state');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending...';
+    errorMsg.classList.add('hidden');
+
+    const payload = {
+      firstName: document.getElementById('firstName').value.trim(),
+      lastName:  document.getElementById('lastName').value.trim(),
+      firm:      document.getElementById('firm').value.trim(),
+      email:     document.getElementById('email').value.trim(),
+      phone:     document.getElementById('phone').value.trim(),
+      practiceSize: document.getElementById('practiceSize').value,
+      message:   document.getElementById('message').value.trim(),
+    };
+
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        form.classList.add('hidden');
+        successState.classList.remove('hidden');
+      } else {
+        const data = await res.json().catch(() => ({}));
+        errorMsg.textContent = data.error ?? 'Something went wrong. Please try again.';
+        errorMsg.classList.remove('hidden');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Request Demo →';
+      }
+    } catch {
+      errorMsg.textContent = 'Network error. Please check your connection and try again.';
+      errorMsg.classList.remove('hidden');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Request Demo →';
+    }
+  });
+</script>
+
+</body>
+</html>

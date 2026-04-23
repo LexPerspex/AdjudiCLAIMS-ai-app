@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Security & Compliance - Glassy User</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: {
+                DEFAULT: '#00288e',
+                dark: '#002175'
+              },
+              secondary: {
+                DEFAULT: '#1e40af'
+              },
+              tertiary: {
+                DEFAULT: '#3b82f6'
+              },
+              slate: {
+                50: '#f8fafc',
+                100: '#f1f5f9',
+                200: '#e2e8f0',
+                700: '#334155',
+                800: '#1e293b',
+                900: '#0f172a',
+                950: '#020617'
+              },
+              success: '#10b981'
+            },
+            borderRadius: {
+              "DEFAULT": "0.25rem",
+              "lg": "0.5rem",
+              "xl": "0.75rem",
+              "full": "9999px"
+            },
+            fontFamily: {
+              headline: ["Inter", "sans-serif"],
+              body: ["Inter", "sans-serif"],
+              label: ["Inter", "sans-serif"]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-white font-body text-slate-700">
+<!-- TopNavBar -->
+<nav class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md text-slate-700 dark:text-slate-300 docked full-width top-0 sticky border-b border-slate-200 dark:border-slate-800 shadow-sm z-50">
+<div class="max-w-7xl mx-auto flex justify-between items-center px-6 py-4 w-full">
+<div class="text-xl font-extrabold tracking-tighter text-blue-900 dark:text-white">
+                Glassy User
+            </div>
+<div class="hidden md:flex items-center space-x-8 font-['Inter'] font-medium">
+<a class="text-slate-600 dark:text-slate-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors" href="index.html">Home</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors" href="how-it-works.html">How It Works</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors" href="skills.html">Skills</a>
+<a class="text-blue-700 dark:text-blue-400 border-b-2 border-blue-900 dark:border-blue-400 pb-1 hover:text-blue-800 dark:hover:text-blue-300 transition-colors" href="security.html">Security</a>
+</div>
+<a href="#" onclick="openDemoModal(); return false;" class="bg-primary text-white px-6 py-2 rounded-lg font-semibold hover:opacity-90 transition-all duration-150 no-underline">Request Demo</a>
+</div>
+</nav>
+<!-- Hero Section -->
+<section class="relative bg-gradient-to-br from-[#00288e] to-[#1e40af] pt-24 pb-32 overflow-hidden">
+<div class="absolute inset-0 opacity-10" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDCq24NdRElrM6PLFKRLnstzgFXtTAIxiuaRxO7cOILyHOj50ILLl7LJeo6Zr6uwbsCFjnfTRIAKDIA831y1rZavOj-PHbbpr2dpcgSfmQXFoh3F6U8OngOQ_sFj_tJdMbGfuI6VRvJ-qKwNDGhSmHmslGhzbExy8E6ohctZuKlbJx-QnUV5a5b5vPtfE0IvrpfG9KquS6X-kuAJ5NuBnUXj4yTRPydBC5r8oZK8J3kyMxe8KYASLL5eoyVtDPFkSN0xdn0jusSHyagyQ');"></div>
+<div class="max-w-7xl mx-auto px-6 relative z-10 text-center md:text-left">
+<div class="grid md:grid-cols-2 gap-12 items-center">
+<div>
+<span class="inline-block py-1 px-3 rounded-full bg-tertiary/20 text-blue-200 text-xs font-bold tracking-widest mb-6">SECURE &amp; COMPLIANT</span>
+<h1 class="font-headline font-extrabold text-white text-5xl md:text-7xl tracking-tight mb-6">
+                        Built for firms handling real cases.
+                    </h1>
+<p class="text-xl text-blue-100/90 leading-relaxed max-w-xl">
+                        A HIPAA-ready posture built on the Glass Box philosophy. Every interaction is traceable, every decision auditable, and every piece of data protected by enterprise-grade security protocols.
+                    </p>
+</div>
+<div class="hidden md:block">
+<div class="glass-panel p-8 rounded-xl shadow-2xl relative overflow-hidden">
+<div class="flex items-center gap-4 mb-6">
+<span class="material-symbols-outlined text-success text-4xl" data-icon="verified_user" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+<div class="text-white">
+<p class="text-sm font-semibold opacity-70">COMPLIANCE STATUS</p>
+<p class="text-lg font-bold">HIPAA Compliant Platform</p>
+</div>
+</div>
+<div class="space-y-4">
+<div class="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+<div class="h-full bg-success w-[100%]"></div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-white/5 p-4 rounded-lg">
+<p class="text-xs text-blue-200">DATA AT REST</p>
+<p class="text-sm font-bold text-white">AES-256</p>
+</div>
+<div class="bg-white/5 p-4 rounded-lg">
+<p class="text-xs text-blue-200">DATA IN TRANSIT</p>
+<p class="text-sm font-bold text-white">TLS 1.3</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Compliance Band -->
+<section class="relative -mt-16 z-20 px-6">
+<div class="max-w-7xl mx-auto">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+<div class="bg-white p-8 rounded-xl border border-slate-200 shadow-xl flex flex-col items-center text-center">
+<span class="material-symbols-outlined text-primary text-5xl mb-4" data-icon="medical_services">medical_services</span>
+<h3 class="font-bold text-slate-900 mb-2">HIPAA-ready</h3>
+<p class="text-sm text-slate-500">Full administrative and technical safeguards for PHI.</p>
+</div>
+<div class="bg-white p-8 rounded-xl border border-slate-200 shadow-xl flex flex-col items-center text-center">
+<span class="material-symbols-outlined text-primary text-5xl mb-4" data-icon="verified">verified</span>
+<h3 class="font-bold text-slate-900 mb-2">SOC 2 Type II</h3>
+<p class="text-sm text-slate-500">Rigorous independent auditing of security controls.</p>
+</div>
+<div class="bg-white p-8 rounded-xl border border-slate-200 shadow-xl flex flex-col items-center text-center">
+<span class="material-symbols-outlined text-primary text-5xl mb-4" data-icon="history_edu">history_edu</span>
+<h3 class="font-bold text-slate-900 mb-2">Immutable Audit</h3>
+<p class="text-sm text-slate-500">Chained logs ensuring no record can be altered.</p>
+</div>
+<div class="bg-white p-8 rounded-xl border border-slate-200 shadow-xl flex flex-col items-center text-center">
+<span class="material-symbols-outlined text-primary text-5xl mb-4" data-icon="lock">lock</span>
+<h3 class="font-bold text-slate-900 mb-2">Encryption</h3>
+<p class="text-sm text-slate-500">Bank-level encryption for all sensitive data.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- HIPAA Posture Section -->
+<section class="py-24 px-6 max-w-7xl mx-auto">
+<div class="grid md:grid-cols-2 gap-16 items-start">
+<div class="space-y-6">
+<h2 class="font-headline font-bold text-3xl text-slate-900">HIPAA Posture</h2>
+<div class="space-y-4">
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-success" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<div>
+<p class="font-semibold text-slate-800">Willingness to sign BAA</p>
+<p class="text-sm text-slate-500">Standard and custom Business Associate Agreements available for all enterprise clients.</p>
+</div>
+</div>
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-success" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<div>
+<p class="font-semibold text-slate-800">PHI Minimization Strategy</p>
+<p class="text-sm text-slate-500">Automatic redaction and scrubbing of non-essential identifiers before processing.</p>
+</div>
+</div>
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-success" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<div>
+<p class="font-semibold text-slate-800">Secure Data Isolation</p>
+<p class="text-sm text-slate-500">Logical and physical isolation of client datasets within our secure cloud infrastructure.</p>
+</div>
+</div>
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-success" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<div>
+<p class="font-semibold text-slate-800">Employee Access Controls</p>
+<p class="text-sm text-slate-500">Strict least-privilege access model backed by background checks and HIPAA training.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-slate-50 p-10 rounded-xl border border-slate-200">
+<h3 class="font-bold text-xl mb-4 text-slate-900">How we handle PHI</h3>
+<p class="leading-relaxed mb-6">
+                    Handling California Workers' Compensation data requires more than just standard encryption. Our infrastructure is specifically architected to recognize and respect Protected Health Information (PHI). 
+                </p>
+<p class="leading-relaxed mb-6">
+                    From the moment an IME report or medical bill enters our ecosystem, it is treated with the highest level of sensitivity. Our systems are programmed to minimize the persistence of PHI, ensuring that only necessary data is used for analysis, while the integrity of the legal file remains paramount.
+                </p>
+<div class="flex gap-4">
+<img class="w-20 h-20 rounded-lg object-cover" data-alt="professional high-tech server room with blue glowing lights and secure server racks" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAD_ZV2BF2FywG7V809IA97m-vp9Te2yZ0ELRSSCOky33iyl_qMsFArtZpBY78beB8uv8SRa3HDIdPX6Lvaafyy5UZpOWdwPakPiryjKFY55FA6bCYi7oWA3yFkrtVCMKvC0i6VKz6ifl3SqSGn8NKQeRPooyfKF7y8ang28w0Z_kVX11TIQXh09SgIuZkwTYw2-tboxfzN975kJC25WPthE0uuXJF22z3eaBRKhsBzx00bsFAzJcjSHizqKURIVo0dch-IPgEm7RPUqQ"/>
+<div class="flex flex-col justify-center">
+<p class="text-xs font-bold text-slate-400 uppercase tracking-widest">INFRASTRUCTURE</p>
+<p class="text-slate-800 font-semibold">Tier 4 Data Centers</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Immutable Audit Logging -->
+<section class="py-24 bg-slate-950 text-white overflow-hidden">
+<div class="max-w-7xl mx-auto px-6">
+<div class="grid md:grid-cols-2 gap-16 items-center">
+<div>
+<h2 class="font-headline font-bold text-3xl mb-6">Immutable Audit Logging</h2>
+<p class="text-slate-400 text-lg leading-relaxed mb-8">
+                        The "Glass Box" requires that every action be traceable. Our audit logs use SHA-256 cryptographic chaining, ensuring that once a record is created, it cannot be altered or deleted without breaking the chain.
+                    </p>
+<div class="space-y-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-tertiary" data-icon="fingerprint">fingerprint</span>
+<span class="text-slate-200">Cryptographically signed event logs</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-tertiary" data-icon="schedule">schedule</span>
+<span class="text-slate-200">UTC-synced microsecond precision</span>
+</div>
+</div>
+</div>
+<div class="relative">
+<div class="bg-slate-900 rounded-lg p-6 font-mono text-sm border border-slate-800 shadow-2xl">
+<div class="flex gap-2 mb-4 border-b border-slate-800 pb-2">
+<div class="w-3 h-3 rounded-full bg-red-500"></div>
+<div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+<div class="w-3 h-3 rounded-full bg-green-500"></div>
+</div>
+<div class="text-blue-400">{</div>
+<div class="pl-4"><span class="text-slate-500">"event_id":</span> "evt_8k2l9p34",</div>
+<div class="pl-4"><span class="text-slate-500">"timestamp":</span> "2024-05-24T14:32:01.442Z",</div>
+<div class="pl-4"><span class="text-slate-500">"actor":</span> "usr_99x",</div>
+<div class="pl-4"><span class="text-slate-500">"action":</span> "view_medical_record",</div>
+<div class="pl-4"><span class="text-slate-500">"resource":</span> "doc_ime_smith_john",</div>
+<div class="pl-4"><span class="text-slate-500">"previous_hash":</span> "ae88...f2c1",</div>
+<div class="pl-4"><span class="text-slate-500">"hash":</span> <span class="text-success">"3f7a...9e10"</span></div>
+<div class="text-blue-400">}</div>
+<div class="mt-4 border-t border-slate-800 pt-4 text-slate-600 italic">
+                            // SHA-256 Chained Log Entry
+                        </div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- BAA Register -->
+<section class="py-24 px-6 max-w-7xl mx-auto">
+<h2 class="font-headline font-bold text-3xl text-slate-900 mb-8">BAA Register</h2>
+<div class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
+<table class="w-full text-left border-collapse">
+<thead class="bg-slate-50 text-slate-500 text-xs font-bold uppercase tracking-widest">
+<tr>
+<th class="px-6 py-4 border-b border-slate-200">Counterparty</th>
+<th class="px-6 py-4 border-b border-slate-200">Status</th>
+<th class="px-6 py-4 border-b border-slate-200">Signed Date</th>
+<th class="px-6 py-4 border-b border-slate-200">Scope</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100">
+<tr>
+<td class="px-6 py-4 font-semibold text-slate-800">Amazon Web Services (AWS)</td>
+<td class="px-6 py-4"><span class="px-3 py-1 rounded-full bg-success/10 text-success text-xs font-bold">ACTIVE</span></td>
+<td class="px-6 py-4 text-slate-500">Jan 12, 2023</td>
+<td class="px-6 py-4 text-slate-500">Infrastructure &amp; Storage</td>
+</tr>
+<tr>
+<td class="px-6 py-4 font-semibold text-slate-800">Anthropic PBC</td>
+<td class="px-6 py-4"><span class="px-3 py-1 rounded-full bg-success/10 text-success text-xs font-bold">ACTIVE</span></td>
+<td class="px-6 py-4 text-slate-500">Mar 05, 2024</td>
+<td class="px-6 py-4 text-slate-500">LLM Processing (Zero-Retention)</td>
+</tr>
+<tr>
+<td class="px-6 py-4 font-semibold text-slate-800">Internal Operations</td>
+<td class="px-6 py-4"><span class="px-3 py-1 rounded-full bg-success/10 text-success text-xs font-bold">ACTIVE</span></td>
+<td class="px-6 py-4 text-slate-500">Dec 01, 2023</td>
+<td class="px-6 py-4 text-slate-500">Personnel &amp; Support</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- PHI-Aware Controls -->
+<section class="py-24 bg-slate-50 border-y border-slate-200 px-6">
+<div class="max-w-7xl mx-auto">
+<h2 class="font-headline font-bold text-3xl text-slate-900 mb-12 text-center">PHI-Aware Controls</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<div class="bg-white p-8 rounded-xl border border-slate-200 shadow-sm">
+<div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-primary" data-icon="filter_alt">filter_alt</span>
+</div>
+<h3 class="font-bold text-lg mb-3">Ingress filtering</h3>
+<p class="text-slate-500 leading-relaxed text-sm">Automated identification and classification of PHI upon entry to ensure appropriate routing and storage protocols are triggered.</p>
+</div>
+<div class="bg-white p-8 rounded-xl border border-slate-200 shadow-sm">
+<div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-primary" data-icon="admin_panel_settings">admin_panel_settings</span>
+</div>
+<h3 class="font-bold text-lg mb-3">Least privilege</h3>
+<p class="text-slate-500 leading-relaxed text-sm">Dynamic access controls that grant users access to only the specific records required for their current legal task, with timed expiration.</p>
+</div>
+<div class="bg-white p-8 rounded-xl border border-slate-200 shadow-sm">
+<div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-primary" data-icon="output">output</span>
+</div>
+<h3 class="font-bold text-lg mb-3">Egress controls</h3>
+<p class="text-slate-500 leading-relaxed text-sm">Data Loss Prevention (DLP) monitoring on all exports and report generation to prevent unauthorized PHI movement.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- SOC 2 Control Coverage -->
+<section class="py-24 px-6 max-w-7xl mx-auto">
+<h2 class="font-headline font-bold text-3xl text-slate-900 mb-4">SOC 2 Control Coverage</h2>
+<p class="text-slate-500 mb-12 max-w-2xl">Our security posture is mapped directly to the Trust Services Criteria. Below are key highlights from our latest audit.</p>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<div class="border-l-4 border-primary pl-6 py-2">
+<p class="text-xs font-bold text-slate-400 uppercase mb-2">CC6 Logical Access</p>
+<h3 class="font-bold text-lg mb-2">Identity &amp; Auth</h3>
+<p class="text-slate-600 text-sm">MFA enforcement for all accounts, SSO integration, and automated quarterly access reviews across all systems.</p>
+</div>
+<div class="border-l-4 border-primary pl-6 py-2">
+<p class="text-xs font-bold text-slate-400 uppercase mb-2">CC7 System Operations</p>
+<h3 class="font-bold text-lg mb-2">Monitoring &amp; Detection</h3>
+<p class="text-slate-600 text-sm">24/7 SIEM monitoring with automated alerting for anomalous behavior and unauthorized access attempts.</p>
+</div>
+<div class="border-l-4 border-primary pl-6 py-2">
+<p class="text-xs font-bold text-slate-400 uppercase mb-2">CC8 Change Management</p>
+<h3 class="font-bold text-lg mb-2">Integrity &amp; Reliability</h3>
+<p class="text-slate-600 text-sm">Peer-reviewed code deployments with integrated automated security testing (SAST/DAST) in the CI/CD pipeline.</p>
+</div>
+</div>
+</section>
+<!-- The Glass Box Philosophy -->
+<section class="py-32 bg-primary text-white text-center px-6">
+<div class="max-w-4xl mx-auto">
+<span class="inline-block py-1 px-3 rounded-full bg-white/10 text-blue-200 text-xs font-bold tracking-widest mb-8 uppercase">Our Core Belief</span>
+<h2 class="font-headline font-extrabold text-4xl md:text-6xl mb-8 leading-tight">From Black Box to Glass Box.</h2>
+<p class="text-xl text-blue-100/80 leading-relaxed max-w-2xl mx-auto">
+                Trust in AI is built on transparency. We replace "trust us" with "verify us" through real-time auditability and explainable legal workflows.
+            </p>
+</div>
+</section>
+<!-- Final CTA -->
+<section class="py-24 px-6 text-center">
+<div class="max-w-4xl mx-auto">
+<h2 class="font-headline font-bold text-3xl text-slate-900 mb-6">Review our security posture.</h2>
+<p class="text-slate-500 text-lg mb-10">Detailed whitepapers and auditor reports are available upon request for legal counsel and IT compliance teams.</p>
+<div class="flex flex-col md:flex-row justify-center gap-4">
+<button class="bg-primary text-white px-8 py-4 rounded-lg font-bold text-lg hover:opacity-90 transition-all">
+                    Request Security Review
+                </button>
+<button class="border-2 border-primary text-primary px-8 py-4 rounded-lg font-bold text-lg hover:bg-primary hover:text-white transition-all">
+                    Download BAA Template
+                </button>
+</div>
+</div>
+</section>
+<!-- Footer -->
+<footer class="bg-slate-950 text-blue-400 font-['Inter'] text-sm leading-relaxed full-width rounded-none border-t border-slate-800">
+<div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 px-6 py-16">
+<div class="space-y-6">
+<div class="text-lg font-bold text-white">Glass Box Solutions</div>
+<p class="text-slate-400">Professional legal tech for CA Workers' Compensation defense attorneys. Premium, substantive, trustworthy.</p>
+<div class="text-slate-500">© 2024 Glass Box Solutions. From Black Box to Glass Box. Live at glassy.adjudica.ai</div>
+</div>
+<div class="grid grid-cols-2 gap-8">
+<div class="space-y-4">
+<p class="text-white font-semibold">Product</p>
+<div class="flex flex-col space-y-2">
+<a class="text-slate-400 hover:text-blue-300 transition-all duration-300" href="index.html">Home</a>
+<a class="text-slate-400 hover:text-blue-300 transition-all duration-300" href="how-it-works.html">How It Works</a>
+<a class="text-slate-400 hover:text-blue-300 transition-all duration-300" href="skills.html">Skills</a>
+<a class="text-white font-semibold hover:text-blue-300 transition-all duration-300" href="security.html">Security</a>
+<a class="text-slate-400 hover:text-blue-300 transition-all duration-300" href="#">Demo</a>
+</div>
+</div>
+<div class="space-y-4">
+<p class="text-white font-semibold">Legal</p>
+<div class="flex flex-col space-y-2">
+<a class="text-slate-400 hover:text-blue-300 transition-all duration-300" href="#">About</a>
+<a class="text-slate-400 hover:text-blue-300 transition-all duration-300" href="#">Privacy</a>
+<a class="text-slate-400 hover:text-blue-300 transition-all duration-300" href="#">Terms</a>
+<a class="text-slate-400 hover:text-blue-300 transition-all duration-300" href="#">BAA</a>
+<a class="text-slate-400 hover:text-blue-300 transition-all duration-300" href="#">Contact</a>
+</div>
+</div>
+</div>
+<div class="space-y-6">
+<p class="text-white font-semibold">Security Verification</p>
+<div class="flex flex-wrap gap-4">
+<div class="border border-slate-800 p-2 rounded flex items-center gap-2">
+<span class="material-symbols-outlined text-xs" data-icon="shield">shield</span>
+<span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">SOC 2 TYPE II</span>
+</div>
+<div class="border border-slate-800 p-2 rounded flex items-center gap-2">
+<span class="material-symbols-outlined text-xs" data-icon="health_and_safety">health_and_safety</span>
+<span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">HIPAA READY</span>
+</div>
+</div>
+<img class="w-full h-32 object-cover rounded-lg opacity-40" data-alt="clean professional office environment with subtle glass partitions and sophisticated lighting for a legal tech brand" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD9DF1Wjy0ZkN5yhSnIBEgQ-fY33HqNEHzZz2WEfXTf55BHVWkHEMMdGqWpEBmp__0AbigIZMjbqTHtjAo855233E7cWUXgRYcOuSppSmXDiPi94oZwWLDv9LoIk6B6ys4VpbcaaIKT_2TLN13653RAIpUJjDRVS7cUFlLDdrbmcmXueliJxy3QgtWbFkQQdYBccvLc1qup2NyI2svpENyOCKpLBN-qL85MuYbhFuGEVBOZqGODug8kpiwK607UL25qafWHlw553fydVA"/>
+</div>
+</div>
+</footer>
+
+<!-- Demo Request Modal -->
+<div id="demo-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4" style="background:rgba(0,0,0,0.6); backdrop-filter:blur(4px);">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto" style="border:1px solid #e2e8f0;">
+    <!-- Header -->
+    <div class="flex items-center justify-between px-6 py-4 border-b" style="background:linear-gradient(135deg,#00288e 0%,#1e40af 100%); border-radius:1rem 1rem 0 0;">
+      <div>
+        <div class="text-xs font-bold uppercase tracking-widest text-blue-200 mb-0.5">Glassy User</div>
+        <h2 class="text-lg font-extrabold text-white">Request a Demo</h2>
+      </div>
+      <button onclick="closeDemoModal()" class="text-white/70 hover:text-white text-2xl leading-none font-light" aria-label="Close">&times;</button>
+    </div>
+    <!-- Body -->
+    <div class="px-6 py-6">
+      <div id="modal-success" class="hidden text-center py-8">
+        <div class="text-4xl mb-3">&#10003;</div>
+        <h3 class="text-lg font-extrabold mb-2" style="color:#059669;">Request received.</h3>
+        <p class="text-slate-600 text-sm">We'll be in touch within one business day. Check your email for a confirmation.</p>
+      </div>
+      <form id="modal-form" class="space-y-4">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold mb-1">First Name <span class="text-red-600">*</span></label>
+            <input id="m-firstName" required type="text" placeholder="Jane"
+              class="w-full px-3 py-2 rounded-lg border text-sm" style="border:1px solid #cbd5e1;" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold mb-1">Last Name <span class="text-red-600">*</span></label>
+            <input id="m-lastName" required type="text" placeholder="Smith"
+              class="w-full px-3 py-2 rounded-lg border text-sm" style="border:1px solid #cbd5e1;" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold mb-1">Law Firm <span class="text-red-600">*</span></label>
+          <input id="m-firm" required type="text" placeholder="Pacific Defense Group, LLP"
+            class="w-full px-3 py-2 rounded-lg border text-sm" style="border:1px solid #cbd5e1;" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold mb-1">Work Email <span class="text-red-600">*</span></label>
+            <input id="m-email" required type="email" placeholder="jane@firm.com"
+              class="w-full px-3 py-2 rounded-lg border text-sm" style="border:1px solid #cbd5e1;" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold mb-1">Phone <span class="text-xs font-normal text-slate-400">(optional)</span></label>
+            <input id="m-phone" type="tel" placeholder="(415) 555-0100"
+              class="w-full px-3 py-2 rounded-lg border text-sm" style="border:1px solid #cbd5e1;" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold mb-1">Practice Size</label>
+          <select id="m-practiceSize" class="w-full px-3 py-2 rounded-lg border text-sm" style="border:1px solid #cbd5e1;">
+            <option value="">Select range</option>
+            <option value="Solo">Solo practitioner</option>
+            <option value="2-5">2–5 attorneys</option>
+            <option value="6-20">6–20 attorneys</option>
+            <option value="21-50">21–50 attorneys</option>
+            <option value="50+">50+ attorneys</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold mb-1">Message <span class="text-xs font-normal text-slate-400">(optional)</span></label>
+          <textarea id="m-message" rows="3" placeholder="Tell us about your practice or what you'd like to see in the demo..."
+            class="w-full px-3 py-2 rounded-lg border text-sm" style="border:1px solid #cbd5e1;"></textarea>
+        </div>
+        <div id="modal-error" class="hidden px-3 py-2 rounded-lg text-xs" style="background:#fff1f2; border:1px solid #fecdd3; color:#991b1b;"></div>
+        <button type="submit" id="modal-submit"
+          class="w-full text-white font-bold py-3 rounded-lg text-sm hover:opacity-90 transition-opacity disabled:opacity-60"
+          style="background:linear-gradient(135deg,#00288e 0%,#1e40af 100%);">
+          Request Demo &rarr;
+        </button>
+        <p class="text-center text-xs text-slate-400">By submitting you agree to be contacted by Glass Box Solutions. We don't sell your data.</p>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  const GLASSY_API = 'https://adjudiclaims-marketing-915841834222.us-west1.run.app/api/glassy-contact';
+
+  function openDemoModal() {
+    const m = document.getElementById('demo-modal');
+    m.classList.remove('hidden');
+    m.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeDemoModal() {
+    const m = document.getElementById('demo-modal');
+    m.classList.add('hidden');
+    m.classList.remove('flex');
+    document.body.style.overflow = '';
+  }
+
+  document.getElementById('demo-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeDemoModal();
+  });
+
+  document.getElementById('modal-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('modal-submit');
+    const errEl = document.getElementById('modal-error');
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+    errEl.classList.add('hidden');
+
+    const payload = {
+      firstName:    document.getElementById('m-firstName').value.trim(),
+      lastName:     document.getElementById('m-lastName').value.trim(),
+      firm:         document.getElementById('m-firm').value.trim(),
+      email:        document.getElementById('m-email').value.trim(),
+      phone:        document.getElementById('m-phone').value.trim(),
+      practiceSize: document.getElementById('m-practiceSize').value,
+      message:      document.getElementById('m-message').value.trim(),
+    };
+
+    try {
+      const res = await fetch(GLASSY_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        document.getElementById('modal-form').classList.add('hidden');
+        document.getElementById('modal-success').classList.remove('hidden');
+      } else {
+        const data = await res.json().catch(() => ({}));
+        errEl.textContent = data.error ?? 'Something went wrong. Please try again.';
+        errEl.classList.remove('hidden');
+        btn.disabled = false;
+        btn.textContent = 'Request Demo →';
+      }
+    } catch {
+      errEl.textContent = 'Network error. Please check your connection and try again.';
+      errEl.classList.remove('hidden');
+      btn.disabled = false;
+      btn.textContent = 'Request Demo →';
+    }
+  });
+</script>
+
+</body></html>

@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>How It Works - Glassy User</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#00288e",
+                        secondary: "#1e40af",
+                        tertiary: "#3b82f6",
+                        background: "#ffffff",
+                        surface: "#f8fafc",
+                        card: "#f1f5f9",
+                        text: "#0f172a",
+                        body: "#334155",
+                        muted: "#64748b",
+                        border: "#e2e8f0",
+                        success: "#10b981"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    fontFamily: {
+                        headline: ["Inter"],
+                        body: ["Inter"],
+                        label: ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-body font-body antialiased">
+<!-- TopNavBar -->
+<header class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-sm docked full-width top-0 sticky z-50">
+<div class="max-w-7xl mx-auto flex justify-between items-center px-6 py-4 w-full">
+<div class="text-xl font-extrabold tracking-tighter text-blue-900 dark:text-white">
+                Glassy User
+            </div>
+<nav class="hidden md:flex items-center space-x-8">
+<a class="font-['Inter'] font-medium transition-colors hover:text-blue-800 dark:hover:text-blue-300 text-slate-600 dark:text-slate-400" href="index.html">Home</a>
+<a class="font-['Inter'] font-medium transition-colors hover:text-blue-800 dark:hover:text-blue-300 text-blue-700 dark:text-blue-400 border-b-2 border-blue-900 dark:border-blue-400 pb-1" href="how-it-works.html">How It Works</a>
+<a class="font-['Inter'] font-medium transition-colors hover:text-blue-800 dark:hover:text-blue-300 text-slate-600 dark:text-slate-400" href="skills.html">Skills</a>
+<a class="font-['Inter'] font-medium transition-colors hover:text-blue-800 dark:hover:text-blue-300 text-slate-600 dark:text-slate-400" href="security.html">Security</a>
+</nav>
+<a href="#" onclick="openDemoModal(); return false;" class="bg-[#00288e] text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-[#1e40af] transition-all duration-150 text-sm no-underline">Request Demo</a>
+</div>
+</header>
+<!-- Hero Section -->
+<section class="relative overflow-hidden bg-gradient-to-br from-[#00288e] to-[#1e40af] text-white pt-24 pb-32">
+<div class="absolute inset-0 opacity-10 pointer-events-none">
+<div class="absolute top-0 right-0 w-96 h-96 bg-white blur-[120px] rounded-full translate-x-1/2 -translate-y-1/2"></div>
+<div class="absolute bottom-0 left-0 w-64 h-64 bg-blue-400 blur-[100px] rounded-full -translate-x-1/2 translate-y-1/2"></div>
+</div>
+<div class="max-w-7xl mx-auto px-6 relative z-10 text-center">
+<span class="inline-block px-4 py-1.5 mb-6 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-100 text-xs font-bold tracking-widest uppercase">The Engine of Truth</span>
+<h1 class="font-headline font-extrabold text-5xl md:text-7xl tracking-tight mb-8">The PAI Algorithm.</h1>
+<p class="max-w-3xl mx-auto text-lg md:text-xl text-blue-100 leading-relaxed opacity-90">
+                A sophisticated 7-phase cognitive loop engineered specifically for complex CA Workers' Compensation legal work. Move beyond basic prompts into structured, verifiable intelligence.
+            </p>
+</div>
+</section>
+<!-- PAI Algorithm Section -->
+<section class="py-24 bg-white">
+<div class="max-w-7xl mx-auto px-6">
+<div class="text-center mb-20">
+<h2 class="font-headline text-3xl font-bold text-text mb-4">The Cognitive Loop</h2>
+<p class="text-muted max-w-2xl mx-auto">Seven distinct phases of deliberation ensure every AI decision is explainable and auditable.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-7 gap-4">
+<!-- Observe -->
+<div class="p-6 bg-surface rounded-xl border border-border hover:shadow-lg transition-shadow">
+<div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-primary" data-icon="visibility">visibility</span>
+</div>
+<h3 class="font-bold text-text mb-2">Observe</h3>
+<p class="text-sm text-muted">Ingests case files, medical reports, and legal filings with multi-modal precision.</p>
+</div>
+<!-- Think -->
+<div class="p-6 bg-surface rounded-xl border border-border hover:shadow-lg transition-shadow">
+<div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-primary" data-icon="psychology">psychology</span>
+</div>
+<h3 class="font-bold text-text mb-2">Think</h3>
+<p class="text-sm text-muted">Identifies relevant WC codes, case law, and medical terminology contexts.</p>
+</div>
+<!-- Plan -->
+<div class="p-6 bg-surface rounded-xl border border-border hover:shadow-lg transition-shadow">
+<div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-primary" data-icon="account_tree">account_tree</span>
+</div>
+<h3 class="font-bold text-text mb-2">Plan</h3>
+<p class="text-sm text-muted">Structures the logical roadmap to address the specific legal query or task.</p>
+</div>
+<!-- Build -->
+<div class="p-6 bg-surface rounded-xl border border-border hover:shadow-lg transition-shadow">
+<div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-primary" data-icon="architecture">architecture</span>
+</div>
+<h3 class="font-bold text-text mb-2">Build</h3>
+<p class="text-sm text-muted">Constructs the draft response, legal argument, or document framework.</p>
+</div>
+<!-- Execute -->
+<div class="p-6 bg-surface rounded-xl border border-border hover:shadow-lg transition-shadow">
+<div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-primary" data-icon="play_circle">play_circle</span>
+</div>
+<h3 class="font-bold text-text mb-2">Execute</h3>
+<p class="text-sm text-muted">Finalizes the output while cross-referencing against internal knowledge bases.</p>
+</div>
+<!-- Verify -->
+<div class="p-6 bg-surface rounded-xl border border-border hover:shadow-lg transition-shadow border-success/30 bg-emerald-50/30">
+<div class="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-success" data-icon="verified">verified</span>
+</div>
+<h3 class="font-bold text-text mb-2">Verify</h3>
+<p class="text-sm text-muted">Automated hallucination checks and compliance validation (HIPAA/Legal).</p>
+</div>
+<!-- Learn -->
+<div class="p-6 bg-surface rounded-xl border border-border hover:shadow-lg transition-shadow">
+<div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-primary" data-icon="auto_awesome">auto_awesome</span>
+</div>
+<h3 class="font-bold text-text mb-2">Learn</h3>
+<p class="text-sm text-muted">Updates the case context for improved future performance on this specific file.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- 33 Domain Skills Section -->
+<section class="py-24 bg-card">
+<div class="max-w-7xl mx-auto px-6">
+<div class="mb-16">
+<h2 class="font-headline text-3xl font-bold text-text mb-4">33 Specialized Domain Skills</h2>
+<p class="text-muted">Intelligence is nothing without expertise. Our agents are trained on specific CA WC workflows.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<!-- Legal -->
+<div class="bg-white p-8 rounded-xl border border-border shadow-sm">
+<div class="flex items-center gap-3 mb-6">
+<div class="w-12 h-12 bg-primary text-white rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="gavel">gavel</span>
+</div>
+<h3 class="text-xl font-bold text-text">12 Legal Skills</h3>
+</div>
+<ul class="space-y-3">
+<li class="flex items-center gap-2 text-sm text-body"><span class="w-1.5 h-1.5 rounded-full bg-primary"></span> MSC Preparation</li>
+<li class="flex items-center gap-2 text-sm text-body"><span class="w-1.5 h-1.5 rounded-full bg-primary"></span> QME/IME Analysis</li>
+<li class="flex items-center gap-2 text-sm text-body"><span class="w-1.5 h-1.5 rounded-full bg-primary"></span> Rating Schedule Mapping</li>
+<li class="flex items-center gap-2 text-sm text-body"><span class="w-1.5 h-1.5 rounded-full bg-primary"></span> Apportionment Review</li>
+</ul>
+</div>
+<!-- Fabric -->
+<div class="bg-white p-8 rounded-xl border border-border shadow-sm">
+<div class="flex items-center gap-3 mb-6">
+<div class="w-12 h-12 bg-secondary text-white rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+</div>
+<h3 class="text-xl font-bold text-text">5 Fabric Skills</h3>
+</div>
+<ul class="space-y-3">
+<li class="flex items-center gap-2 text-sm text-body"><span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> Pattern Extraction</li>
+<li class="flex items-center gap-2 text-sm text-body"><span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> Metadata Tagging</li>
+<li class="flex items-center gap-2 text-sm text-body"><span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> Semantic Search</li>
+<li class="flex items-center gap-2 text-sm text-body"><span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> Document Clustering</li>
+</ul>
+</div>
+<!-- General -->
+<div class="bg-white p-8 rounded-xl border border-border shadow-sm">
+<div class="flex items-center gap-3 mb-6">
+<div class="w-12 h-12 bg-tertiary text-white rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="bolt">bolt</span>
+</div>
+<h3 class="text-xl font-bold text-text">16 General Skills</h3>
+</div>
+<ul class="space-y-3">
+<li class="flex items-center gap-2 text-sm text-body"><span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span> Multi-language OCR</li>
+<li class="flex items-center gap-2 text-sm text-body"><span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span> Narrative Summarization</li>
+<li class="flex items-center gap-2 text-sm text-body"><span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span> Timeline Generation</li>
+<li class="flex items-center gap-2 text-sm text-body"><span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span> Action Item Extraction</li>
+</ul>
+</div>
+</div>
+</div>
+</section>
+<!-- Agent Swarm Section -->
+<section class="py-24 bg-white">
+<div class="max-w-7xl mx-auto px-6">
+<div class="flex flex-col lg:flex-row items-center gap-16">
+<div class="w-full lg:w-1/2">
+<div class="relative bg-slate-900 rounded-2xl p-8 overflow-hidden aspect-video shadow-2xl">
+<!-- Pseudo-DAG Visualization -->
+<div class="absolute inset-0 opacity-20" data-alt="abstract node and wire diagram representing parallel computing and directed acyclic graphs for artificial intelligence coordination">
+<div class="absolute top-1/2 left-10 w-4 h-4 rounded-full bg-blue-400"></div>
+<div class="absolute top-1/3 left-32 w-4 h-4 rounded-full bg-blue-500"></div>
+<div class="absolute bottom-1/3 left-32 w-4 h-4 rounded-full bg-blue-500"></div>
+<div class="absolute top-1/4 right-32 w-4 h-4 rounded-full bg-blue-400"></div>
+<div class="absolute bottom-1/4 right-32 w-4 h-4 rounded-full bg-blue-400"></div>
+<div class="absolute top-1/2 right-10 w-4 h-4 rounded-full bg-blue-500"></div>
+<svg class="absolute inset-0 w-full h-full stroke-blue-500/50 stroke-1 fill-none">
+<path d="M40 160 L128 106 M40 160 L128 214 M128 106 L300 80 M128 214 L300 240 M300 80 L390 160 M300 240 L390 160"></path>
+</svg>
+</div>
+<div class="relative z-10 flex flex-col justify-center h-full">
+<div class="mb-4 bg-white/5 p-4 rounded border border-white/10 backdrop-blur">
+<div class="text-xs text-blue-400 font-mono mb-1">TASK_ID: B-774</div>
+<div class="text-sm font-bold text-white uppercase tracking-wider">Parallel Subtask Execution</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-blue-600/20 border border-blue-500/30 p-3 rounded text-[10px] font-mono text-blue-200">AGENT_LEGAL_PROCEDURE [RUNNING]</div>
+<div class="bg-blue-600/20 border border-blue-500/30 p-3 rounded text-[10px] font-mono text-blue-200">AGENT_MEDICAL_CHRON [RUNNING]</div>
+</div>
+</div>
+</div>
+</div>
+<div class="w-full lg:w-1/2">
+<span class="text-primary font-bold tracking-widest text-xs uppercase mb-4 block">Orchestration</span>
+<h2 class="font-headline text-4xl font-extrabold text-text mb-6">Agent Swarm Coordination</h2>
+<p class="text-lg text-body leading-relaxed mb-6">
+                        Glassy doesn't rely on a single large model. Instead, we deploy a "swarm" of specialized agents that work in parallel. A master orchestrator decomposes your complex legal request into multiple subtasks, assigning each to the agent with the highest skill match.
+                    </p>
+<div class="space-y-4">
+<div class="flex gap-4">
+<div class="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px] text-primary" data-icon="check">check</span>
+</div>
+<p class="text-sm text-body"><strong>Provenance Tracking:</strong> Every word generated is tied back to its specific source document and agent ID.</p>
+</div>
+<div class="flex gap-4">
+<div class="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px] text-primary" data-icon="check">check</span>
+</div>
+<p class="text-sm text-body"><strong>DAG Execution:</strong> Tasks are structured as Directed Acyclic Graphs, ensuring logical dependency management.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Memory Tiering Section -->
+<section class="py-24 bg-surface">
+<div class="max-w-7xl mx-auto px-6">
+<div class="text-center mb-16">
+<h2 class="font-headline text-3xl font-bold text-text mb-4">Memory Tiering</h2>
+<p class="text-muted">How we maintain infinite case context without sacrificing speed.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<!-- HOT -->
+<div class="bg-white p-1 rounded-xl border border-border shadow-sm">
+<div class="p-8 text-center border-b border-border">
+<div class="inline-block px-3 py-1 rounded bg-orange-100 text-orange-700 text-xs font-bold mb-4 uppercase">Hot</div>
+<h3 class="text-2xl font-bold text-text">Active Context</h3>
+</div>
+<div class="p-8">
+<p class="text-body mb-6 text-center">Instant access for the current file being worked. Sub-millisecond retrieval.</p>
+<div class="space-y-2">
+<div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+<div class="h-full bg-orange-400 w-full"></div>
+</div>
+<div class="flex justify-between text-[10px] font-bold text-muted uppercase">
+<span>Speed: Extreme</span>
+<span>Latency: &lt;10ms</span>
+</div>
+</div>
+</div>
+</div>
+<!-- WARM -->
+<div class="bg-white p-1 rounded-xl border border-border shadow-sm">
+<div class="p-8 text-center border-b border-border">
+<div class="inline-block px-3 py-1 rounded bg-yellow-100 text-yellow-700 text-xs font-bold mb-4 uppercase">Warm</div>
+<h3 class="text-2xl font-bold text-text">Portfolio Memory</h3>
+</div>
+<div class="p-8">
+<p class="text-body mb-6 text-center">Cross-case patterns, carrier preferences, and firm-wide knowledge bases.</p>
+<div class="space-y-2">
+<div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+<div class="h-full bg-yellow-400 w-2/3"></div>
+</div>
+<div class="flex justify-between text-[10px] font-bold text-muted uppercase">
+<span>Speed: High</span>
+<span>Latency: &lt;100ms</span>
+</div>
+</div>
+</div>
+</div>
+<!-- COLD -->
+<div class="bg-white p-1 rounded-xl border border-border shadow-sm">
+<div class="p-8 text-center border-b border-border">
+<div class="inline-block px-3 py-1 rounded bg-blue-100 text-blue-700 text-xs font-bold mb-4 uppercase">Cold</div>
+<h3 class="text-2xl font-bold text-text">Archive Vault</h3>
+</div>
+<div class="p-8">
+<p class="text-body mb-6 text-center">Long-term regulatory archival and historical precedent analysis.</p>
+<div class="space-y-2">
+<div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+<div class="h-full bg-blue-400 w-1/3"></div>
+</div>
+<div class="flex justify-between text-[10px] font-bold text-muted uppercase">
+<span>Speed: Optimized</span>
+<span>Latency: &lt;500ms</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Hooks & Automation Section -->
+<section class="py-24 bg-white border-t border-border">
+<div class="max-w-7xl mx-auto px-6">
+<div class="text-center mb-16">
+<h2 class="font-headline text-3xl font-bold text-text mb-4">Hooks &amp; Automation</h2>
+<p class="text-muted">Over 20 native event types to trigger automated legal workflows.</p>
+</div>
+<div class="flex flex-wrap justify-center gap-3">
+<span class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium border border-slate-200">Document Uploaded</span>
+<span class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium border border-slate-200">Lien Filed</span>
+<span class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium border border-slate-200">Medical Report Received</span>
+<span class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium border border-slate-200">DWC Notice Issued</span>
+<span class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium border border-slate-200">Appearing Counsel Update</span>
+<span class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium border border-slate-200">S&amp;W Application</span>
+<span class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium border border-slate-200">Benefit Rate Change</span>
+<span class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium border border-slate-200">Deposition Scheduled</span>
+<span class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium border border-slate-200">Settlement Demand</span>
+<span class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium border border-slate-200">Utilization Review</span>
+<span class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium border border-slate-200">Panel QME Issued</span>
+<span class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium border border-slate-200">Transcript Finalized</span>
+<span class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium border border-slate-200">MSC Notice</span>
+<span class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium border border-slate-200">Rating Request</span>
+<span class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium border border-slate-200">Applicant Update</span>
+<span class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium border border-slate-200">Carrier Instruction</span>
+<span class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium border border-slate-200">Trial Set</span>
+<span class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium border border-slate-200">Evidence Logged</span>
+<span class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium border border-slate-200">Privacy Breach Alert</span>
+<span class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium border border-slate-200">Compliance Audit</span>
+</div>
+</div>
+</section>
+<!-- Final CTA Section -->
+<section class="py-24 bg-[#00288e] text-white">
+<div class="max-w-7xl mx-auto px-6 text-center">
+<h2 class="font-headline text-4xl font-bold mb-8">See the loop in action.</h2>
+<a href="#" onclick="openDemoModal(); return false;" class="bg-white text-primary px-8 py-4 rounded-lg font-bold text-lg hover:bg-blue-50 transition-colors no-underline">Request Demo</a>
+</div>
+</section>
+<!-- Footer -->
+<footer class="bg-slate-950 dark:bg-black border-t border-slate-800">
+<div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 px-6 py-16">
+<div>
+<div class="text-lg font-bold text-white mb-6">Glass Box Solutions</div>
+<p class="font-['Inter'] text-sm leading-relaxed text-slate-400 dark:text-slate-500 max-w-xs">
+                    Building the future of legal transparency through explainable AI for CA Workers' Compensation defense.
+                </p>
+</div>
+<div class="grid grid-cols-2 gap-8">
+<ul class="space-y-3">
+<li><a class="font-['Inter'] text-sm leading-relaxed text-slate-400 dark:text-slate-500 hover:text-blue-300 transition-all" href="index.html">Home</a></li>
+<li><a class="font-['Inter'] text-sm leading-relaxed text-slate-400 dark:text-slate-500 hover:text-blue-300 transition-all" href="how-it-works.html">How It Works</a></li>
+<li><a class="font-['Inter'] text-sm leading-relaxed text-slate-400 dark:text-slate-500 hover:text-blue-300 transition-all" href="skills.html">Skills</a></li>
+<li><a class="font-['Inter'] text-sm leading-relaxed text-slate-400 dark:text-slate-500 hover:text-blue-300 transition-all" href="security.html">Security</a></li>
+</ul>
+<ul class="space-y-3">
+<li><a class="font-['Inter'] text-sm leading-relaxed text-slate-400 dark:text-slate-500 hover:text-blue-300 transition-all" href="#">Privacy</a></li>
+<li><a class="font-['Inter'] text-sm leading-relaxed text-slate-400 dark:text-slate-500 hover:text-blue-300 transition-all" href="#">Terms</a></li>
+<li><a class="font-['Inter'] text-sm leading-relaxed text-slate-400 dark:text-slate-500 hover:text-blue-300 transition-all" href="#">BAA</a></li>
+<li><a class="font-['Inter'] text-sm leading-relaxed text-slate-400 dark:text-slate-500 hover:text-blue-300 transition-all" href="#">Contact</a></li>
+</ul>
+</div>
+<div class="text-right">
+<p class="font-['Inter'] text-sm leading-relaxed text-slate-400 dark:text-slate-500 mb-4">
+                    © 2024 Glass Box Solutions. From Black Box to Glass Box. Live at glassy.adjudica.ai
+                </p>
+<div class="flex justify-end gap-4 text-blue-400 dark:text-blue-300">
+<span class="material-symbols-outlined cursor-pointer hover:text-white" data-icon="shield_lock">shield_lock</span>
+<span class="material-symbols-outlined cursor-pointer hover:text-white" data-icon="terminal">terminal</span>
+</div>
+</div>
+</div>
+</footer>
+
+<!-- Demo Request Modal -->
+<div id="demo-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4" style="background:rgba(0,0,0,0.6); backdrop-filter:blur(4px);">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto" style="border:1px solid #e2e8f0;">
+    <!-- Header -->
+    <div class="flex items-center justify-between px-6 py-4 border-b" style="background:linear-gradient(135deg,#00288e 0%,#1e40af 100%); border-radius:1rem 1rem 0 0;">
+      <div>
+        <div class="text-xs font-bold uppercase tracking-widest text-blue-200 mb-0.5">Glassy User</div>
+        <h2 class="text-lg font-extrabold text-white">Request a Demo</h2>
+      </div>
+      <button onclick="closeDemoModal()" class="text-white/70 hover:text-white text-2xl leading-none font-light" aria-label="Close">&times;</button>
+    </div>
+    <!-- Body -->
+    <div class="px-6 py-6">
+      <div id="modal-success" class="hidden text-center py-8">
+        <div class="text-4xl mb-3">&#10003;</div>
+        <h3 class="text-lg font-extrabold mb-2" style="color:#059669;">Request received.</h3>
+        <p class="text-slate-600 text-sm">We'll be in touch within one business day. Check your email for a confirmation.</p>
+      </div>
+      <form id="modal-form" class="space-y-4">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold mb-1">First Name <span class="text-red-600">*</span></label>
+            <input id="m-firstName" required type="text" placeholder="Jane"
+              class="w-full px-3 py-2 rounded-lg border text-sm" style="border:1px solid #cbd5e1;" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold mb-1">Last Name <span class="text-red-600">*</span></label>
+            <input id="m-lastName" required type="text" placeholder="Smith"
+              class="w-full px-3 py-2 rounded-lg border text-sm" style="border:1px solid #cbd5e1;" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold mb-1">Law Firm <span class="text-red-600">*</span></label>
+          <input id="m-firm" required type="text" placeholder="Pacific Defense Group, LLP"
+            class="w-full px-3 py-2 rounded-lg border text-sm" style="border:1px solid #cbd5e1;" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold mb-1">Work Email <span class="text-red-600">*</span></label>
+            <input id="m-email" required type="email" placeholder="jane@firm.com"
+              class="w-full px-3 py-2 rounded-lg border text-sm" style="border:1px solid #cbd5e1;" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold mb-1">Phone <span class="text-xs font-normal text-slate-400">(optional)</span></label>
+            <input id="m-phone" type="tel" placeholder="(415) 555-0100"
+              class="w-full px-3 py-2 rounded-lg border text-sm" style="border:1px solid #cbd5e1;" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold mb-1">Practice Size</label>
+          <select id="m-practiceSize" class="w-full px-3 py-2 rounded-lg border text-sm" style="border:1px solid #cbd5e1;">
+            <option value="">Select range</option>
+            <option value="Solo">Solo practitioner</option>
+            <option value="2-5">2–5 attorneys</option>
+            <option value="6-20">6–20 attorneys</option>
+            <option value="21-50">21–50 attorneys</option>
+            <option value="50+">50+ attorneys</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold mb-1">Message <span class="text-xs font-normal text-slate-400">(optional)</span></label>
+          <textarea id="m-message" rows="3" placeholder="Tell us about your practice or what you'd like to see in the demo..."
+            class="w-full px-3 py-2 rounded-lg border text-sm" style="border:1px solid #cbd5e1;"></textarea>
+        </div>
+        <div id="modal-error" class="hidden px-3 py-2 rounded-lg text-xs" style="background:#fff1f2; border:1px solid #fecdd3; color:#991b1b;"></div>
+        <button type="submit" id="modal-submit"
+          class="w-full text-white font-bold py-3 rounded-lg text-sm hover:opacity-90 transition-opacity disabled:opacity-60"
+          style="background:linear-gradient(135deg,#00288e 0%,#1e40af 100%);">
+          Request Demo &rarr;
+        </button>
+        <p class="text-center text-xs text-slate-400">By submitting you agree to be contacted by Glass Box Solutions. We don't sell your data.</p>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  const GLASSY_API = 'https://adjudiclaims-marketing-915841834222.us-west1.run.app/api/glassy-contact';
+
+  function openDemoModal() {
+    const m = document.getElementById('demo-modal');
+    m.classList.remove('hidden');
+    m.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeDemoModal() {
+    const m = document.getElementById('demo-modal');
+    m.classList.add('hidden');
+    m.classList.remove('flex');
+    document.body.style.overflow = '';
+  }
+
+  document.getElementById('demo-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeDemoModal();
+  });
+
+  document.getElementById('modal-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('modal-submit');
+    const errEl = document.getElementById('modal-error');
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+    errEl.classList.add('hidden');
+
+    const payload = {
+      firstName:    document.getElementById('m-firstName').value.trim(),
+      lastName:     document.getElementById('m-lastName').value.trim(),
+      firm:         document.getElementById('m-firm').value.trim(),
+      email:        document.getElementById('m-email').value.trim(),
+      phone:        document.getElementById('m-phone').value.trim(),
+      practiceSize: document.getElementById('m-practiceSize').value,
+      message:      document.getElementById('m-message').value.trim(),
+    };
+
+    try {
+      const res = await fetch(GLASSY_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        document.getElementById('modal-form').classList.add('hidden');
+        document.getElementById('modal-success').classList.remove('hidden');
+      } else {
+        const data = await res.json().catch(() => ({}));
+        errEl.textContent = data.error ?? 'Something went wrong. Please try again.';
+        errEl.classList.remove('hidden');
+        btn.disabled = false;
+        btn.textContent = 'Request Demo →';
+      }
+    } catch {
+      errEl.textContent = 'Network error. Please check your connection and try again.';
+      errEl.classList.remove('hidden');
+      btn.disabled = false;
+      btn.textContent = 'Request Demo →';
+    }
+  });
+</script>
+
+</body></html>

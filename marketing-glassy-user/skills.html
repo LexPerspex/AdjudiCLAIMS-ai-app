@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Skills - Glassy User</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: {
+                DEFAULT: '#00288e',
+                deep: '#00288e',
+              },
+              secondary: {
+                DEFAULT: '#1e40af',
+              },
+              tertiary: {
+                DEFAULT: '#3b82f6',
+              },
+              slate: {
+                50: '#f8fafc',
+                100: '#f1f5f9',
+                200: '#e2e8f0',
+                700: '#334155',
+                800: '#1e293b',
+                900: '#0f172a',
+                950: '#020617',
+              }
+            },
+            borderRadius: {
+              "DEFAULT": "0.25rem",
+              "lg": "0.5rem",
+              "xl": "0.75rem",
+              "full": "9999px"
+            },
+            fontFamily: {
+              headline: ["Inter", "sans-serif"],
+              body: ["Inter", "sans-serif"],
+              label: ["Inter", "sans-serif"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .glass-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+    </style>
+</head>
+<body class="bg-white font-body text-slate-700 antialiased">
+<!-- TopNavBar -->
+<header class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-sm docked full-width top-0 sticky z-50">
+<div class="max-w-7xl mx-auto flex justify-between items-center px-6 py-4 w-full">
+<div class="text-xl font-extrabold tracking-tighter text-blue-900 dark:text-white">
+                Glassy User
+            </div>
+<nav class="hidden md:flex items-center space-x-8">
+<a class="font-['Inter'] font-medium text-slate-600 dark:text-slate-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors" href="index.html">Home</a>
+<a class="font-['Inter'] font-medium text-slate-600 dark:text-slate-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors" href="how-it-works.html">How It Works</a>
+<a class="font-['Inter'] font-medium text-blue-700 dark:text-blue-400 border-b-2 border-blue-900 dark:border-blue-400 pb-1 hover:text-blue-800 dark:hover:text-blue-300 transition-colors" href="skills.html">Skills</a>
+<a class="font-['Inter'] font-medium text-slate-600 dark:text-slate-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors" href="security.html">Security</a>
+</nav>
+<div class="flex items-center">
+<a href="#" onclick="openDemoModal(); return false;" class="bg-[#00288e] text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-800 transition-all duration-150 no-underline">Request Demo</a>
+</div>
+</div>
+</header>
+<main>
+<!-- Hero Section -->
+<section class="relative overflow-hidden bg-gradient-to-br from-[#00288e] to-[#1e40af] pt-24 pb-32">
+<div class="absolute inset-0 opacity-10" data-alt="abstract geometric pattern of interconnected lines and nodes representing data transparency and precision">
+<svg fill="none" height="100%" width="100%" xmlns="http://www.w3.org/2000/svg">
+<pattern height="40" id="grid" patternunits="userSpaceOnUse" width="40">
+<path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5"></path>
+</pattern>
+<rect fill="url(#grid)" height="100%" width="100%"></rect>
+</svg>
+</div>
+<div class="max-w-7xl mx-auto px-6 relative z-10 text-center">
+<div class="inline-flex items-center px-4 py-1.5 rounded-full bg-white/10 border border-white/20 mb-8">
+<span class="text-blue-200 text-xs font-bold uppercase tracking-widest">Verified Transparency</span>
+</div>
+<h1 class="text-5xl md:text-7xl font-bold font-headline text-white tracking-tight mb-6">
+                    33 Skills. One Assistant.
+                </h1>
+<p class="text-xl text-blue-100 max-w-3xl mx-auto leading-relaxed">
+                    Every AI action is audit-logged, citation-backed, and grounded in CA Workers' Comp statutes. No black boxes—just clear, traceable legal intelligence.
+                </p>
+<div class="mt-16 flex flex-wrap justify-center gap-4">
+<a class="px-8 py-4 bg-white text-[#00288e] rounded-lg font-bold shadow-lg hover:bg-blue-50 transition-colors" href="#legal">CA WC Legal</a>
+<a class="px-8 py-4 bg-white/10 text-white border border-white/30 rounded-lg font-bold backdrop-blur hover:bg-white/20 transition-colors" href="#fabric">Fabric-Pattern</a>
+<a class="px-8 py-4 bg-white/10 text-white border border-white/30 rounded-lg font-bold backdrop-blur hover:bg-white/20 transition-colors" href="#general">General-Purpose</a>
+</div>
+</div>
+</section>
+<!-- CA Workers' Comp Legal Skills Section -->
+<section class="py-24 bg-slate-50" id="legal">
+<div class="max-w-7xl mx-auto px-6">
+<div class="mb-16">
+<h2 class="text-3xl font-bold text-slate-900 font-headline mb-4">CA Workers' Comp Legal Skills</h2>
+<p class="text-slate-600 text-lg">Specialized intelligence modules built specifically for California defense workflows.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+<!-- Skill Card 1 -->
+<div class="bg-white p-8 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+<span class="material-symbols-outlined text-[#00288e] text-3xl mb-4">gavel</span>
+<h3 class="text-xl font-bold text-slate-900 mb-2">Case Evaluation</h3>
+<p class="text-slate-600 mb-4 text-sm leading-relaxed">Automated assessment of case exposure based on PD, TD, and medical-legal reporting trends.</p>
+<div class="bg-slate-50 p-4 rounded-lg border border-slate-100">
+<span class="text-[10px] font-bold text-blue-900 uppercase tracking-tighter">OUTPUT:</span>
+<p class="text-xs text-slate-500 italic mt-1">"Summary of legal exposure including projected PD percentage and settlement range..."</p>
+</div>
+</div>
+<!-- Skill Card 2 -->
+<div class="bg-white p-8 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+<span class="material-symbols-outlined text-[#00288e] text-3xl mb-4">record_voice_over</span>
+<h3 class="text-xl font-bold text-slate-900 mb-2">Dep Prep</h3>
+<p class="text-slate-600 mb-4 text-sm leading-relaxed">Generates witness-specific outlines and line-of-questioning based on medical discrepancies.</p>
+<div class="bg-slate-50 p-4 rounded-lg border border-slate-100">
+<span class="text-[10px] font-bold text-blue-900 uppercase tracking-tighter">OUTPUT:</span>
+<p class="text-xs text-slate-500 italic mt-1">"Structured deposition questionnaire focusing on inconsistent injury mechanisms..."</p>
+</div>
+</div>
+<!-- Skill Card 3 -->
+<div class="bg-white p-8 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+<span class="material-symbols-outlined text-[#00288e] text-3xl mb-4">analytics</span>
+<h3 class="text-xl font-bold text-slate-900 mb-2">IME/QME Analysis</h3>
+<p class="text-slate-600 mb-4 text-sm leading-relaxed">Cross-references physician reports against AMA Guides 5th Edition for rating accuracy.</p>
+<div class="bg-slate-50 p-4 rounded-lg border border-slate-100">
+<span class="text-[10px] font-bold text-blue-900 uppercase tracking-tighter">OUTPUT:</span>
+<p class="text-xs text-slate-500 italic mt-1">"Critique of medical-legal reporting with rating discrepancy highlights..."</p>
+</div>
+</div>
+<!-- Skill Card 4 -->
+<div class="bg-white p-8 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+<span class="material-symbols-outlined text-[#00288e] text-3xl mb-4">payments</span>
+<h3 class="text-xl font-bold text-slate-900 mb-2">Lien Resolution</h3>
+<p class="text-slate-600 mb-4 text-sm leading-relaxed">Analyzes medical liens for OMFS compliance and duplicate billing patterns.</p>
+<div class="bg-slate-50 p-4 rounded-lg border border-slate-100">
+<span class="text-[10px] font-bold text-blue-900 uppercase tracking-tighter">OUTPUT:</span>
+<p class="text-xs text-slate-500 italic mt-1">"Lien priority report with recommended settlement offers per line item..."</p>
+</div>
+</div>
+<!-- Skill Card 5 -->
+<div class="bg-white p-8 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+<span class="material-symbols-outlined text-[#00288e] text-3xl mb-4">event_note</span>
+<h3 class="text-xl font-bold text-slate-900 mb-2">MSC Prep</h3>
+<p class="text-slate-600 mb-4 text-sm leading-relaxed">Assembles Mandatory Settlement Conference statements and exhibits in compliance with CCR.</p>
+<div class="bg-slate-50 p-4 rounded-lg border border-slate-100">
+<span class="text-[10px] font-bold text-blue-900 uppercase tracking-tighter">OUTPUT:</span>
+<p class="text-xs text-slate-500 italic mt-1">"Ready-to-file MSC statement including relevant legal authorities..."</p>
+</div>
+</div>
+<!-- Skill Card 6 -->
+<div class="bg-white p-8 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+<span class="material-symbols-outlined text-[#00288e] text-3xl mb-4">calculate</span>
+<h3 class="text-xl font-bold text-slate-900 mb-2">Settlement Valuation</h3>
+<p class="text-slate-600 mb-4 text-sm leading-relaxed">Calculates C&amp;R vs. Stipulated Award values including MSA and life expectancy projections.</p>
+<div class="bg-slate-50 p-4 rounded-lg border border-slate-100">
+<span class="text-[10px] font-bold text-blue-900 uppercase tracking-tighter">OUTPUT:</span>
+<p class="text-xs text-slate-500 italic mt-1">"Detailed valuation table for Stip vs C&amp;R scenarios..."</p>
+</div>
+</div>
+<!-- Skill Card 7 -->
+<div class="bg-white p-8 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+<span class="material-symbols-outlined text-[#00288e] text-3xl mb-4">clinical_notes</span>
+<h3 class="text-xl font-bold text-slate-900 mb-2">Med Record Review</h3>
+<p class="text-slate-600 mb-4 text-sm leading-relaxed">High-density extraction of pre-existing conditions and index of injury events.</p>
+<div class="bg-slate-50 p-4 rounded-lg border border-slate-100">
+<span class="text-[10px] font-bold text-blue-900 uppercase tracking-tighter">OUTPUT:</span>
+<p class="text-xs text-slate-500 italic mt-1">"Chronological medical event timeline with highlighted industrial relevance..."</p>
+</div>
+</div>
+<!-- Skill Card 8 -->
+<div class="bg-white p-8 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+<span class="material-symbols-outlined text-[#00288e] text-3xl mb-4">search_check</span>
+<h3 class="text-xl font-bold text-slate-900 mb-2">Discovery Planning</h3>
+<p class="text-slate-600 mb-4 text-sm leading-relaxed">Identifies missing records, required subpoenas, and investigative leads.</p>
+<div class="bg-slate-50 p-4 rounded-lg border border-slate-100">
+<span class="text-[10px] font-bold text-blue-900 uppercase tracking-tighter">OUTPUT:</span>
+<p class="text-xs text-slate-500 italic mt-1">"Prioritized discovery checklist with draft subpoena language..."</p>
+</div>
+</div>
+<!-- Skill Card 9 -->
+<div class="bg-white p-8 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+<span class="material-symbols-outlined text-[#00288e] text-3xl mb-4">account_balance_wallet</span>
+<h3 class="text-xl font-bold text-slate-900 mb-2">Benefit Calc</h3>
+<p class="text-slate-600 mb-4 text-sm leading-relaxed">Precise calculation of AWW, TD rates, and PD indemnity per date of injury.</p>
+<div class="bg-slate-50 p-4 rounded-lg border border-slate-100">
+<span class="text-[10px] font-bold text-blue-900 uppercase tracking-tighter">OUTPUT:</span>
+<p class="text-xs text-slate-500 italic mt-1">"Official benefit worksheet with statutory maximum/minimum checks..."</p>
+</div>
+</div>
+<!-- Skill Card 10 -->
+<div class="bg-white p-8 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+<span class="material-symbols-outlined text-[#00288e] text-3xl mb-4">rule</span>
+<h3 class="text-xl font-bold text-slate-900 mb-2">UR/IMR Analysis</h3>
+<p class="text-slate-600 mb-4 text-sm leading-relaxed">Reviewing Utilization Review decisions and IMR denials for MTUS compliance.</p>
+<div class="bg-slate-50 p-4 rounded-lg border border-slate-100">
+<span class="text-[10px] font-bold text-blue-900 uppercase tracking-tighter">OUTPUT:</span>
+<p class="text-xs text-slate-500 italic mt-1">"MTUS adherence report and IMR timeline audit..."</p>
+</div>
+</div>
+<!-- Skill Card 11 -->
+<div class="bg-white p-8 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+<span class="material-symbols-outlined text-[#00288e] text-3xl mb-4">assured_workload</span>
+<h3 class="text-xl font-bold text-slate-900 mb-2">Subrogation Review</h3>
+<p class="text-slate-600 mb-4 text-sm leading-relaxed">Analysis of third-party negligence and potential for recovery assets.</p>
+<div class="bg-slate-50 p-4 rounded-lg border border-slate-100">
+<span class="text-[10px] font-bold text-blue-900 uppercase tracking-tighter">OUTPUT:</span>
+<p class="text-xs text-slate-500 italic mt-1">"Subrogation feasibility report with identified third-party entities..."</p>
+</div>
+</div>
+<!-- Skill Card 12 -->
+<div class="bg-white p-8 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+<span class="material-symbols-outlined text-[#00288e] text-3xl mb-4">pie_chart</span>
+<h3 class="text-xl font-bold text-slate-900 mb-2">Apportionment Analysis</h3>
+<p class="text-slate-600 mb-4 text-sm leading-relaxed">Evaluates medical evidence for legal apportionment under Escobedo and Brodie.</p>
+<div class="bg-slate-50 p-4 rounded-lg border border-slate-100">
+<span class="text-[10px] font-bold text-blue-900 uppercase tracking-tighter">OUTPUT:</span>
+<p class="text-xs text-slate-500 italic mt-1">"Apportionment defense brief citing medical-legal findings..."</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Fabric-Pattern Skills Section -->
+<section class="py-24 bg-white" id="fabric">
+<div class="max-w-7xl mx-auto px-6">
+<div class="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-4">
+<div>
+<h2 class="text-3xl font-bold text-slate-900 font-headline mb-4">Fabric-Pattern Skills</h2>
+<p class="text-slate-600 text-lg">Sophisticated processing patterns for deep document understanding.</p>
+</div>
+<span class="px-4 py-1 bg-blue-50 text-[#1e40af] text-sm font-bold rounded-full border border-blue-100">Cognitive Frameworks</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-5 gap-6">
+<div class="col-span-1 md:col-span-1 bg-slate-100 p-6 rounded-xl border border-slate-200 flex flex-col items-center text-center">
+<span class="material-symbols-outlined text-tertiary text-2xl mb-3">lightbulb</span>
+<h4 class="font-bold text-slate-900 text-sm">Extract Wisdom</h4>
+</div>
+<div class="col-span-1 md:col-span-1 bg-slate-100 p-6 rounded-xl border border-slate-200 flex flex-col items-center text-center">
+<span class="material-symbols-outlined text-tertiary text-2xl mb-3">summarize</span>
+<h4 class="font-bold text-slate-900 text-sm">Summarize</h4>
+</div>
+<div class="col-span-1 md:col-span-1 bg-slate-100 p-6 rounded-xl border border-slate-200 flex flex-col items-center text-center">
+<span class="material-symbols-outlined text-tertiary text-2xl mb-3">troubleshoot</span>
+<h4 class="font-bold text-slate-900 text-sm">Analyze Claim</h4>
+</div>
+<div class="col-span-1 md:col-span-1 bg-slate-100 p-6 rounded-xl border border-slate-200 flex flex-col items-center text-center">
+<span class="material-symbols-outlined text-tertiary text-2xl mb-3">edit_note</span>
+<h4 class="font-bold text-slate-900 text-sm">Write Essay</h4>
+</div>
+<div class="col-span-1 md:col-span-1 bg-slate-100 p-6 rounded-xl border border-slate-200 flex flex-col items-center text-center">
+<span class="material-symbols-outlined text-tertiary text-2xl mb-3">auto_awesome</span>
+<h4 class="font-bold text-slate-900 text-sm">Create Summary</h4>
+</div>
+</div>
+</div>
+</section>
+<!-- General-Purpose Skills Section -->
+<section class="py-24 bg-slate-50" id="general">
+<div class="max-w-7xl mx-auto px-6">
+<div class="mb-16 text-center">
+<h2 class="text-3xl font-bold text-slate-900 font-headline mb-4">General-Purpose Skills</h2>
+<p class="text-slate-600 text-lg max-w-2xl mx-auto">Foundational utilities for daily administrative and professional tasks.</p>
+</div>
+<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4">
+<div class="bg-white p-4 rounded-lg border border-slate-200 text-center flex flex-col items-center justify-center space-y-2 hover:border-blue-300 transition-colors cursor-default">
+<span class="material-symbols-outlined text-slate-400 text-xl">travel_explore</span>
+<span class="text-xs font-semibold text-slate-700">Research</span>
+</div>
+<div class="bg-white p-4 rounded-lg border border-slate-200 text-center flex flex-col items-center justify-center space-y-2 hover:border-blue-300 transition-colors cursor-default">
+<span class="material-symbols-outlined text-slate-400 text-xl">description</span>
+<span class="text-xs font-semibold text-slate-700">Drafting</span>
+</div>
+<div class="bg-white p-4 rounded-lg border border-slate-200 text-center flex flex-col items-center justify-center space-y-2 hover:border-blue-300 transition-colors cursor-default">
+<span class="material-symbols-outlined text-slate-400 text-xl">code</span>
+<span class="text-xs font-semibold text-slate-700">Coding</span>
+</div>
+<div class="bg-white p-4 rounded-lg border border-slate-200 text-center flex flex-col items-center justify-center space-y-2 hover:border-blue-300 transition-colors cursor-default">
+<span class="material-symbols-outlined text-slate-400 text-xl">query_stats</span>
+<span class="text-xs font-semibold text-slate-700">Data Analysis</span>
+</div>
+<div class="bg-white p-4 rounded-lg border border-slate-200 text-center flex flex-col items-center justify-center space-y-2 hover:border-blue-300 transition-colors cursor-default">
+<span class="material-symbols-outlined text-slate-400 text-xl">translate</span>
+<span class="text-xs font-semibold text-slate-700">Translation</span>
+</div>
+<div class="bg-white p-4 rounded-lg border border-slate-200 text-center flex flex-col items-center justify-center space-y-2 hover:border-blue-300 transition-colors cursor-default">
+<span class="material-symbols-outlined text-slate-400 text-xl">mail</span>
+<span class="text-xs font-semibold text-slate-700">Email Mgmt</span>
+</div>
+<div class="bg-white p-4 rounded-lg border border-slate-200 text-center flex flex-col items-center justify-center space-y-2 hover:border-blue-300 transition-colors cursor-default">
+<span class="material-symbols-outlined text-slate-400 text-xl">calendar_month</span>
+<span class="text-xs font-semibold text-slate-700">Scheduling</span>
+</div>
+<div class="bg-white p-4 rounded-lg border border-slate-200 text-center flex flex-col items-center justify-center space-y-2 hover:border-blue-300 transition-colors cursor-default">
+<span class="material-symbols-outlined text-slate-400 text-xl">spellcheck</span>
+<span class="text-xs font-semibold text-slate-700">Proofreading</span>
+</div>
+<div class="bg-white p-4 rounded-lg border border-slate-200 text-center flex flex-col items-center justify-center space-y-2 hover:border-blue-300 transition-colors cursor-default">
+<span class="material-symbols-outlined text-slate-400 text-xl">attach_money</span>
+<span class="text-xs font-semibold text-slate-700">Budgeting</span>
+</div>
+<div class="bg-white p-4 rounded-lg border border-slate-200 text-center flex flex-col items-center justify-center space-y-2 hover:border-blue-300 transition-colors cursor-default">
+<span class="material-symbols-outlined text-slate-400 text-xl">format_list_bulleted</span>
+<span class="text-xs font-semibold text-slate-700">Organization</span>
+</div>
+<div class="bg-white p-4 rounded-lg border border-slate-200 text-center flex flex-col items-center justify-center space-y-2 hover:border-blue-300 transition-colors cursor-default">
+<span class="material-symbols-outlined text-slate-400 text-xl">psychology</span>
+<span class="text-xs font-semibold text-slate-700">Ideation</span>
+</div>
+<div class="bg-white p-4 rounded-lg border border-slate-200 text-center flex flex-col items-center justify-center space-y-2 hover:border-blue-300 transition-colors cursor-default">
+<span class="material-symbols-outlined text-slate-400 text-xl">show_chart</span>
+<span class="text-xs font-semibold text-slate-700">Presentation</span>
+</div>
+<div class="bg-white p-4 rounded-lg border border-slate-200 text-center flex flex-col items-center justify-center space-y-2 hover:border-blue-300 transition-colors cursor-default">
+<span class="material-symbols-outlined text-slate-400 text-xl">verified</span>
+<span class="text-xs font-semibold text-slate-700">Fact Check</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Final CTA Section -->
+<section class="py-24 bg-white">
+<div class="max-w-4xl mx-auto px-6 text-center">
+<div class="p-12 rounded-2xl bg-gradient-to-r from-[#00288e] to-[#1e40af] text-white">
+<h2 class="text-4xl font-bold mb-6">Ready to see these skills in action?</h2>
+<p class="text-blue-100 text-xl mb-10 leading-relaxed">
+                        Browse the full skill catalog and discover how Glassy transforms your Workers' Comp defense workflow.
+                    </p>
+<a href="#" onclick="openDemoModal(); return false;" class="bg-white text-[#00288e] px-10 py-4 rounded-lg font-bold text-lg hover:bg-blue-50 transition-all shadow-xl no-underline">Request Demo</a>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-slate-950 dark:bg-black border-t border-slate-800 full-width rounded-none">
+<div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 px-6 py-16">
+<div class="col-span-1">
+<div class="text-lg font-bold text-white mb-6">Glass Box Solutions</div>
+<p class="text-slate-400 font-['Inter'] text-sm leading-relaxed mb-4">
+                    From Black Box to Glass Box. Providing auditable and explainable AI for the modern legal professional.
+                </p>
+<div class="flex items-center space-x-2 text-green-500">
+<span class="material-symbols-outlined text-sm">verified_user</span>
+<span class="text-xs font-bold uppercase tracking-widest">HIPAA COMPLIANT</span>
+</div>
+</div>
+<div class="col-span-1 grid grid-cols-2 gap-4">
+<div class="space-y-3">
+<a class="block text-slate-400 hover:text-blue-300 text-sm transition-all duration-300" href="index.html">Home</a>
+<a class="block text-slate-400 hover:text-blue-300 text-sm transition-all duration-300" href="how-it-works.html">How It Works</a>
+<a class="block text-white font-semibold text-sm transition-all duration-300" href="skills.html">Skills</a>
+<a class="block text-slate-400 hover:text-blue-300 text-sm transition-all duration-300" href="security.html">Security</a>
+</div>
+<div class="space-y-3">
+<a class="block text-slate-400 hover:text-blue-300 text-sm transition-all duration-300" href="#">Demo</a>
+<a class="block text-slate-400 hover:text-blue-300 text-sm transition-all duration-300" href="#">About</a>
+<a class="block text-slate-400 hover:text-blue-300 text-sm transition-all duration-300" href="#">Privacy</a>
+<a class="block text-slate-400 hover:text-blue-300 text-sm transition-all duration-300" href="#">Terms</a>
+</div>
+</div>
+<div class="col-span-1">
+<div class="text-white font-semibold mb-6">Connect</div>
+<a class="block text-slate-400 hover:text-blue-300 text-sm transition-all duration-300 mb-2" href="mailto:contact@adjudica.ai">contact@adjudica.ai</a>
+<p class="text-slate-500 text-xs mt-8">
+                    © 2024 Glass Box Solutions. From Black Box to Glass Box. Live at glassy.adjudica.ai
+                </p>
+</div>
+</div>
+</footer>
+
+<!-- Demo Request Modal -->
+<div id="demo-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4" style="background:rgba(0,0,0,0.6); backdrop-filter:blur(4px);">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto" style="border:1px solid #e2e8f0;">
+    <!-- Header -->
+    <div class="flex items-center justify-between px-6 py-4 border-b" style="background:linear-gradient(135deg,#00288e 0%,#1e40af 100%); border-radius:1rem 1rem 0 0;">
+      <div>
+        <div class="text-xs font-bold uppercase tracking-widest text-blue-200 mb-0.5">Glassy User</div>
+        <h2 class="text-lg font-extrabold text-white">Request a Demo</h2>
+      </div>
+      <button onclick="closeDemoModal()" class="text-white/70 hover:text-white text-2xl leading-none font-light" aria-label="Close">&times;</button>
+    </div>
+    <!-- Body -->
+    <div class="px-6 py-6">
+      <div id="modal-success" class="hidden text-center py-8">
+        <div class="text-4xl mb-3">&#10003;</div>
+        <h3 class="text-lg font-extrabold mb-2" style="color:#059669;">Request received.</h3>
+        <p class="text-slate-600 text-sm">We'll be in touch within one business day. Check your email for a confirmation.</p>
+      </div>
+      <form id="modal-form" class="space-y-4">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold mb-1">First Name <span class="text-red-600">*</span></label>
+            <input id="m-firstName" required type="text" placeholder="Jane"
+              class="w-full px-3 py-2 rounded-lg border text-sm" style="border:1px solid #cbd5e1;" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold mb-1">Last Name <span class="text-red-600">*</span></label>
+            <input id="m-lastName" required type="text" placeholder="Smith"
+              class="w-full px-3 py-2 rounded-lg border text-sm" style="border:1px solid #cbd5e1;" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold mb-1">Law Firm <span class="text-red-600">*</span></label>
+          <input id="m-firm" required type="text" placeholder="Pacific Defense Group, LLP"
+            class="w-full px-3 py-2 rounded-lg border text-sm" style="border:1px solid #cbd5e1;" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold mb-1">Work Email <span class="text-red-600">*</span></label>
+            <input id="m-email" required type="email" placeholder="jane@firm.com"
+              class="w-full px-3 py-2 rounded-lg border text-sm" style="border:1px solid #cbd5e1;" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold mb-1">Phone <span class="text-xs font-normal text-slate-400">(optional)</span></label>
+            <input id="m-phone" type="tel" placeholder="(415) 555-0100"
+              class="w-full px-3 py-2 rounded-lg border text-sm" style="border:1px solid #cbd5e1;" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold mb-1">Practice Size</label>
+          <select id="m-practiceSize" class="w-full px-3 py-2 rounded-lg border text-sm" style="border:1px solid #cbd5e1;">
+            <option value="">Select range</option>
+            <option value="Solo">Solo practitioner</option>
+            <option value="2-5">2–5 attorneys</option>
+            <option value="6-20">6–20 attorneys</option>
+            <option value="21-50">21–50 attorneys</option>
+            <option value="50+">50+ attorneys</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold mb-1">Message <span class="text-xs font-normal text-slate-400">(optional)</span></label>
+          <textarea id="m-message" rows="3" placeholder="Tell us about your practice or what you'd like to see in the demo..."
+            class="w-full px-3 py-2 rounded-lg border text-sm" style="border:1px solid #cbd5e1;"></textarea>
+        </div>
+        <div id="modal-error" class="hidden px-3 py-2 rounded-lg text-xs" style="background:#fff1f2; border:1px solid #fecdd3; color:#991b1b;"></div>
+        <button type="submit" id="modal-submit"
+          class="w-full text-white font-bold py-3 rounded-lg text-sm hover:opacity-90 transition-opacity disabled:opacity-60"
+          style="background:linear-gradient(135deg,#00288e 0%,#1e40af 100%);">
+          Request Demo &rarr;
+        </button>
+        <p class="text-center text-xs text-slate-400">By submitting you agree to be contacted by Glass Box Solutions. We don't sell your data.</p>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  const GLASSY_API = 'https://adjudiclaims-marketing-915841834222.us-west1.run.app/api/glassy-contact';
+
+  function openDemoModal() {
+    const m = document.getElementById('demo-modal');
+    m.classList.remove('hidden');
+    m.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeDemoModal() {
+    const m = document.getElementById('demo-modal');
+    m.classList.add('hidden');
+    m.classList.remove('flex');
+    document.body.style.overflow = '';
+  }
+
+  document.getElementById('demo-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeDemoModal();
+  });
+
+  document.getElementById('modal-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('modal-submit');
+    const errEl = document.getElementById('modal-error');
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+    errEl.classList.add('hidden');
+
+    const payload = {
+      firstName:    document.getElementById('m-firstName').value.trim(),
+      lastName:     document.getElementById('m-lastName').value.trim(),
+      firm:         document.getElementById('m-firm').value.trim(),
+      email:        document.getElementById('m-email').value.trim(),
+      phone:        document.getElementById('m-phone').value.trim(),
+      practiceSize: document.getElementById('m-practiceSize').value,
+      message:      document.getElementById('m-message').value.trim(),
+    };
+
+    try {
+      const res = await fetch(GLASSY_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        document.getElementById('modal-form').classList.add('hidden');
+        document.getElementById('modal-success').classList.remove('hidden');
+      } else {
+        const data = await res.json().catch(() => ({}));
+        errEl.textContent = data.error ?? 'Something went wrong. Please try again.';
+        errEl.classList.remove('hidden');
+        btn.disabled = false;
+        btn.textContent = 'Request Demo →';
+      }
+    } catch {
+      errEl.textContent = 'Network error. Please check your connection and try again.';
+      errEl.classList.remove('hidden');
+      btn.disabled = false;
+      btn.textContent = 'Request Demo →';
+    }
+  });
+</script>
+
+</body></html>

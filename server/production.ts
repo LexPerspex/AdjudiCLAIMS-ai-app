@@ -23,6 +23,8 @@ import { validateEnv } from './lib/env.js';
 import { disconnectTemporal } from './lib/temporal.js';
 import { Sentry } from './lib/instrumentation.js';
 import { prisma } from './db.js';
+import { createRequestListener } from '@react-router/node';
+import type { ServerBuild } from 'react-router';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
@@ -104,65 +106,42 @@ async function startProduction() {
     });
   }
 
-  // --- React Router SSR catch-all ---
-  // Uses the server build's fetch handler (React Router 7 Web Fetch API)
-  let serverBuild: { fetch?: (request: Request) => Promise<Response> } | null = null;
+  // --- React Router 7 SSR catch-all ---
+  // RR7's server build is a `ServerBuild` object (routes/assets/entry/...) —
+  // not a fetch handler. Wrap it with createRequestHandler from @react-router/node
+  // to get a Node.js (req, res) handler, which we adapt to Fastify's reply.raw.
+  let serverBuild: ServerBuild | null = null;
 
   if (fs.existsSync(serverBuildPath)) {
     try {
       const mod = await import(serverBuildPath);
-      // React Router 7 exports a module with default.fetch or just functions
-      serverBuild = mod.default ?? mod;
+      serverBuild = (mod.default ?? mod) as ServerBuild;
     } catch (err) {
       server.log.warn({ err }, 'Failed to load React Router server build');
     }
   }
 
   if (serverBuild) {
-    server.all('*', async (request, reply) => {
-      // API routes are already handled by Fastify route registration.
-      // This catch-all only fires for unmatched routes.
-      // If it's an API path that wasn't matched, return proper 404.
+    const rrListener = createRequestListener({ build: serverBuild, mode: 'production' });
+
+    // Use setNotFoundHandler rather than `server.all('*', ...)` — the latter
+    // would re-declare OPTIONS for `/*`, which @fastify/cors already registers,
+    // producing a fatal "Method 'OPTIONS' already declared" boot error.
+    server.setNotFoundHandler(async (request, reply) => {
+      // If it's an unknown API path, return JSON 404 (don't run SSR for it).
       if (request.url.startsWith('/api/')) {
         return reply.status(404).send({ error: 'Not Found' });
       }
 
       try {
-        if (typeof serverBuild!.fetch === 'function') {
-          // React Router 7 Web Fetch API handler
-          const url = `${request.protocol}://${request.hostname}${request.url}`;
-          const headers = new Headers();
-          for (const [key, value] of Object.entries(request.headers)) {
-            if (value) headers.set(key, Array.isArray(value) ? value.join(', ') : value);
-          }
-
-          const webRequest = new Request(url, {
-            method: request.method,
-            headers,
-            body: request.method !== 'GET' && request.method !== 'HEAD'
-              ? JSON.stringify(request.body)
-              : undefined,
-          });
-
-          const webResponse = await serverBuild!.fetch(webRequest);
-
-          reply.status(webResponse.status);
-          for (const [key, value] of webResponse.headers.entries()) {
-            reply.header(key, value);
-          }
-          const body = await webResponse.text();
-          return reply.send(body);
-        } else {
-          // Legacy Node.js handler (req, res)
-          const nodeReq = request.raw;
-          const nodeRes = reply.raw;
-          // @ts-expect-error — legacy handler shape
-          await serverBuild!(nodeReq, nodeRes);
-        }
+        // Hijack so Fastify doesn't try to serialize after the SSR response.
+        reply.hijack();
+        await rrListener(request.raw, reply.raw);
       } catch (err) {
         server.log.error({ err }, 'React Router SSR error');
-        if (!reply.sent) {
-          reply.status(500).send('Internal Server Error');
+        if (!reply.raw.headersSent) {
+          reply.raw.statusCode = 500;
+          reply.raw.end('Internal Server Error');
         }
       }
     });

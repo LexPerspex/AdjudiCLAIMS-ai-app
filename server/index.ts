@@ -172,11 +172,17 @@ async function start() {
 }
 
 // Only auto-start when run directly (not when imported by tests).
-const isMainModule =
-  typeof process.env['VITEST'] === 'undefined' &&
-  typeof process.env['TEST'] === 'undefined';
+// Only auto-start when this file is the actual entry point invoked by Node —
+// not when it's imported by another module (e.g. server/production.ts which
+// imports buildServer and runs its own listen()). The previous VITEST/TEST
+// env check was inverted: it ran start() during normal production imports,
+// causing a double listen() and EADDRINUSE on the bound port.
+import { fileURLToPath } from 'url';
+const isDirectEntry =
+  typeof process.argv[1] === 'string' &&
+  fileURLToPath(import.meta.url) === process.argv[1];
 
-if (isMainModule) {
+if (isDirectEntry) {
   start().catch((err: unknown) => {
     console.error('Fatal startup error:', err);
     process.exit(1);

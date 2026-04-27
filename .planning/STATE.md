@@ -1,8 +1,8 @@
 # AdjudiCLAIMS — Current State
 
-**Last Updated:** 2026-04-26
+**Last Updated:** 2026-04-27
 **Branch:** main
-**Last Merge:** PR #34 — `fix/cloud-run-boot-crashes` → `main` (Cloud Run boot fixes; commit `0abcc81`)
+**Last Merge:** PR #36 — `fix/AJC-2-baseline-migration` → `main` (single-file Prisma baseline; commit `0760bfa`)
 
 ---
 
@@ -27,10 +27,20 @@
 
 ### Open Blockers (non-engineering)
 
-1. **Exposed staging admin credential revocation pending** — `main-2026-04-26-segzux` PlanetScale password (org `glass-box-solutions`, db `adjudiclaims-staging`, branch `main`) and `adjudiclaims-db-url-admin` GCP secret in `adjudiclaims-staging` were created during the boot-crash debug; both are still live and must be revoked/deleted next session
-2. **Prisma migration tracking out of sync** — 4 local migrations are not recorded in the staging or prod `_prisma_migrations` table (tables themselves exist; only the tracking rows are missing). Pending `prisma migrate resolve --applied` on both: `20260330_init_postgresql`, `20260330_add_auth_and_soft_delete_fields`, `20260423031032_add_benefit_letter_types`, `20260423045225_training_sandbox_synthetic_claims`
-3. **PlanetScale MCP `invalid_token`** — cached `mcpOAuth.planetscale|b4aa0b9d0ae7d2f7` block was removed from `~/.claude/.credentials.json` this session (backup at `.credentials.json.bak-2026-04-26-mcp-nuke`); awaiting `/mcp` re-auth and verification via `mcp__planetscale__planetscale_list_organizations`
-4. **No Cloud Build triggers in `adjudiclaims-prod`** — `gcloud builds triggers list` returns 0 at both regional and global scope. Deploys to prod are currently manual (`gcloud builds submit` + `gcloud run services update`). Staging trigger state not verified this session — assume manual until checked
+1. **PlanetScale MCP still returns `invalid_token`** despite credential file being clean (valid `pscale_o…` token, refresh token present, expires 2026-05-27). Service-token CLI works (this is the path used for all admin ops); MCP path is non-functional. Likely a server-side issue with PlanetScale MCP not supporting the Postgres product. Operationally not a blocker — `pscale` CLI via service token is sufficient.
+2. **No Cloud Build triggers in `adjudiclaims-prod`** — `gcloud builds triggers list` returns 0 at both regional and global scope. Deploys to prod are currently manual. Staging trigger state not verified.
+3. **Three stale legacy DB-URL secrets in `adjudiclaims-prod`** (`adjudiclaims-db-url`, `DATABASE_URL`, `ADJUDICLAIMS_DATABASE_URL`) point at a Cloud SQL host (`35.230.2.226`) that no longer exists. Not used by Cloud Run (which is bound to `adjudiclaims-prod-database-url`). Safe to delete.
+4. **Two redundant migrations on disk** (`20260423031032_add_benefit_letter_types`, `20260423045225_training_sandbox_synthetic_claims`) — both are pure schema changes already encoded in the new `20260419063906_init` baseline. Marked applied on prod via `migrate resolve --applied`. Future fresh deploys will hit "already exists" errors. Should be removed in a follow-up PR.
+
+### Resolved (2026-04-27 late session)
+
+- ~~Staging admin credential exposure~~ — PlanetScale role `main-2026-04-26-segzux` (id `jtq5sklvhzmu`) deleted from `adjudiclaims-staging/main`; GCP secret `adjudiclaims-db-url-admin` deleted from `adjudiclaims-staging` project (task 4)
+- ~~PR #36 / AJC-2 baseline consolidation~~ — `fix/AJC-2-baseline-migration` merged at `0760bfa`; replaced two `20260330_*` migrations (broken lexical-sort order: `add_auth` ran before `init`) with single 1017-line `20260419063906_init` generated from `prisma/schema.prisma` via `prisma migrate diff --from-empty`
+- ~~Prod schema applied~~ — `prisma migrate deploy` against empty `adjudiclaims/main` PlanetScale Postgres applied `20260419063906_init` cleanly (29 tables, 27 enums); `20260423031032_add_benefit_letter_types` and `20260423045225_training_sandbox_synthetic_claims` marked applied via `migrate resolve --applied` (their schema state is already encoded in the new baseline). `prisma migrate status` clean (3 migrations, "Database schema is up to date")
+- ~~Staging migration tracking~~ — `_prisma_migrations` rows renamed: `20260330_init_postgresql` → `20260419063906_init`; `20260330_add_auth_and_soft_delete_fields` row deleted (subsumed by baseline); duplicate `20260419063906_init` row deduped (kept the older 2026-04-19 row, dropped the post-rename 2026-04-27 row). `prisma migrate status` clean
+- ~~`scripts/pscale.sh` wrapper bug~~ — fixed `exec /tmp/pscale "$@"` → `exec pscale "$@"` (CLI lives at `~/.local/bin/pscale`)
+- ~~Local `v1.0.0-mvp` git tag~~ — created at `0abcc81` (annotated; pushed: pending user authorization)
+- ~~Temp admin role hygiene~~ — every temp PlanetScale admin role created during this session (`migrate-admin-2026-04-27`, `migrate-deploy-2026-04-27`, `post-ajc2-rename-2026-04-27`, `post-ajc2-dedupe-2026-04-27`, `post-ajc2-deploy-2026-04-27`) was reassigned-then-deleted; no lingering admin creds on either prod or staging branches
 
 ### Resolved (2026-04-26)
 
@@ -56,11 +66,11 @@
 
 ### Next Actions
 
-1. Revoke exposed staging admin credentials: rotate `main-2026-04-26-segzux` PlanetScale password and delete `adjudiclaims-db-url-admin` secret from `adjudiclaims-staging`
-2. Re-auth PlanetScale MCP after credential cache nuke; verify via `mcp__planetscale__planetscale_list_organizations`
-3. Run `prisma migrate resolve --applied` for the 4 untracked migrations against both staging and prod
-4. Decide whether to wire Cloud Build triggers for `main` push (currently zero in `adjudiclaims-prod`; staging not verified) or codify the manual deploy runbook
-5. Cut MVP 1.0 release tag once migration tracking is clean and credentials are rotated
+1. Open follow-up PR to delete the two redundant on-disk migrations (`20260423031032_add_benefit_letter_types`, `20260423045225_training_sandbox_synthetic_claims`) now subsumed by the `20260419063906_init` baseline. Coordinate `_prisma_migrations` row deletion on staging/prod alongside the merge.
+2. Push `v1.0.0-mvp` tag to origin (currently local-only at `0abcc81`).
+3. Delete the three stale legacy DB-URL secrets from `adjudiclaims-prod` (`adjudiclaims-db-url`, `DATABASE_URL`, `ADJUDICLAIMS_DATABASE_URL`) — confirmed unused by Cloud Run, point at a non-existent Cloud SQL host.
+4. Decide on Cloud Build triggers for `main` push (currently zero in `adjudiclaims-prod`) or codify the manual deploy runbook.
+5. End-to-end sanity: hit `adjudiclaims-app` prod URL with a logged-in user flow now that the schema is applied — confirm the app actually works end-to-end (was previously broken on any DB-touching request).
 
 ## Quality Metrics
 

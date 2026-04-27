@@ -13,4 +13,4 @@ if [ -z "$PLANETSCALE_SERVICE_TOKEN_ID" ] || [ -z "$PLANETSCALE_SERVICE_TOKEN" ]
   exit 1
 fi
 
-exec /tmp/pscale "$@"
+exec pscale "$@"

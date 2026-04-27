@@ -1,8 +1,8 @@
 # AdjudiCLAIMS — Current State
 
-**Last Updated:** 2026-04-23
+**Last Updated:** 2026-04-26
 **Branch:** main
-**Last Merge:** PR #32 — `docs/batch-2026-04-20-execution-record` → `main` (batch execution record)
+**Last Merge:** PR #34 — `fix/cloud-run-boot-crashes` → `main` (Cloud Run boot fixes; commit `0abcc81`)
 
 ---
 
@@ -23,13 +23,21 @@
 | 10 Tier 2 Features | ✅ Complete | ~95% |
 | 11 Tier 3 Features | ❌ Not Started | 0% |
 
-## Current Focus: Pre-Production Deployment
+## Current Focus: Post-Deploy Cleanup
 
 ### Open Blockers (non-engineering)
 
-1. **Unified server not deployed to Cloud Run staging** — `server/production.ts` committed, Cloud Build triggers on `main` push but staging deployment needs verification
-2. **Production database migration not run** — `npx prisma migrate deploy` against staging/production pending
-3. **Staging E2E verification** — Playwright suite needs to run against the staging URL once deployed
+1. **Exposed staging admin credential revocation pending** — `main-2026-04-26-segzux` PlanetScale password (org `glass-box-solutions`, db `adjudiclaims-staging`, branch `main`) and `adjudiclaims-db-url-admin` GCP secret in `adjudiclaims-staging` were created during the boot-crash debug; both are still live and must be revoked/deleted next session
+2. **Prisma migration tracking out of sync** — 4 local migrations are not recorded in the staging or prod `_prisma_migrations` table (tables themselves exist; only the tracking rows are missing). Pending `prisma migrate resolve --applied` on both: `20260330_init_postgresql`, `20260330_add_auth_and_soft_delete_fields`, `20260423031032_add_benefit_letter_types`, `20260423045225_training_sandbox_synthetic_claims`
+3. **PlanetScale MCP `invalid_token`** — cached `mcpOAuth.planetscale|b4aa0b9d0ae7d2f7` block was removed from `~/.claude/.credentials.json` this session (backup at `.credentials.json.bak-2026-04-26-mcp-nuke`); awaiting `/mcp` re-auth and verification via `mcp__planetscale__planetscale_list_organizations`
+4. **No Cloud Build triggers in `adjudiclaims-prod`** — `gcloud builds triggers list` returns 0 at both regional and global scope. Deploys to prod are currently manual (`gcloud builds submit` + `gcloud run services update`). Staging trigger state not verified this session — assume manual until checked
+
+### Resolved (2026-04-26)
+
+- ~~PR #34 merged~~ — `fix/cloud-run-boot-crashes` → `main` at `0abcc81` (4 boot-crash fixes: prisma OpenSSL 3.x engine, RR7 SSR adapter wildcard collision, double-listen, CORS plugin collision)
+- ~~Production outage~~ — prod Cloud Run was crash-looping on revision `00001-xf9` (HTTP 500); redeployed manually this session to revision `adjudiclaims-app-00002-pph` from image `us-west1-docker.pkg.dev/adjudiclaims-prod/adjudiclaims/app:0abcc81` (digest `sha256:beab7204bb19c891e4866cb6ed57f853c61ee6a344549e6694e9eb8573e50b43`); 100% traffic on new revision; both `/api/health` and `/api/health/db` returning 200 ok. Build ID `43ab6582-f109-4b3f-9231-e273e2f24cad` (4m30s)
+- ~~Prod IAM gaps~~ — granted `roles/storage.objectUser` and `roles/artifactregistry.writer` to default Compute SA (`915841834222-compute@developer.gserviceaccount.com`) in `adjudiclaims-prod` to enable Cloud Build pushes
+- ~~Staging deployment~~ — `adjudiclaims-staging` Cloud Run service healthy on `7307afb-fixes-5` image; 122/122 Playwright E2E tests passed end-to-end against the staging URL
 
 ### Resolved (2026-04-20 Batch)
 
@@ -48,11 +56,11 @@
 
 ### Next Actions
 
-1. Deploy unified server to Cloud Run staging (verify Cloud Build trigger fires on `main`)
-2. Run `npx prisma migrate deploy` against staging database
-3. Run Playwright E2E suite against staging URL
-4. Run `npx prisma migrate deploy` against production database
-5. Cut MVP 1.0 release tag
+1. Revoke exposed staging admin credentials: rotate `main-2026-04-26-segzux` PlanetScale password and delete `adjudiclaims-db-url-admin` secret from `adjudiclaims-staging`
+2. Re-auth PlanetScale MCP after credential cache nuke; verify via `mcp__planetscale__planetscale_list_organizations`
+3. Run `prisma migrate resolve --applied` for the 4 untracked migrations against both staging and prod
+4. Decide whether to wire Cloud Build triggers for `main` push (currently zero in `adjudiclaims-prod`; staging not verified) or codify the manual deploy runbook
+5. Cut MVP 1.0 release tag once migration tracking is clean and credentials are rotated
 
 ## Quality Metrics
 
